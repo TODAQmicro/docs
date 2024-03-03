@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+
+import Head from '../components/Head.astro';
+import Header from '../components/Header';
+import Navigation from '../components/Navigation';
+import Scripts from '../components/Scripts.astro';
+
+const guides = await getCollection('guide');
+const references = await getCollection('reference');
+
+const entries = [...guides, ...references];
+---
+
+<!doctype html>
+<html lang="en">
+  <Head />
+  <body>
+    <Header />
+    <div style={{ display: 'flex' }}>
+      <Navigation {entries} root={true}/>
+      <section style={{ flexGrow: 4, padding: '16px' }}>
+        <slot />        
+      </section>
+    </div>
+    <Scripts />
+  </body>
+</html>

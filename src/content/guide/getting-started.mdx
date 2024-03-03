@@ -1,0 +1,140 @@
+---
+title: Getting Started
+description: Quick intro to setting up micropayments
+pubDate: February 28, 2024
+---
+
+## Getting Started
+
+[TOC]
+
+### 1. Obtain Your Account Details
+
+Before diving into setting up your online micropayment, you need to ensure you have the necessary account details from TODAQ Micro. This includes obtaining account keys: **public secret**, **client secret**, **client secret ID**.
+
+You will receive the following JSON object which contains everything you will need:
+
+```json
+{
+   "id": 8,
+   "created_at": "1709323022",
+   "updated_at": "1709323022",
+   "secrets": [
+       {
+           "public_secret": "mp_4120157d4fef4cddb97209df1d930cda",
+           "created_at": "1709323022",
+           "updated_at": "1709323022"
+       },
+       {
+           "client_id": "mid_a79128c68ad34887bb6bbc16488f19f1",
+           "client_secret": "mc_7a0ce09d7b9244b68bb5935c638ee0fb",
+           "created_at": "1709323022",
+           "updated_at": "1709323022"
+       }
+   ]
+}
+
+```
+
+### 2. Determining Your Product
+
+Identify what you want to sell through your online platform. Whether it's physical goods, digital products, or services, understanding your product offering is crucial for setting up a successful micropayment system.
+
+In this guide we will take the example of a paywall for an article or blog post. Some other examples include: Book chapter, file download, form submission, etc.
+
+
+### 3. Pricing Strategy
+
+Decide on your pricing strategy, whether it's dynamic or static pricing.
+
+
+#### 3.a. Static Pricing: Set fixed prices for your products or services.
+
+Static pricing is the easiest route and eliminates extra back and forth network requests. While it’s not absolutely necessary, as you can still have static pricing and follow the below dynamic pricing route below.
+
+Static pricing can be accomplished by creating a commodity out of band and statically setting the hash ID in the subsequent steps.
+
+To accomplish this you can either use your account keys to obtain an API access token and manually hit the TODAQ Micro [Payment API’s commodity endpoint](#), or create a script that uses the [Payment Node.JS SDK](#) to create a one-off commodity.
+
+
+#### 3.b. Dynamic Pricing: Adjust prices based on market demand, customer behavior, or other factors.
+
+**TBA**. [Check out the Payment Node.JS SDK](#).
+
+
+### 4. Integrating Micropayments Library into Your Project
+
+Choose an import mechanism that suits your project requirements and integrate it into your website or application.
+
+You can use either from a CDN:
+
+```html
+<script type="text/javascript" src="https://cdn.stage.m.todaq.net/micropay.min.js"></script>
+```
+
+Or through `npm` and have the bundler of your choice include it in the build files.
+
+```bash
+npm install --save @todaqmicro/payment-js
+```
+
+### 5. Generating Payment Element on Page Load
+
+Implement code to generate the payment element dynamically when the page loads. This element will allow users to initiate purchases directly from your website or application.
+
+```javascript
+const micro = await loadMicroPayments(
+  // Replace <PUBLIC_SECRET> with your accounts' public secret.
+  "<PUBLIC_SECRET>",
+  { apiVersion: 'main' }
+);
+
+const elements = micro.elements();
+const element = await elements.create('payment', {
+  // Replace <HASH> with the commodities hash.
+  hash: '<HASH>',
+  theme: "light",
+  styles: {
+    colorPrimary: '#000000',
+    colorBackground: '#FDB902',
+    borderRadius: '0',
+  },
+});
+
+```
+
+Replace `<PUBLIC_SECRET>` with your account’s public secret obtained in [step 1](#). and `<HASH>` with the hash ID for the commodity in [step 3](#).
+
+
+### 6. Mounting Payment Element on Your Webpage
+
+Designate a suitable location on your webpage to mount the payment element. Consider user experience and accessibility when placing the payment interface to maximize conversion rates.
+
+```javascript
+if (element) {
+  element.mount("#signup-submit");
+}
+```
+
+The `mount` function takes a string and is fed into the `querySelector` function so anything that works there will work when given to the `mount` function.
+
+
+### 7. Listening for Purchase Events
+
+Set up event listeners to detect when users initiate purchases or interact with the payment interface. This functionality will enable you to track user actions and respond accordingly to the purchase.
+
+When a payment has been made a `payment` event is emitted on the HTML `document` DOM element. Simply add an event listener and then you can validate the payment with the `validatePayment` function on the server side.
+
+```javascript
+document.addEventListener('payment', async (nonce) => {
+  // Validate payment and then provide content to the user.
+});
+```
+
+
+### 8. Validating Purchases
+
+Implement validation logic to verify the legitimacy of purchases and ensure that transactions meet your business rules and requirements. This step is essential for preventing fraudulent activities and maintaining the integrity of your payment system.
+
+**TBA**
+

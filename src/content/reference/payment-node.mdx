@@ -1,0 +1,43 @@
+---
+title: Payment Node.JS
+description: Node.JS library for accepting Micropayments
+pubDate: February 28, 2024
+---
+
+## Payment Node.JS SDK
+
+Node.JS library for accepting Micropayments
+
+#### Installation
+
+Install through `npm` or `yarn`
+
+
+#### Basic Usage
+
+See the API reference below for further information. There are two main functions to use, one is to create a commodity, and another is to validate a payment.
+
+```javascript
+const micro = new Micro(
+  // Replace <CLIENT_ID> with your accounts' client id.
+  "<CLIENT_ID>",
+  // Replace <CLIENT_SECRET> with your accounts' client secret.
+  "<CLIENT_SECRET>",
+  { apiVersion: 'v2' },
+);
+```
+
+An example creating a new commodity to send to the client:
+
+```javascript
+const commodity = await micro.Commodity.createCommodity(
+  accessToken,
+  116,  // twin id,
+  {
+    cost: 25,
+    descriptor: 'EXAMPLE.COMMODITY',
+    dq: '410ddbac7c8a259da8dfcc5f55bcb28b77d29be9c540a2c23444b416d584801c30',
+  }
+);
+```
+
