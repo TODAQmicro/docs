@@ -4,3 +4,71 @@ description: Quick intro to putting a payment button overtop of something else
 pubDate: February 28, 2024
 ---
 
+## Transparent payment button
+
+In this guide we will take advantage of the Payment Element's theme and styling options to create a transparent button overtop of some other existing element on a page. This enables the implementer to make almost anything micropayable.
+
+[TOC]
+
+### 1. Integrating Micropayments Library into Your Project
+
+Choose an import mechanism that suits your project requirements and integrate it into your website or application.
+
+You can use either from a CDN:
+
+```html
+<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+```
+
+<p>
+  <strong>Note</strong>: `type="module"` and `crossorigin="anonymous"` are required attributes.
+</p>
+
+Or through `npm` and have the bundler of your choice include it in the build files.
+
+```bash
+npm install --save @todaqmicro/payment-js
+```
+
+### 2. Setup Payment client
+
+Next we need to generate a payment element. In this example we assume you have already created a commodity with the [Payment Node.JS SDK](#).
+
+```javascript
+const micro = await loadMicroPayments(
+  // Replace <PUBLIC_SECRET> with your accounts' public secret.
+  "<PUBLIC_SECRET>",
+  { apiVersion: 'main' }
+);
+
+const elements = micro.elements();
+```
+
+### 3. Generate transparent Payment Element
+
+```javascript
+const element = await elements.create('payment', {
+  // Replace <HASH> with the commodities hash.
+  hash: '<HASH>',
+  theme: "light",
+  styles: {
+    colorPrimary: 'transparent',
+    colorBackground: 'transparent',
+  },
+});
+```
+
+#### Theme and Style options
+
+**TBA**
+
+### 4. Mounting Payment Element on Your Webpage
+
+Designate a suitable location on your webpage to mount the payment element. Consider user experience and accessibility when placing the payment interface to maximize conversion rates.
+
+```javascript
+if (element) {
+  element.mount("#signup-submit");
+}
+```
+

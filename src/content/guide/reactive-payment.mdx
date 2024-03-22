@@ -4,3 +4,105 @@ description: Require payments after something has occured
 pubDate: February 28, 2024
 ---
 
+## Reactive Payments
+
+In this example we are using a `<video>` element and the Media Source API to track a video's progress. After the video has played for a short period of time, pause, disable controls and ask the viewer to pay to continue.
+
+[TOC]
+
+#### Assumptions
+
+We assume you have already gone through the [Getting Started guide](#). As a result, we also assume you already have obtained your account details including your **public secret**, **client secret** and **client secret ID**.
+
+We assume you have a basic understanding of JavaScript, and the [Media Source API](https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API).
+
+### 1. Integrating Micropayments Library into Your Project
+
+Choose an import mechanism that suits your project requirements and integrate it into your website or application.
+
+You can use either from a CDN:
+
+```html
+<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+```
+
+<p>
+  <strong>Note</strong>: `type="module"` and `crossorigin="anonymous"` are required attributes.
+</p>
+
+Or through `npm` and have the bundler of your choice include it in the build files.
+
+```bash
+npm install --save @todaqmicro/payment-js
+```
+
+### 2. Setup your audio or video source
+
+Your audio or video source will come in the form of an `<audio>` or `<video>` tag. If you are using a library to display your media, you will need to figure out how it hooks into either of the two HTML tags. **Without access to the media elements, such as with an embed snippet, you will not be able to capture the correct events to initiate the payment flow.**
+
+
+```javascript
+const video = document.querySelector('video');
+
+video.addEventListener('play', () => {
+  // ...
+});
+
+video.addEventListener('pause', () => {
+  // ...
+});
+```
+
+
+### 3. Generate Payment Element
+
+Next we need to generate a payment element. In this example we assume you have already created a commodity with the [Payment Node.JS SDK](#).
+
+```javascript
+const micro = await loadMicroPayments(
+  // Replace <PUBLIC_SECRET> with your accounts' public secret.
+  "<PUBLIC_SECRET>",
+  { apiVersion: 'main' }
+);
+
+const elements = micro.elements();
+const element = await elements.create('payment', {
+  // Replace <HASH> with the commodities hash.
+  hash: '<HASH>',
+  theme: "light",
+  styles: {
+    colorPrimary: '#000000',
+    colorBackground: '#FDB902',
+    borderRadius: '0',
+  },
+});
+```
+
+Replace `<PUBLIC_SECRET>` with your account’s public secret, and `<HASH>` with the hash ID. Checkout the [Getting Started guide](#) for details on how to retrieve your account secrets.
+
+
+### 4. Based on an event, toggle payment flow
+
+```javascript
+const timeout = setInterval(() => {
+  if (video.currentTime >= 15) { // If the video is at 15 seconds or greater
+
+    video.controls = false;
+    video.pause();
+
+    element.toggle();
+
+    clearInterval(timeout);
+
+  }
+}, 100); // 100 microseconds
+```
+
+### 5. Payment completed, resume
+
+```javascript
+document.addEventListener('purchase', () => {
+  video.play();
+  video.controls = true;
+});
+```

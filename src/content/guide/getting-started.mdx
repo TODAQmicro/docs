@@ -69,8 +69,12 @@ Choose an import mechanism that suits your project requirements and integrate it
 You can use either from a CDN:
 
 ```html
-<script type="text/javascript" src="https://cdn.stage.m.todaq.net/micropay.min.js"></script>
+<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
 ```
+
+<p>
+  <strong>Note</strong>: `type="module"` and `crossorigin="anonymous"` are required attributes.
+</p>
 
 Or through `npm` and have the bundler of your choice include it in the build files.
 
