@@ -1,0 +1,51 @@
+---
+title: React Payment JS
+description: React framework hooks and components for accepting Micropayments
+pubDate: March 24, 2024
+---
+
+## React Payment JS SDK
+
+### Installation
+
+Using your favourite package manager:
+
+```bash
+npm install --save @todaqmicro/react-payment-js
+```
+
+### Basic Usage
+
+The basic way to set up micropayments:
+
+```javascript
+import { Elements, PaymentElement } from "@todaqmicro/react-payment-js";
+
+export default function App() {
+  return (
+    <main>
+      <Elements publicKey="mp_57dccd2882544d8281ffdfcf67a385ca">
+        <Payment />
+      </Elements>
+    </main>
+  );
+}
+
+// ...
+
+export function Payment() {
+  return (
+    <PaymentElement options={{ hash: "adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" }} />
+  );
+}
+```
+
+### Reference
+
+TODO(mihok): Fill out reference.
+
+#### useElements
+
+#### `<Elements />` Component
+
+#### `<PaymentElement />` Component
