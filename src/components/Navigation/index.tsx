@@ -18,7 +18,6 @@ const styles = {
   },
   navRoot: {
     display: 'flex',
-    padding: '64px 16px',
   },
   navList: {
     margin: 0,
@@ -43,11 +42,11 @@ export default function Navigation({ entries = [], root = false }: Props) {
   return (
     <nav style={{ ...styles.nav, ...(root ? styles.navRoot : {}) }}>
       <ul style={styles.navList}>
-        {entries.map((entry) => Array.isArray(entry)
-          ? <Navigation entries={entry} root={false} />
+        {entries && entries.map((entry) => Array.isArray(entry)
+          ? null // <Navigation entries={entry} root={false} />
           : (
-              <li style={styles.navListItem}>
-                <h5 style={styles.heading}>
+              <li style={{ ...styles.navListItem, ...{ marginLeft: `${(Math.sqrt(entry.slug.split('/').length) * 16)}px` } }}>
+                <h5 style={{ ...styles.heading, ...{ fontSize: entry.slug.split('/').length > 1 ? '0.8rem' : '1.0rem' }}}>
                   <a style={styles.headingLink} href={`/${entry.collection}/${entry.slug}/`}>
                     {entry.data.title}
                   </a>

@@ -1,0 +1,37 @@
+---
+title: Commodities
+description: TODAQMicro Commodity APIs
+pubDate: June 15, 2024
+---
+
+## Commodities
+
+This object represents a transactable enitity (e.g. A video, concert
+ticket, etc.)
+
+Related guides:
+- [Reactive payments](/guide/reactive-payment/)
+- [Transparent payment button](/guide/transparent/)
+
+## The Commodity Object
+
+##### Attributes
+
+```javascript
+{
+    "hash": "17c7f31e-34e1-4fee-b569-46f793877df4",
+    "descriptor": "ARCADE.PONG",
+    "dq": "410ddbac7c8a259da8dfcc5f55bcb28b77d29be9c540a2c23444b416d584801c30",
+    "cost": 50,
+    "hostname": "41622cd3b78e361489de8dedf2b591a4.micro-staging.biz.todaq.net"
+}
+```
+
+## Create a Commodity
+##### **POST** `/v2/commodity/`
+
+
+
+
+## Get a Commodity
+##### **GET** `/v2/commodity/:hash`

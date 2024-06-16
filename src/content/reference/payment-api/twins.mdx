@@ -1,0 +1,34 @@
+---
+title: Twins
+description: TODAQMicro Digital Twin APIs
+pubDate: June 15, 2024
+---
+
+## Twins
+
+This object represents an existing digital twin. To learn more about digital twins [check this out]().
+
+Related guides:
+- [Reactive payments](/guide/reactive-payment/)
+- [Transparent payment button](/guide/transparent/)
+
+## The Twin Object
+
+##### Attributes
+
+```javascript
+{
+    "id": 224,
+    "hostname": "41a4d95eec0e66136d0d86c04b8cdfd8.micro-staging.biz.todaq.net",
+    "key": null,
+    "balances": {
+        "410ddbac7c8a259da8dfcc5f55bcb28b77d29be9c540a2c23444b416d584801c30": 0
+    }
+}
+```
+
+## Create a Twin
+##### **POST** `/v2/twin/`
+
+## Get a Twin
+##### **GET** `/v2/twin/:hostname`

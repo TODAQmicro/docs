@@ -8,8 +8,6 @@ import Scripts from '../components/Scripts.astro';
 
 const guides = await getCollection('guide');
 const references = await getCollection('reference');
-
-const entries = [...guides, ...references];
 ---
 
 <!doctype html>
@@ -18,7 +16,6 @@ const entries = [...guides, ...references];
   <body>
     <Header />
     <div style={{ display: 'flex' }}>
-      <Navigation {entries} root={true}/>
       <section style={{ flexGrow: 4 }}>
         
       </section>

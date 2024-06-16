@@ -4,12 +4,17 @@ pre {
 
 code {
   padding: 4px;
-  color: #e2134c;
 }
 
 h1, h2, h3, h4, h5 {
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;
+}
+
+section > h5 {
+    border-bottom: 1px solid #e8e8ec;
+    padding-bottom: 16px;
+    font-weight: 600;
 }
 
 li, p {
@@ -24,4 +29,8 @@ a, a:hover {
 
 nav a {
   color: #2d334a;
+}
+
+li.2-indent {
+  margin-left: 16px;
 }
