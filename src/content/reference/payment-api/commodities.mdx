@@ -13,6 +13,7 @@ Related guides:
 - [Reactive payments](/guide/reactive-payment/)
 - [Transparent payment button](/guide/transparent/)
 
+<br /><br />
 ## The Commodity Object
 
 ##### Attributes
@@ -27,11 +28,26 @@ Related guides:
 }
 ```
 
+<br /><br />
 ## Create a Commodity
 ##### **POST** `/v2/commodity/`
 
+##### Parameter
+
+###### descriptor ***string***
+###### dq ***string***
+###### cost ***number***
 
 
+##### Returns
 
+Returns the commodity object after successful creation. Raises an error if create
+parameters are invalid.
+
+<br /><br />
 ## Get a Commodity
 ##### **GET** `/v2/commodity/:hash`
+
+##### Returns
+
+Returns the commodity object. Raises an error if the commodity does not exist.
