@@ -14,7 +14,9 @@
     "@astrojs/mdx": "^2.1.1",
     "@astrojs/react": "^3.0.10",
     "@astrojs/sitemap": "^3.1.1",
+    "@todaqmicro/payment-js": "^0.2.4",
     "astro": "^4.1.2",
+    "save": "^2.9.0",
     "typescript": "^5.3.3"
   },
   "devDependencies": {
