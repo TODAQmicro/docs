@@ -24,7 +24,7 @@ export default function EmbedElement(props: Props) {
     if (elements) {
       const embed = await elements.create("${type}", { hash: "${hash}" });
 
-      if (emebed && el) {
+      if (embed && el) {
         embed.mount(el);
       }
     };
