@@ -16,7 +16,7 @@ export default function EmbedElement(props: Props) {
  
   const handleLibrary = async () => {
     if (!elements) {
-      const micro = await loadMicroPayments("", { apiVersion: "main" })
+      const micro = await loadMicroPayments("mp_e4c4131291c24ea3922c9f376367a4f1", { apiVersion: "main" })
       
       setElements(micro.elements());
     }
