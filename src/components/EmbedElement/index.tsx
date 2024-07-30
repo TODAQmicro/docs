@@ -8,7 +8,7 @@ export default function EmbedElement(props: Props) {
 
   return (
     <div>
-      <script type="module" crossOrigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
+      <script type="module" crossOrigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
       <div id="ref" />
       <script defer type="text/javascript" dangerouslySetInnerHTML={{
         __html: `
@@ -18,8 +18,6 @@ export default function EmbedElement(props: Props) {
     const el = document.getElementById("ref");
     const micro = await loadMicroPayments("mp_e4c4131291c24ea3922c9f376367a4f1", { apiVersion: "main" });
     const elements = micro.elements();
-
-    console.log('TEST!!');
 
     if (elements) {
       const embed = await elements.create("${type}", { hash: "${hash}" });
