@@ -15,9 +15,14 @@ actions.
 <br />
 <EmbedElement type="payback" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
 <br />
+Which is simply implemented using the Elements SDK `create()` function.
+
+```javascript
+await elements.create("payback", { hash: "<HASH>" });
+```
 <br />
 
-#### Implemention
+#### Full Implemention
 
 ```javascript
 /// We get an `HTMLElement` that we would like to use for the Payback Element. 

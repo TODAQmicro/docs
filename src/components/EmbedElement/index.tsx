@@ -1,4 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
+import Destroy from '../SVG/Destroy';
+import Reset from '../SVG/Reset';
 
 type ConsentOptions = {
   type: ConsentType;
@@ -38,11 +40,21 @@ export default function EmbedElement(props: Props) {
   const random = uuidv4();
 
   return (
-    <div>
+    <div style={{ display: 'flex' }}>
       <script type="module" crossOrigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
       <div id={`ref-${random}`} />
-      {destroy && <button id={`destroy-${random}`}>Destroy</button>}
-      {destroy && <button id={`reset-${random}`}>Reset</button>}
+      {destroy && (
+        <button id={`destroy-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
+          <Destroy size={32} />
+          <span style={{ display: 'none' }}>Destroy</span>
+        </button>
+      )}
+      {destroy && (
+        <button id={`reset-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
+          <Reset size={32} />
+          <span style={{ display: 'none' }}>Reset</span>
+        </button>
+      )}
       <script defer type="text/javascript" dangerouslySetInnerHTML={{
         __html: `
 
