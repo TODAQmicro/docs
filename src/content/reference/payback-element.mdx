@@ -7,4 +7,102 @@ import EmbedElement from "../../components/EmbedElement";
 
 ## Payback Element
 
+The Payback Element allows you to provide a way to pay your users back. This is
+useful in situations where you would like to reward your users for certain
+actions.
+
+<br />
+<br />
 <EmbedElement type="payback" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+<br />
+<br />
+
+#### Implemention
+
+```javascript
+/// We get an `HTMLElement` that we would like to use for the Payback Element. 
+const el = document.getElementById("ref");
+
+/// Load the JS SDK.
+const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+
+/// We're going to be using Elements. 
+const elements = micro.elements();
+
+if (elements) {
+  /// We'll create an Element with the `type` argument set to `payback`. You
+  /// will also need to create a Commodity and provide the Commodity's `hash`.
+  const embed = await elements.create("payback", { hash: "<HASH>" });
+
+  /// As long as everything worked out correctly, and there were no issues,
+  /// mount the Element to our `HTMLElement`.
+  if (embed && el) {
+    embed.mount(el);
+  }
+};
+```
+
+Where `<PUBLIC_SECRET>` is replaced with your User or Account Public Secret. and
+`<HASH>` is replaced with a Commodity hash identifier. You can create a
+Commodity using either the [Node.JS SDK]() or the [Create Commodity API]()
+request.
+
+<br />
+<br />
+### Payback Element with Consent
+
+There may be situations that you would like to gain access to a user's personal
+information. This can be accomplished by providing the Payback Element with some
+Consent configured.
+
+<br />
+<br />
+<EmbedElement
+  type="payback"
+  hash="06880c0d-7394-40a0-b58d-d9adc3d840a9"
+  consent={{
+    'acme_email_consent': {
+      type: 0,
+      metadata: [
+        {
+          name: 'email',
+          label: 'Email associated with your wallet',
+          description:
+            'Longer form text that should include a description of what the email will be used for.',
+        },
+      ],
+    },
+    'acme_terms': {
+      type: 3,
+      metadata: [
+        {
+          name: 'terms',
+          label: 'By signing checking this box, you agree to the Terms of Service and Privacy Policy, includingg Cookie Use.',
+          checked: false,
+        }
+      ],
+    },
+  }}
+  client:load />
+<br />
+<br />
+
+### Destroying the Payback Element
+
+At any time, you may want to remove the Payback Element. 
+
+<br />
+<br />
+<EmbedElement
+  type="payback"
+  hash="06880c0d-7394-40a0-b58d-d9adc3d840a9"
+  destroy={true}
+  client:load />
+<br />
+<br />
+
+```javascript
+const embed = await elements.create("payback", { hash: "<HASH>" });
+
+embed.destroy();
+```

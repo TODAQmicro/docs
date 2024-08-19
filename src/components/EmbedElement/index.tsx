@@ -1,34 +1,97 @@
+import { v4 as uuidv4 } from 'uuid';
+
+type ConsentOptions = {
+  type: ConsentType;
+  metadata: Array<ActiveConsent | PassiveConsent>;
+};
+
+enum ConsentType {
+  EMAIL = 0x00,
+  TWIN = 0x01,
+
+  TERMS = 0x03,
+
+  CUSTOM = 0x0F,
+}
+
+type PassiveConsent = {
+  name: string;
+  label: string;
+  description: string;
+}
+
+type ActiveConsent = {
+  name: string;
+  label: string;
+  checked: boolean;
+}
+
 type Props = {
+  consent?: { [key: string]: ConsentOptions };
+  destroy?: boolean;
   hash: string;
   type: string;
 };
 
 export default function EmbedElement(props: Props) {
-  const { hash, type } = props;
+  const { consent, destroy, hash, type } = props;
+  const random = uuidv4();
 
   return (
     <div>
       <script type="module" crossOrigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
-      <div id="ref" />
+      <div id={`ref-${random}`} />
+      {destroy && <button id={`destroy-${random}`}>Destroy</button>}
+      {destroy && <button id={`reset-${random}`}>Reset</button>}
       <script defer type="text/javascript" dangerouslySetInnerHTML={{
         __html: `
 
 (() => {
-  document.addEventListener("DOMContentLoaded", async () => {
-    const el = document.getElementById("ref");
+  async function loaded() {
+    const el = document.getElementById("ref-${random}");
+    const destroy = document.getElementById("destroy-${random}");
+    const reset = document.getElementById("reset-${random}");
     const micro = await loadMicroPayments("mp_e4c4131291c24ea3922c9f376367a4f1", { apiVersion: "main" });
     const elements = micro.elements();
 
     if (elements) {
-      const embed = await elements.create("${type}", { hash: "${hash}" });
+      const options = {
+${consent ? "" : `        consent: JSON.parse("${JSON.stringify(consent ? consent : {})}"),`}
+        hash: "${hash}",
+      };
+
+      const embed = await elements.create("${type}", {
+        hash: "${hash}"
+      });
 
       if (embed && el) {
-        embed.mount(el);
+        window.addEventListener("message", (event) => {
+          if(embed && event.data.includes("_TQMEventDestroy_${random}")) {
+            embed.destroy();
+          }
+        });
+
+        embed.mount(el); 
+
+        if (destroy) {
+          destroy.addEventListener("click", (event) => {
+            window.postMessage("_TQMEventDestroy_${random}", "*");
+          });
+        }
+
+        if (reset) {
+          reset.addEventListener("click", (event) => {
+            window.postMessage("_TQMEventDestroy_${random}", "*");
+            loaded();
+            console.log('RESET');
+          });
+        }
       }
     };
-  });
-})();
+  }
 
+  document.addEventListener("DOMContentLoaded", loaded);
+})();
 `
       }} />
     </div>
