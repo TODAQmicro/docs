@@ -10,12 +10,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.4.1",
-    "@astrojs/mdx": "^2.1.1",
-    "@astrojs/react": "^3.0.10",
-    "@astrojs/sitemap": "^3.1.1",
-    "@todaqmicro/payment-js": "^0.2.8",
-    "astro": "^4.1.2",
+    "@astrojs/check": "^0.9.3",
+    "@astrojs/mdx": "^3.1.4",
+    "@astrojs/react": "^3.6.2",
+    "@astrojs/sitemap": "^3.1.6",
+    "@todaqmicro/payment-js": "^0.2.10",
+    "astro": "^4.13.4",
     "save": "^2.9.0",
     "typescript": "^5.3.3",
     "uuid": "^10.0.0"

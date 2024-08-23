@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+
+// import { whenMounted } from '../../utils.ts';
 import Destroy from '../SVG/Destroy';
 import Reset from '../SVG/Reset';
 
@@ -35,13 +38,14 @@ type Props = {
   type: string;
 };
 
-export default function EmbedElement(props: Props) {
-  const { consent, destroy, hash, type } = props;
-  const random = uuidv4();
+export default function EmbedElement({ consent, destroy, hash, type }: Props) {
+  const [ random, _ ] = useState(uuidv4());
 
+  console.log('CONSENT', consent);
+ 
   return (
     <div style={{ display: 'flex' }}>
-      <script type="module" crossOrigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+      <script type="module" crossOrigin="anonymous" src="http://localhost:3000/micropay.js"></script>
       <div id={`ref-${random}`} />
       {destroy && (
         <button id={`destroy-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
@@ -68,7 +72,7 @@ export default function EmbedElement(props: Props) {
 
     if (elements) {
       const options = {
-${consent ? "" : `        consent: JSON.parse("${JSON.stringify(consent ? consent : {})}"),`}
+${`        consent: JSON.parse('${JSON.stringify(consent ? consent : null)}'),`}
         hash: "${hash}",
       };
 
