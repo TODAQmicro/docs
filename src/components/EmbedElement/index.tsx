@@ -40,13 +40,11 @@ type Props = {
 
 export default function EmbedElement({ consent, destroy, hash, type }: Props) {
   const [ random, _ ] = useState(uuidv4());
-
-  console.log('CONSENT', consent);
  
   return (
     <div style={{ display: 'flex' }}>
       <script type="module" crossOrigin="anonymous" src="http://localhost:3000/micropay.js"></script>
-      <div id={`ref-${random}`} />
+      <div id={`ref-${random}`}><iframe frameBorder="0" width="auto" height="auto" /></div>
       {destroy && (
         <button id={`destroy-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
           <Destroy size={32} />
@@ -76,9 +74,7 @@ ${`        consent: JSON.parse('${JSON.stringify(consent ? consent : null)}'),`}
         hash: "${hash}",
       };
 
-      const embed = await elements.create("${type}", {
-        hash: "${hash}"
-      });
+      const embed = await elements.create("${type}", options);
 
       if (embed && el) {
         window.addEventListener("message", (event) => {
@@ -99,7 +95,6 @@ ${`        consent: JSON.parse('${JSON.stringify(consent ? consent : null)}'),`}
           reset.addEventListener("click", (event) => {
             window.postMessage("_TQMEventDestroy_${random}", "*");
             loaded();
-            console.log('RESET');
           });
         }
       }
