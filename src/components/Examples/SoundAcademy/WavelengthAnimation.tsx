@@ -5,7 +5,7 @@ export type Props = {
   colors: Array<string>;
 };
 
-export default function WavelengthAnimation() {
+export default function WavelengthAnimation(props: Props) {
   return (
     <Wave
       fill="#000"

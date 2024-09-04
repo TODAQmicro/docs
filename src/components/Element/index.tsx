@@ -43,7 +43,7 @@ export default function Element({ consent, destroy, hash, type }: Props) {
  
   return (
     <div style={{ display: 'flex' }}>
-      <script type="module" crossOrigin="anonymous" src="http://localhost:3000/micropay.js"></script>
+      <script type="module" crossOrigin="anonymous" src="http://cdn.stage.m.todaq.net/micropay.js"></script>
       <div id={`ref-${random}`}><iframe frameBorder="0" width="auto" height="auto" /></div>
       {destroy && (
         <button id={`destroy-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
