@@ -38,7 +38,7 @@ type Props = {
   type: string;
 };
 
-export default function EmbedElement({ consent, destroy, hash, type }: Props) {
+export default function Element({ consent, destroy, hash, type }: Props) {
   const [ random, _ ] = useState(uuidv4());
  
   return (
