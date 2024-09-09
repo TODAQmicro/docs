@@ -43,7 +43,7 @@ export default function Element({ consent, destroy, hash, type }: Props) {
  
   return (
     <div style={{ display: 'flex' }}>
-      <script type="module" crossOrigin="anonymous" src="http://cdn.stage.m.todaq.net/micropay.js"></script>
+      <script type="module" crossOrigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
       <div id={`ref-${random}`}><iframe frameBorder="0" width="auto" height="auto" /></div>
       {destroy && (
         <button id={`destroy-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
@@ -78,7 +78,7 @@ ${`        consent: JSON.parse('${JSON.stringify(consent ? consent : null)}'),`}
 
       if (embed && el) {
         window.addEventListener("message", (event) => {
-          if(embed && event.data.includes("_TQMEventDestroy_${random}")) {
+          if(embed && event.data && event.data.includes &&  event.data.includes("_TQMEventDestroy_${random}")) {
             embed.destroy();
           }
         });
