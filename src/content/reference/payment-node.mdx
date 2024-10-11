@@ -41,3 +41,37 @@ const commodity = await micro.Commodity.createCommodity(
 );
 ```
 
+### Commodities
+
+#### createCommodity
+
+
+```javascript
+const commodity = await micro.Commodity.createCommodity(
+  accessToken,
+  116,  // twin id,
+  {
+    cost: 25,
+    descriptor: 'EXAMPLE.COMMODITY',
+    dq: '410ddbac7c8a259da8dfcc5f55bcb28b77d29be9c540a2c23444b416d584801c30',
+  }
+);
+```
+
+### Payments
+
+#### validPayment
+
+```javascript
+if (micro.Payment.validPayment(accessToken, hash, nonce)) {
+  // Payment is valid, perform paid action.
+}
+```
+
+### Twins
+
+#### createTwin
+
+#### getTwins
+
+#### getTwin
