@@ -57,9 +57,8 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: production/payment
+        ECR_REPOSITORY: production/docs
         NPM_TOKEN: ${{ secrets.ROBOT_PAT }}
-        STRIPE_SECRET_PRODUCTION: ${{ secrets.STRIPE_SECRET_PRODUCTION }}
         API_BASE_URL: https://pay.m.todaq.net
         CDN_BASE_URL: https://cdn.m.todaq.net
         CDN_PAYBACK_BASE_URL: https://cdn.m.todaq.net
@@ -69,10 +68,7 @@ jobs:
         # Build a docker container and
         # push it to ECR so that it can
         # be deployed to ECS.
-        echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > `pwd`/.npmrc
-        echo "@todaqmicro:registry=https://npm.pkg.github.com/todaqmicro" >> `pwd`/.npmrc
-        echo "STRIPE_SECRET_KEY=${STRIPE_SECRET_PRODUCTION}" >> `pwd`/.env
-        npm install
+        npm ci
         npm run build
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -82,14 +78,14 @@ jobs:
       id: task-def
       uses: ordrup/infrastructure-actions/amazon-ecs-get-task-definition@v0.1.16
       with:
-        family: production-payment
+        family: production-docs
         image: ${{ steps.build-image.outputs.image}}
-        container-name: 'paymentd'
+        container-name: 'docsd'
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: payment
+        service: docs
         cluster: production
         wait-for-service-stability: true
