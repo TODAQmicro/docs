@@ -1,0 +1,12 @@
+services:
+  docs:
+    image: nginx
+    ports:
+      - 127.0.0.1:3021:80
+    volumes:
+      - ./example:/usr/share/nginx/html:ro
+    networks:
+      - back-tier
+
+networks:
+  back-tier:

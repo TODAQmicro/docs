@@ -12,10 +12,12 @@
   "dependencies": {
     "@astrojs/check": "^0.9.3",
     "@astrojs/mdx": "^3.1.4",
+    "@astrojs/node": "^8.3.4",
     "@astrojs/react": "^3.6.2",
     "@astrojs/sitemap": "^3.1.6",
     "@emotion/react": "^11.13.3",
     "@todaqmicro/payment-js": "^0.2.11",
+    "@todaqmicro/payment-node": "^0.3.0",
     "astro": "^4.13.4",
     "react-wavify": "^1.11.1",
     "save": "^2.9.0",

@@ -1,0 +1,94 @@
+---
+---
+
+<div>
+  <form id="persona">
+    <fieldset>
+      <input type="email" placeholder="Your email" name="email" />
+      <label for="email">Email address</label>
+    </fieldset>
+    <fieldset>
+      <input type="text" placeholder="You name" name="name" />
+      <label for="name">Full name</label>
+    </fieldset>
+    <fieldset id="submit" />
+  </form>
+</div>
+<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async (event) => {
+    const form = document.getElementById('persona');
+    const submit = document.getElementById('submit');
+
+    // @ts-ignore
+    const micro = await loadMicroPayments(
+      // Replace <PUBLIC_SECRET> with your accounts' public secret.
+      "mp_11b3958356d047f295c0595154541f4a",
+      { apiVersion: 'main' }
+    );
+
+    const elements = micro.elements();
+    const hash = '893fe671-cf93-4de1-ae93-ef2998b4643a';
+
+    // Payment Button
+
+    // Elements.create allows you to create the button
+    const button = await elements.create('payment', {
+      // Replace <HASH> with the commodities hash.
+      hash,
+      theme: "light",
+      styles: {
+        colorPrimary: '#000000',
+        colorBackground: '#FDB902',
+        borderRadius: '0',
+      },
+    });
+
+    if (submit && button) {
+      button.mount(submit);
+
+      document.addEventListener("payment", async (event) => {
+        let response: Response | null = null;
+        // @ts-ignore
+        const { hostname, nonce, timestamp } = event.detail;
+
+        try {
+          response = await fetch(`/api/delegate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              hash,
+              hostname,
+              nonce,
+              timestamp,
+              name: form.elements.name.value,
+              email: form.elements.email.value,
+            }),
+          });          
+        } catch (error) {
+          console.error('ERROR', error);
+        }
+      });
+
+      form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        button.toggle();
+      });
+
+    }
+  });
+</script>
+<style>
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  form fieldset {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+</style>

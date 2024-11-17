@@ -1,0 +1,47 @@
+---
+---
+
+<div>
+  <div>
+    <div id="verify-persona"></div>
+  </div>
+  <code></code>
+</div>
+<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async (event) => {
+    // Setup
+
+    // @ts-ignore
+    const micro = await loadMicroPayments(
+      // Replace <PUBLIC_SECRET> with your accounts' public secret.
+      "mp_11b3958356d047f295c0595154541f4a",
+      { apiVersion: 'main' }
+    );
+
+    const elements = micro.elements();
+
+    // Verify Button
+
+    // Elements.create used again, this type take note of the 'verify' parameter
+    const verifyButton = await elements.create('verify', {
+      // Replace <HASH> with the commodities hash.
+      hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df',
+      theme: "light",
+      styles: {
+        colorPrimary: '#000000',
+        colorBackground: '#FDB902',
+        borderRadius: '0',
+      },
+    });
+
+    // Last but not least if everything went okay, mount the button to
+    // somewhere in the DOM.
+    const verifyElement = document.getElementById('verify-persona');
+
+    if (verifyButton && verifyElement) {
+      verifyButton.mount(verifyElement);
+    }
+
+  });
+</script>

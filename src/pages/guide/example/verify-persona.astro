@@ -1,0 +1,91 @@
+---
+---
+
+<div>
+  <div>
+    <div id="verify-any-persona"></div>
+    <div id="verify-first-persona"></div>
+    <div id="verify-second-persona"></div>
+  </div>
+  <code></code>
+</div>
+<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async (event) => {
+    // Setup
+
+    // @ts-ignore
+    const micro = await loadMicroPayments(
+      // Replace <PUBLIC_SECRET> with your accounts' public secret.
+      "mp_11b3958356d047f295c0595154541f4a",
+      { apiVersion: 'main' }
+    );
+
+    const elements = micro.elements();
+
+    // Verify Button
+
+    // Elements.create used again, this type take note of the 'verify' parameter
+    const verifyAnyButton = await elements.create('verify', {
+      // Replace <HASH> with the commodities hash.
+      hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df',
+      theme: "light",
+      styles: {
+        colorPrimary: '#000000',
+        colorBackground: '#FDB902',
+        borderRadius: '0',
+      },
+    });
+
+    // Last but not least if everything went okay, mount the button to
+    // somewhere in the DOM.
+    const verifyAnyElement = document.getElementById('verify-any-persona');
+
+    if (verifyAnyButton && verifyAnyElement) {
+      verifyAnyButton.mount(verifyAnyElement);
+    }
+
+    // Elements.create used again, this type take note of the 'verify' parameter
+    const verify23Button = await elements.create('verify', {
+      // Replace <HASH> with the commodities hash.
+      hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df',
+      theme: "light",
+      styles: {
+        colorPrimary: '#000000',
+        colorBackground: '#FDB902',
+        borderRadius: '0',
+      },
+    });
+
+    // Last but not least if everything went okay, mount the button to
+    // somewhere in the DOM.
+    const verify23Element = document.getElementById('verify-first-persona');
+
+    if (verify23Button && verify23Element) {
+      verify23Button.mount(verify23Element);
+    }
+
+    // Elements.create used again, this type take note of the 'verify' parameter
+    const verify4PlusButton = await elements.create('verify', {
+      // Replace <HASH> with the commodities hash.
+      hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df',
+      theme: "light",
+      styles: {
+        colorPrimary: '#000000',
+        colorBackground: '#FDB902',
+        borderRadius: '0',
+      },
+    });
+
+    // Last but not least if everything went okay, mount the button to
+    // somewhere in the DOM.
+    const verify4PlusElement = document.getElementById('verify-second-persona');
+
+    if (verify4PlusButton && verify4PlusElement) {
+      verify4PlusButton.mount(verify4PlusElement);
+    }
+
+
+  });
+</script>
+
