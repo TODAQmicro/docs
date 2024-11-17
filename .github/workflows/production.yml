@@ -58,7 +58,6 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: production/docs
-        NPM_TOKEN: ${{ secrets.ROBOT_PAT }}
         API_BASE_URL: https://pay.m.todaq.net
         CDN_BASE_URL: https://cdn.m.todaq.net
         CDN_PAYBACK_BASE_URL: https://cdn.m.todaq.net
