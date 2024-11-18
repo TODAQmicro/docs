@@ -17,13 +17,13 @@
     "@astrojs/sitemap": "^3.1.6",
     "@emotion/react": "^11.13.3",
     "@theme-ui/mdx": "^0.16.2",
-    "@todaqmicro/payment-js": "^0.3.0",
+    "@todaqmicro/payment-js": "^0.3.3",
     "@todaqmicro/payment-node": "^0.3.0",
     "astro": "^4.13.4",
     "react-wavify": "^1.11.1",
     "save": "^2.9.0",
-    "typescript": "^5.3.3",
     "theme-ui": "^0.16.2",
+    "typescript": "^5.3.3",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
