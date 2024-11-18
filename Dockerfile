@@ -10,4 +10,4 @@ COPY . .
 RUN NODE_ENV=production npm install --production
 RUN rm .npmrc
 
-CMD npm start --host 0.0.0.0
+CMD npm start -- --host 0.0.0.0
