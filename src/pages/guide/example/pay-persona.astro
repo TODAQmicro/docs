@@ -4,6 +4,7 @@
 <div>
   <div>
     <div id="verify-persona"></div>
+    <div id="pay-persona"></div>
   </div>
   <code></code>
 </div>
@@ -36,6 +37,30 @@
 
     if (verifyButton && verifyElement) {
       verifyButton.mount(verifyElement);
+
+      document.addEventListener("verify", async (event) => {
+        button.iframe.contentWindow.postMessage('_TQMToggle', '*');
+      });
+    }
+
+    const hash = '893fe671-cf93-4de1-ae93-ef2998b4643a';
+
+    // Payment Button
+    const buttonElement = document.getElementById('pay-persona');
+
+    // Elements.create allows you to create the button
+    const button = await elements.create('payment', {
+      // Replace <HASH> with the commodities hash.
+      hash,
+      theme: "light",
+      styles: {
+        colorBackground: 'transparent',
+        colorPrimary: 'transparent',
+      },
+    });
+
+    if (buttonElement && button) {
+      button.mount(buttonElement);
     }
 
   });
