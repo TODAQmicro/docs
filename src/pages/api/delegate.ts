@@ -43,8 +43,11 @@ export const POST: APIRoute = async ({ request }) => {
         // Now we know that the user is the actual person who made the purchase
         // We can delegate a persona to the users twin.
         //
+        console.log('VALID PAYMENT');
         // @ts-ignore
         await micro.Persona.delegatePersona({ hash: persona, hostname, name, email });
+
+        console.log('DELEGATED PERSONA');
 
         return new Response(JSON.stringify({
           status: 200,
