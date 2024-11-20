@@ -5,6 +5,8 @@ import Micro from '@todaqmicro/payment-node';
 // It is not recommended to get the persona from the front-end. 
 const persona = "418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df";
 
+process.env.API_BASE_URL = 'https://pay.stage.m.todaq.net';
+
 // The SDK needs to be initialized
 //
 const micro = new Micro(
@@ -49,21 +51,20 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({
             status: 406,
             message: "Not Acceptable",
-          })
+          }),
+          { status: 406 }
         );
       }
     } else {
       return new Response(JSON.stringify({
           status: 400,
           message: "Bad Request",
-        })
-      );
+        }), { status: 400 });
     }
   } else {
     return new Response(JSON.stringify({
         status: 400,
         message: "Bad Request",
-      })
-    );
+      }), { status: 400 });
   }
 }
