@@ -45,9 +45,9 @@ export const POST: APIRoute = async ({ request }) => {
         //
         console.log('VALID PAYMENT');
         // @ts-ignore
-        await micro.Persona.delegatePersona({ hash: persona, hostname, name, email });
+        const response = await micro.Persona.delegatePersona({ hash: persona, hostname, name, email });
 
-        console.log('DELEGATED PERSONA');
+        console.log('DELEGATED PERSONA', hostname, response.ok, response.status, response.statusText);
 
         return new Response(JSON.stringify({
           status: 200,
