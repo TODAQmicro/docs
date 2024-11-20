@@ -14,7 +14,7 @@
     <fieldset id="submit" />
   </form>
 </div>
-<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<script type="module" crossorigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", async (event) => {
     const form = document.getElementById('persona');
@@ -28,7 +28,8 @@
     );
 
     const elements = micro.elements();
-    const hash = '893fe671-cf93-4de1-ae93-ef2998b4643a';
+    // const hash = '893fe671-cf93-4de1-ae93-ef2998b4643a'; // Staging
+    const hash = '79c91fc9-d0df-43b5-aacd-329c55099fd1';
 
     // Payment Button
 

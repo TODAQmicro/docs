@@ -9,7 +9,7 @@
   </div>
   <code></code>
 </div>
-<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<script type="module" crossorigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", async (event) => {
     // Setup
@@ -17,7 +17,7 @@
     // @ts-ignore
     const micro = await loadMicroPayments(
       // Replace <PUBLIC_SECRET> with your accounts' public secret.
-      "mp_11b3958356d047f295c0595154541f4a",
+      "mp_winrar",
       { apiVersion: 'main' }
     );
 
@@ -28,7 +28,8 @@
     // Elements.create used again, this type take note of the 'verify' parameter
     const verifyAnyButton = await elements.create('verify', {
       // Replace <HASH> with the commodities hash.
-      hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df',
+      // hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df', // Staging
+      hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
       theme: "light",
       issueMin: 1,
       issueMax: 2,
@@ -45,7 +46,7 @@
     // Elements.create used again, this type take note of the 'verify' parameter
     const verify23Button = await elements.create('verify', {
       // Replace <HASH> with the commodities hash.
-      hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df',
+      hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
       theme: "dark",
       leading: "Verify number #1 fan",
       issueMin: 3,
@@ -63,7 +64,7 @@
     // Elements.create used again, this type take note of the 'verify' parameter
     const verify4PlusButton = await elements.create('verify', {
       // Replace <HASH> with the commodities hash.
-      hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df',
+      hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
       theme: "light",
       issueMin: 5,
       issueMax: 10000,

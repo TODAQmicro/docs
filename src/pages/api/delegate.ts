@@ -3,7 +3,8 @@ import Micro from '@todaqmicro/payment-node';
 
 // The persona can either be statically set or retrieved from some database.
 // It is not recommended to get the persona from the front-end. 
-const persona = "418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df";
+// const persona = "418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df"; // Staging
+const persona = "41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc";
 
 process.env.API_BASE_URL = 'https://pay.stage.m.todaq.net';
 
@@ -11,9 +12,11 @@ process.env.API_BASE_URL = 'https://pay.stage.m.todaq.net';
 //
 const micro = new Micro(
   // Replace <CLIENT_ID> with your accounts' client id.
-  "mid_8c2f3e7401f44194ace7da5c37d3a35b",
+  // "mid_8c2f3e7401f44194ace7da5c37d3a35b", // Staging
+  "mid_c7e3ad2d034e4d14936619a380b32ab0",
   // Replace <CLIENT_SECRET> with your accounts' client secret.
-  "mc_fe89b67d100c4b719372270e399ba4ed",
+  // "mc_fe89b67d100c4b719372270e399ba4ed", // Staging
+  "mc_d02a213c81824e3cb91129382ff82187",
   { apiVersion: 'v2' },
 );
 
