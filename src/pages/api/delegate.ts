@@ -40,12 +40,30 @@ export const POST: APIRoute = async ({ request }) => {
         //
         // @ts-ignore
         await micro.Persona.delegatePersona({ hash: persona, hostname, name, email });
+
+        return new Response(JSON.stringify({
+          status: 200,
+          message: "OK",
+        }));
+      } else {
+        return new Response(JSON.stringify({
+            status: 406,
+            message: "Not Acceptable",
+          })
+        );
       }
+    } else {
+      return new Response(JSON.stringify({
+          status: 400,
+          message: "Bad Request",
+        })
+      );
     }
-  }  
-  return new Response(JSON.stringify({
-      status: 200,
-      message: "OK",
-    })
-  )
+  } else {
+    return new Response(JSON.stringify({
+        status: 400,
+        message: "Bad Request",
+      })
+    );
+  }
 }
