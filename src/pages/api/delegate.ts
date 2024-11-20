@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request }) => {
         // @ts-ignore
         const response = await micro.Persona.delegatePersona({ hash: persona, hostname, name, email });
 
-        console.log('DELEGATED PERSONA', hostname, response.ok, response.status, response.statusText);
+        console.log('DELEGATED PERSONA', hostname, response);
 
         return new Response(JSON.stringify({
           status: 200,
