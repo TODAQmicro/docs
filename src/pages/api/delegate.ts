@@ -13,10 +13,12 @@ process.env.API_BASE_URL = 'https://pay.stage.m.todaq.net';
 const micro = new Micro(
   // Replace <CLIENT_ID> with your accounts' client id.
   // "mid_8c2f3e7401f44194ace7da5c37d3a35b", // Staging
-  "mid_c7e3ad2d034e4d14936619a380b32ab0",
+  // "mid_c7e3ad2d034e4d14936619a380b32ab0",
+  "mid_a5f6897165aa4c269b43f8b3e8d033f2",
   // Replace <CLIENT_SECRET> with your accounts' client secret.
   // "mc_fe89b67d100c4b719372270e399ba4ed", // Staging
-  "mc_d02a213c81824e3cb91129382ff82187",
+  // "mc_d02a213c81824e3cb91129382ff82187",
+  "mc_0d528ad1e0a24c48a998ded4892dcdbd",
   { apiVersion: 'v2' },
 );
 

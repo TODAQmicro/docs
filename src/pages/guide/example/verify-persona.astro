@@ -17,7 +17,7 @@
     // @ts-ignore
     const micro = await loadMicroPayments(
       // Replace <PUBLIC_SECRET> with your accounts' public secret.
-      "mp_winrar",
+      "mp_821c2d39fa044dccaad197498e4f214f",
       { apiVersion: 'main' }
     );
 
@@ -29,7 +29,8 @@
     const verifyAnyButton = await elements.create('verify', {
       // Replace <HASH> with the commodities hash.
       // hash: '418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df', // Staging
-      hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
+      // hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc', // Bork
+      hash: '419eee27815968b961dc090aaee01de10c237dd36bb15dd9c87ce0e1f214a80016',
       theme: "light",
       issueMin: 1,
       issueMax: 2,
@@ -46,7 +47,8 @@
     // Elements.create used again, this type take note of the 'verify' parameter
     const verify23Button = await elements.create('verify', {
       // Replace <HASH> with the commodities hash.
-      hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
+      // hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
+      hash: '419eee27815968b961dc090aaee01de10c237dd36bb15dd9c87ce0e1f214a80016',
       theme: "dark",
       leading: "Verify number #1 fan",
       issueMin: 3,
@@ -64,7 +66,8 @@
     // Elements.create used again, this type take note of the 'verify' parameter
     const verify4PlusButton = await elements.create('verify', {
       // Replace <HASH> with the commodities hash.
-      hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
+      // hash: '41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc',
+      hash: '419eee27815968b961dc090aaee01de10c237dd36bb15dd9c87ce0e1f214a80016',
       theme: "light",
       issueMin: 5,
       issueMax: 10000,
