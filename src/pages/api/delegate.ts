@@ -4,7 +4,7 @@ import Micro from '@todaqmicro/payment-node';
 // The persona can either be statically set or retrieved from some database.
 // It is not recommended to get the persona from the front-end. 
 // const persona = "418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df"; // Staging
-const persona = "41061459227a3cac70fedab25e1afb8f4f8483aca8dfc2a0209712c6fb4531e8dc";
+const persona = "419eee27815968b961dc090aaee01de10c237dd36bb15dd9c87ce0e1f214a80016";
 
 process.env.API_BASE_URL = 'https://pay.stage.m.todaq.net';
 
