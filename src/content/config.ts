@@ -1,4 +1,5 @@
 import { defineCollection, z } from 'astro:content';
+import { docsSchema } from '@astrojs/starlight/schema';
 
 const guide = defineCollection({
 	schema: z.object({
@@ -22,4 +23,4 @@ const reference = defineCollection({
 	}),
 });
 
-export const collections = { guide, reference };
+export const collections = { guide, reference,  docs: defineCollection({ schema: docsSchema() }), };

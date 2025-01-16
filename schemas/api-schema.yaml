@@ -1,0 +1,1055 @@
+openapi: 3.0.3
+info:
+  title: TODA Enterprise Twin
+  x-logo:
+    url: https://engineering.todaq.net/logo.png
+    altText: TODAQ Integrity Networks
+    href: https://engineering.todaq.net
+  description: |-
+    The Enterprise Twin container manages TODA assets. It supports discrete asset files as well as quantitative assets. It exposes a REST API for creating, importing/exporting, appending, and transferring assets, as well as verifying their integrity.
+  contact:
+    name: TODAQ Engineering Support
+    url: https://engineering.todaq.net
+    email: support@todaq.net
+  version: 0.7.2
+servers:
+  - url: https://{TWIN_URL}
+tags:
+  - name: API Information
+    description: |-
+      Twin containers authorize requests using API keys or cookies.
+
+      ## API Authorization
+
+      ###  API keys
+      Typically used to authorize server-to-server requests, an API key works by sending it as a query parameter with every request to a protected endpoint, e.g.:
+
+        `GET /balance?apiKey={API_KEY}`
+
+      ### Cookies
+
+      Documented under <a href="#tag/Authorization">the Authorization API</a>.
+
+      ### Authorization Errors
+      Secured endpoints will respond with status **403** if called with incorrect (or no) credentials.
+
+      ## Response Metadata
+
+      All requests will return a `x-toda-request-id` header with a unique ID.
+
+paths:
+  /signin:
+    post:
+      summary: Request one-time signin link
+      description: Use this endpoint to request a one-time signin link to your twin container
+      tags:
+        - Authorization
+      responses:
+        200:
+          description: Sends a sign-in link to the email configured for this server
+  /logout:
+    post:
+      summary: Log out and remove all sessions
+      tags:
+        - Authorization
+      responses:
+        200:
+          description: Removes current sessions
+        403:
+          description: Forbidden if no current session is provided
+
+
+  /toda:
+    post:
+      summary: Import TODA file to twin
+      tags:
+        - TODA
+      description: Use this endpoint to *import* a TODA file into the container
+      requestBody:
+        description: Serialized Toda file
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        201:
+          description: The file successfully uploaded
+        400:
+          description: The file failed to import
+        403:
+          $ref: "#/components/responses/Forbidden"
+
+  /toda/{hash}:
+    get:
+      summary: Retrieve TODA file from twin
+      tags:
+        - TODA
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: hash
+          required: true
+          description: File hash
+          in: path
+          schema:
+            type: string
+            format: hex
+          example: 411397944b9d7420a60c800ec1d2fb6f2f0325e2013c3c4a693d8d98446e5b74f6
+      responses:
+        200:
+          description: Returns toda file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        400:
+          description: Hash malformed, null or not found
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          description: Toda file not found
+
+  /files/metadata/{hash}:
+    get:
+      summary: Get metadata about an abject
+      tags:
+        - Files
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: hash
+          required: true
+          description: File hash
+          in: path
+          schema:
+            type: string
+            format: hex
+          example: 411397944b9d7420a60c800ec1d2fb6f2f0325e2013c3c4a693d8d98446e5b74f6
+      responses:
+        200:
+          description: Returns a dict of file metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileName:
+                    description: File name
+                    type: string
+                    format: hex
+                  description:
+                    description: File description
+                    type: string
+                    format: hex
+                  timeCreated:
+                    description: Time file was created
+                    type: string
+                    format: hex
+                    example: "2023-12-08T17:03:10.630Z"
+                  timeModified:
+                    description: Time file was modified
+                    type: string
+                    format: hex
+                    example: "2023-12-08T17:03:10.630Z"
+                  fileSize:
+                    description: File size
+                    type: integer
+                    example: 6
+
+        400:
+          description: Failed to unpack file data - does this hash really have a file attached?
+        404:
+          description: File matching hash not found
+
+  /inventory/{hash}:
+    get:
+      summary: Return information about this asset
+      tags:
+        - Inventory
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: hash
+          required: true
+          description: File hash
+          in: path
+          schema:
+            type: string
+            format: hex
+          example: 411397944b9d7420a60c800ec1d2fb6f2f0325e2013c3c4a693d8d98446e5b74f6
+      responses:
+        200:
+          description: Asset info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileDescription"
+
+  /inventory:
+    get:
+      summary: Return information about all assets
+      tags:
+        - Inventory
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      responses:
+        200:
+          description: Return information about all assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileDescription"
+
+  # /inventory/{hash}/retether:
+  #   post:
+  #     summary: Change control of an asset to another address
+  #     tags:
+  #       - Inventory
+  #     parameters:
+  #       - name: hash
+  #         required: true
+  #         description: File hash
+  #         in: path
+  #         schema:
+  #           type: string
+  #           format: hex
+  #         example: 411397944b9d7420a60c800ec1d2fb6f2f0325e2013c3c4a693d8d98446e5b74f6
+
+  /info:
+    get:
+      summary: Container metadata
+      tags:
+        - Metadata
+      responses:
+        200:
+          description: Returns twin server information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  address:
+                    description: Twin address (first twist)
+                    type: string
+                    example: 41faac8981b2a66a5d1c1dde91f472f91ebdd2e7fc69bb8377ff147c6cd018a01c
+                  latest:
+                    description: Latest twist for this address
+                    type: string
+                    example: 41f733e5fcdb6af546c33e30d699e136adfdb293b04267b215d7df2a9d55f011ac
+                  binderId:
+                    description: Hash of first twist for the designated integrity binder of this twin
+                    type: string
+                    example: 41ac654470c0c2f5c2375cfd8f3c19b7baf2a81bb4380c7385fe4bda71d9eec06f
+                  buildId:
+                    description: Software build id
+                    type: string
+                    example: 3c61d0c3ef7832f832e2da8dc01610638f3de0de
+                  version:
+                    description: Software version
+                    type: string
+                    example: 1.2.3
+
+  /dq:
+    post:
+      summary: Mint quantitative note
+      # description:
+      tags:
+        - Payments
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  description: Total value
+                  type: number
+                  format: integer
+                  example: 100000
+                displayPrecision:
+                  description: Maximum fractions
+                  type: number
+                  format: integer
+                  example: 2
+                mintingInfo:
+                  description: Optional addition info describing the newly minted tokens
+                  type: string
+                  example: '{"moniker":"Your Corp Env X 2024-01-01","ts":1697231139,"initAddr":"https://4184500ea33b84bb5d9f62436aff330f.tq.biz.todaq.net"}'
+      responses:
+        201:
+          description: Note successfully minted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    description: Whether or not it was successful
+                    type: string
+                    example: success
+                  files:
+                    description: List of the created files
+                    type: array
+                    items:
+                      type: string
+                      format: hex
+                    example:
+                      [
+                        41f733e5fc29c6f546c33e30d699e136adfdb29aff3267b215d7df2a9d55f011ac,
+                      ]
+                  root:
+                    description: Root twist
+                    type: string
+                    format: hex
+                    example: "41f744e5fadb6af546c33e30d699e136adfdb293b04267b215d7df2a93c5g011ac"
+
+    get:
+      summary: Get all balances
+      description: Use this endpoint to retrieve the up to date balance for all asset types
+      tags:
+        - Payments
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      responses:
+        200:
+          description: Returns the total balances for all notes of all types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/dqBalance"
+        403:
+          $ref: "#/components/responses/Forbidden"
+
+  /dq/{type}:
+    get:
+      summary: Get balance by asset type
+      description: Use this endpoint to retrieve the up to date balance for a specific asset type
+      tags:
+        - Payments
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: type
+          in: path
+          description: Asset type hash
+          required: true
+          schema:
+            type: string
+            format: hex
+            example: 41c759f46f6c3c11285701e722f9ded16164eea36f8b77794a53a372b17f86b78b
+      responses:
+        200:
+          description: Returns the total balance for all notes of requested type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dqBalance"
+        403:
+          $ref: "#/components/responses/Forbidden"
+
+  /dq/{type}/transfer:
+    post:
+      summary: Transfer value
+      description: |-
+        Use this endpoint to transfer control of quantitative assets to other addresses.
+      tags:
+        - Payments
+      parameters:
+        - name: type
+          required: true
+          description: Asset type hash
+          in: path
+          schema:
+            type: string
+            format: hex
+          example: 41c759f46f6c3c11285701e722f9ded16164eea36f8b77794a53a372b17f86b78b
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  description: Amount to transfer
+                  type: number
+                  format: float
+                  example: 13.01
+                destination:
+                  description: Destination address
+                  type: string
+                  format: uri
+                  example: 'https://<DESTINATION-TWIN-ADDRESS>.tq.biz.todaq.net/'
+      responses:
+        200:
+          description: Returns the transferred file hashes and the new balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    example: "Success"
+                  files:
+                    description: The list of file hashes that were transferred
+                    type: array
+                    items:
+                      type: string
+                      format: hex
+                    example:
+                      - 418bd09fafa2a487ae94d44ca3eb013d043be925a53232707b6967a66bf6772e6d
+                      - 412102b40d3cf048e16e2666a47ddb9e893a09c006d9a69d52b937e33cb9f73b1b
+                      - 41dd70445ea721691e8d13f6c107f1385768df09856ff3528b2a9753f0ae7f7b36
+                  newBalance:
+                    description: Balance for the given asset type after transfer
+                    type: number
+                    format: float
+                    example: 82.02
+        400:
+          description: |
+            There is a number of reasons why a transfer cannot be completed:
+              - `Amount must be a valid number` will be returned when amount is not a parsable number. Bad request example:
+                ```
+                {
+                  "amount": "forty two",
+                  "destination": "41f9619e01d73cc81a93f156862c661977a199098688400a47f9ffd1b00160fc7b"
+                }
+                ```
+              - `Invalid URL` will be returned if the destination is not a valid URL
+              - `Could not reach <destination>` will be returned if the provided destination is unreachable
+              - `Insufficient balance` will be returned when the total combined value of the controlled assets of the requested type is smaller than the requested transfer amount
+              - `Balance is being recalculated` will be returned when the balance for the requested file type is in the process of being calculated
+              - `Too many transfer requests for type {HASH}` will be returned when there is a transfer in progress for the requested asset type
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+        403:
+          $ref: "#/components/responses/Forbidden"
+
+################################################################################
+###################################   SDAs   ###################################
+################################################################################
+
+  /sda:
+    post:
+      summary: Create a new SDA
+      # description:
+      tags:
+        - SDAs
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mintingInfo:
+                  description: Optional addition info describing the newly created SDA
+                  type: string
+                  example: '{"moniker":"TodaQ Fan Club Membership","ts":1697231139,"initAddr":"https://4184500ea33b84bb5d9f62436aff330f.tq.biz.todaq.net"}'
+      responses:
+        201:
+          description: SDA successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    description: Whether or not it was successful
+                    type: string
+                    example: success
+                  root:
+                    description: Root twist
+                    type: string
+                    format: hex
+                    example: "41f744e5fadb6af546c33e30d699e136adfdb293b04267b215d7df2a93c5g011ac"
+    get:
+      summary: Get all SDAs
+      description: Use this endpoint to retrieve all SDAs on this twin
+      tags:
+        - SDAs
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      responses:
+        200:
+          description: Returns the list of all SDAs on the twin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roots:
+                    description: Hashes of root SDAs, if any
+                    type: array
+                    items:
+                      type: string
+                      format: hex
+                    example:
+                      - 41dd70445ea721691e8d13f6c107f1385768df09856ff3528b2a9753f0ae7f7b36
+                  byType:
+                    description: delegate SDAs organized by their associated root SDA
+                    type: object
+                    properties:
+                      <rootNHex>:
+                        description: delegate SDAs of type rootN
+                        type: array
+                        items:
+                          type: string
+                          format: hex
+                        example:
+                          - 418bd09fafa2a487ae94d44ca3eb013d043be925a53232707b6967a66bf6772e6d
+                          - 412102b40d3cf048e16e2666a47ddb9e893a09c006d9a69d52b937e33cb9f73b1b
+
+        403:
+          $ref: "#/components/responses/Forbidden"
+
+  /sda/{hex}:
+    post:
+      summary: Create an instance of a SDA
+      description: |-
+        Use this endpoint to create a instance of a SDA and assign it to a twin.
+      tags:
+        - SDAs
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: type
+          required: true
+          description: SDA root of which to create an instance
+          in: path
+          schema:
+            type: string
+            format: hex
+          example: 41c759f46f6c3c11285701e722f9ded16164eea36f8b77794a53a372b17f86b78b
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delegateInfo:
+                  description: additional data about the instance of the SDA
+                  type: string
+                  example: '{"membershipTS": 1697231139, "validUntil": 1697236666}'
+                destination:
+                  description: Destination address
+                  type: string
+                  format: uri
+                  example: 'https://<DESTINATION-TWIN-ADDRESS>.tq.biz.todaq.net/'
+      responses:
+        200:
+          description: Returns the transferred file hash
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    example: "Success"
+                  file:
+                    description: The file hash that was transferred
+                    type: string
+                    format: hex
+                    example: 418bd09fafa2a487ae94d44ca3eb013d043be925a53232707b6967a66bf6772e6d
+        400:
+          description: |
+            There is a number of reasons why a transfer cannot be completed:
+              - `Invalid URL` will be returned if the destination is not a valid URL
+              - `Could not reach <destination>` will be returned if the provided destination is unreachable
+              - `Too many creation requests for type {hex}` will be returned when there is an SDA creation in progress for the requested SDA
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+
+    get:
+      summary: SDA info by type
+      description: Get info about an SDA and its delegates by type hash or file hash
+      tags:
+        - SDAs
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      responses:
+        200:
+          description: Returns metadata about the root SDA and any instances that may exist on the twin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    description: Root SDA metadata
+                    type: object
+                    properties:
+                      id:
+                        description: Root SDA hash
+                        type: string
+                        format: hex
+                        example: 4141e25d14eb37d3dbfb3e6a66631d63d7e26f583bcd4da7df9a28cebd9bb1c094
+                      creator:
+                        description: Creator hash
+                        type: string
+                        format: hex
+                        example: 417f3c29fb95eb5ee82266fd904af3429cf8afc45296fea8a5c2d188a36352d2c0
+                      info:
+                        description: Info about the SDA added at creation time
+                        type: string
+                        example: '{"moniker":"TodaQ Fan Club Membership","ts":1697231139,"initAddr":"https://4184500ea33b84bb5d9f62436aff330f.tq.biz.todaq.net"}'
+                  instances:
+                    description: A list of delegates of the root SDA
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          description: SDA delegate hash
+                          type: string
+                          format: hex
+                          example: 41dc5afe2d5cb77f7d9f18b0668c88239f684843a9f8e04a87e5b9ce6b26b382be
+                        creator:
+                          description: Creator hash
+                          type: string
+                          format: hex
+                          example: 417f3c29fb95eb5ee82266fd904af3429cf8afc45296fea8a5c2d188a36352d2c0
+                        info:
+                          description: Additional info about the SDA added at delegation time
+                          type: string
+                          example: '{"memberId": "f6345gh7i8", "ts": 1697242548, "validUntil": 1697243000}'
+
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+
+
+################################################################################
+#################################   Personas   #################################
+################################################################################
+
+  /persona/file:
+    get:
+      summary: Get persona toda file
+      description: Get the toda file for the default persona, if set
+      tags:
+        - Personas
+      responses:
+        200:
+          description: Returns toda file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: Toda file not found
+
+  /persona:
+    get:
+      description: Get the metadata for the default persona if it's set
+      summary: Get default persona metadata
+      tags:
+        - Personas
+      responses:
+        200:
+          description: Returns metadata about the default persona
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    description: Root SDA metadata
+                    type: object
+                    properties:
+                      id:
+                        description: Root SDA hash
+                        type: string
+                        format: hex
+                        example: 4141e25d14eb37d3dbfb3e6a66631d63d7e26f583bcd4da7df9a28cebd9bb1c094
+                      creator:
+                        description: Creator hash
+                        type: string
+                        format: hex
+                        example: 417f3c29fb95eb5ee82266fd904af3429cf8afc45296fea8a5c2d188a36352d2c0
+                      info:
+                        description: Info about the SDA added at creation time
+                        type: string
+                        example: '{"moniker":"TodaQ Fan Club Membership","ts":1697231139,"initAddr":"https://4184500ea33b84bb5d9f62436aff330f.tq.biz.todaq.net"}'
+                  instances:
+                    description: The default personas metadata
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          description: SDA delegate hash
+                          type: string
+                          format: hex
+                          example: 41dc5afe2d5cb77f7d9f18b0668c88239f684843a9f8e04a87e5b9ce6b26b382be
+                        creator:
+                          description: Creator hash
+                          type: string
+                          format: hex
+                          example: 417f3c29fb95eb5ee82266fd904af3429cf8afc45296fea8a5c2d188a36352d2c0
+                        info:
+                          description: Additional info about the SDA added at delegation time
+                          type: string
+                          example: '{"memberId": "f6345gh7i8", "ts": 1697242548, "validUntil": 1697243000}'
+
+        404:
+          $ref: "#/components/responses/NotFound"
+
+  /ssr:
+    post:
+      summary: Create new SSR
+      tags:
+        - SSR
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Any json object will be stored as a SSR entry (similarly to POST /binder)
+              type: object
+              example:
+                event: Fire safety gear inspection
+                serial-number: "123344-5345345-9494"
+                inspected-by: Alice Gainsburg
+                approved-by: Robert Redford
+                date/time: 2022-01-01/15:42 EST
+                issues:
+                  - extinguisher low pressure
+      responses:
+        201:
+          description: SSR successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  twistId:
+                    description: Hash of the newly created SSR asset
+                    type: string
+                    format: hex
+                    example: 41f2cebeef6fa4c64b8c070019a4a917fd9eb03edcb4740832356d6f162c12a27c
+        403:
+          $ref: "#/components/responses/Forbidden"
+
+  /ssr/{hash}:
+    get:
+      summary: Get SSR entries
+      tags:
+        - SSR
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: hash
+          required: true
+          description: SSR hash
+          in: path
+          schema:
+            type: string
+            format: hex
+          example: 414c03120092706107d89178983e58da5592f3462126d1986d98ebda659ce2d15e
+      responses:
+        200:
+          description: Returns all SSR entries ordered from newest to oldest
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    twistId:
+                      description: Entry hash
+                      type: string
+                      example: 4107f923a1c85584e0f162cc1e7a22c1ee41708d260dc8f112414ae71f8ae14353
+                    timestamp:
+                      description: Entry timestamp
+                      type: string
+                      example: 1970-01-01 16:42
+                    content:
+                      description: SSR entry (any json object)
+                      type: object
+                      example:
+                        name: Receipt number 42
+                        mimeType: img/jpeg
+                        binary: yufDHzJLjppzko1FSb/oNmXBt3gKZNz+PpAN8GLFuCo=...
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Append to SSR asset
+      tags:
+        - SSR
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: hash
+          required: true
+          description: SSR hash
+          in: path
+          schema:
+            type: string
+            format: hex
+          example: 417885d985081a020e7f51eac88f6132f8b7a284e8cad53434900c792d4fa99a58
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Any json object will be stored as a SSR entry (similarly to POST /binder)
+              type: object
+              example:
+                event: Fire safety gear inspection
+                serial-number: "123344-5345345-9494"
+                inspected-by: Alice Gainsburg
+                approved-by: Robert Redford
+                date/time: 2022-01-01/15:43 EST
+                issues:
+                  - still extinguisher low pressure
+      responses:
+        200:
+          description: SSR successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  twistId:
+                    description: Hash of the updated SSR asset
+                    type: string
+                    format: hex
+                    example: 4110896dcff8d4f09654dad3d7b074adb6c724138c3dd5472a1e2709302038ab57
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+
+  /binder:
+    post:
+      summary: Append binder entry
+      description: Use this endpoint to create a new binder entry
+      tags:
+        - Binder
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Any json object will be stored as a binder entry
+              type: object
+              example:
+                event: Fire safety gear inspection
+                serial-number: "123344-5345345-9494"
+                inspected-by: Alice Gainsburg
+                approved-by: Robert Redford
+                date/time: 2022-01-01/15:42 EST
+                issues:
+                  - extinguisher low pressure
+      responses:
+        200:
+          description: Returns the latest binder hash
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  twistId:
+                    description: Latest binder hash
+                    type: string
+                    format: hex
+                    example: 417c3a6e9ef71e800648d2db0d10c82fa064ef5d8fa966024123f50ab4a5122b20
+        400:
+          description: Could not parse data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Could not parse data"
+        403:
+          $ref: "#/components/responses/Forbidden"
+    get:
+      summary: Get binder entries
+      description: Use this endpoint to retrieve all binder entries
+      tags:
+        - Binder
+      security:
+        - ApiKeyAuth: []
+        - CookieAuth: []
+      responses:
+        200:
+          description: Returns all binder entries ordered from newest to oldest
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    twistId:
+                      description: Entry hash
+                      type: string
+                      example: 41bbec8b02d3c6f5f549ef3447f0822471d3772ca9c4ff34b24cb3c37e491376e1
+                    timestamp:
+                      description: Entry timestamp
+                      type: string
+                      example: 2023-01-01 10:52
+                    data:
+                      description: Binder entry (any json object)
+                      type: object
+                example:
+                  - twistId: 41bbec8b02d3c6f5f549ef3447f0822471d3772ca9c4ff34b24cb3c37e491376e1
+                    timestamp: 2023-01-07 11:27 EST
+                    data:
+                      event: Fire safety gear inspection
+                      serial-number: "123344-5345345-9499"
+                      inspected-by: Joe Smitherson
+                      approved-by: Robert Redford
+                      date/time: 2022-01-07/11:25 EST
+                      issues: []
+                  - twistId: 417c3a6e9ef71e800648d2db0d10c82fa064ef5d8fa966024123f50ab4a5122b20
+                    timestamp: 2023-01-01 15:53 EST
+                    data:
+                      event: Fire safety gear inspection
+                      serial-number: "123344-5345345-9494"
+                      inspected-by: Alice Gainsburg
+                      approved-by: Robert Redford
+                      date/time: 2022-01-01/15:42 EST
+                      issues:
+                        - extinguisher low pressure
+        403:
+          $ref: "#/components/responses/Forbidden"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: apiKey
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: cookieAuth
+  responses:
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Forbidden
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Not found
+  schemas:
+    FileDescription:
+      type: object
+      properties:
+        hash:
+          description: File hash
+          type: string
+          format: hex
+          example: 411397944b9d7420a60c800ec1d2fb6f2f0325e2013c3c4a693d8d98446e5b74f6
+        tether:
+          description: Tether hash
+          type: string
+          format: hex
+          example: 41f9de92a00922f7366bb6242c5778f5a71c315ca28c1b8debb61b363fb0e00f6d
+        isControlled:
+          description: "`true` if the file is controlled by this address"
+          type: boolean
+          example: true
+        size:
+          description: File size in bytes
+          type: integer
+          example: 12342
+        proofTime:
+          description: The time this file was tied into the proof structure
+          type: string
+          example: "2024-01-16T17:55:50.600Z"
+
+    dqBalance:
+        type: object
+        properties:
+          balance:
+            type: number
+            example: 42.43
+          displayPrecision:
+            type: integer
+            example: 2
+          quantity:
+            type: integer
+            example: 4243
+          type:
+            type: string
+            format: hex
+            example: 41c759f46f6c3c11285701e722f9ded16164eea36f8b77794a53a372b17f86b78b
+          files:
+            description: List of all file hashes of the given type controlled by this address
+            type: array
+            items:
+              type: string
+              format: hex
+            example:
+              - 41e4d4550fa8943e14261443d487ba87d22abd9fb4f99b23c28e3dbf373db8058b
+              - 41b918fea73d4676217bd8435609569d34b9f457ed7e9395cec8ebaa5728c6e26c
+              - 410affb615c8d2309b83ff4f61ef71bc98dca62b13d8255c4c0130060773fd83b4
+          fileValue:
+            description: "A mapping of files : individual contributions to quantity total"
+            type: object
+            example:
+              41e4d4550fa8943e14261443d487ba87d22abd9fb4f99b23c28e3dbf373db8058b: 4200
+              41b918fea73d4676217bd8435609569d34b9f457ed7e9395cec8ebaa5728c6e26c: 40
+              410affb615c8d2309b83ff4f61ef71bc98dca62b13d8255c4c0130060773fd83b4: 3
