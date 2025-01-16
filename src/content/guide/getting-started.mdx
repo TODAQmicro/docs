@@ -12,6 +12,11 @@ pubDate: February 28, 2024
 
 Before diving into setting up your online micropayment, you need to ensure you have the necessary account details from TODAQ Micro. This includes obtaining account keys: **public secret**, **client secret**, **client secret ID**.
 
+You can curl the account endpoint to get an account like so:
+
+```bash
+$ curl -X POST https://pay.stage.m.todaq.net/v2/account/
+```
 You will receive the following JSON object which contains everything you will need:
 
 ```json

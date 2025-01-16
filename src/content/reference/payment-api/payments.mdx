@@ -7,8 +7,80 @@ pubDate: June 15, 2024
 ## Payments
 
 ## Make a Payment
-##### **POST** `/v2/payment/:hash`
+#### **POST** `/v2/payment/:hash`
+
+##### URL Parameters
+
+|Parameter  | Type       | Description                      |
+|:----------|:-----------|:---------------------------------|
+|`hash`     |***string***| Commodity hash
+
+##### Body JSON
+
+|Parameter  | Type       | Description                             |
+|:----------|:-----------|:----------------------------------------|
+|`hostname` |***string***| Twin hostname associated with commodity |
+
+##### Returns
+
+A 202 success if the payment is valid with the following json fields:
+
+| Parameter  | Type        | Description                                                                             |
+|:-----------|:------------|:----------------------------------------------------------------------------------------|
+|`nonce`     |***int***    | The payment validation nonce                                                            |
+|`timestamp` |***string*** | The payment validation timestamp                                                        |
+
+A 500 is returned if the payment could not be made
 
 ## Verify a Payment
-##### **POST** `/v2/payment/:hash/validate`
+#### **POST** `/v2/payment/:hash/validate`
 
+##### URL Parameters
+
+|Parameter  | Type       | Description                      |
+|:----------|:-----------|:---------------------------------|
+|`hash`     |***string***| Commodity hash
+
+##### Body JSON
+
+|Parameter  | Type       | Description                      |
+|:----------|:-----------|:---------------------------------|
+|`nonce`    |***int***   | The Nonce from the validation    |
+|`timestamp`|***string***| The timestamp from the validation|
+
+##### Returns
+
+If the validation parameters are valid AND the validaltion hasn't been marked as used, marks the validation as "spent" andreturns a 200 success
+
+A 400 is returned if no validation is found matching those parameters
+
+## Get Payment Info
+#### **GET** `/v2/payment/:hash/validate`
+
+##### URL Parameters
+
+|Parameter  | Type       | Description                      |
+|:----------|:-----------|:---------------------------------|
+|`hash`     |***string***| Commodity hash
+
+##### Query Parameters
+
+|Parameter     | Type       | Description                      |
+|:-------------|:-----------|:---------------------------------|
+|`nonce`       |***int***   | The nonce from the validation    |
+|`timestamp`   |***string***| The timestamp from the validation|
+
+##### Returns
+
+A 200 success if the validation is valid with the following json fields
+
+| Parameter  | Type        | Description                                                                             |
+|:-----------|:------------|:----------------------------------------------------------------------------------------|
+|`created_at`|***string*** |When the payment was created                                                             |
+|`expires_at`|***string*** |When the validation expires                                                              |
+|`used_at`   |***string*** |If the validation has been marked as used by the endpoint above, the timestamp it occured|
+|`twin_id`   |***int***    |The ID of the twin associated with the validation                                        |
+|`nonce`     |***int***    |The payment validation nonce                                                             |
+|`cost`      |***int***    |The commodity cost                                                                       |
+
+A 404 is returned if no validation is found matching those parameters
