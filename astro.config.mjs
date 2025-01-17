@@ -17,16 +17,16 @@ export default defineConfig({
                 starlightOpenAPI([
                     {
                         base: "api",
-                        label: "My API",
-                        schema: "schemas/api-schema.yaml",
+                        label: "API Documentation",
+                        schema: "schemas/payment-api-schema.yaml",
                         collapsed: false,
-                    },
+                    }
                 ]),
             ],
             sidebar: [
                 { label: "User Guides", autogenerate: { directory: "guide" } },
                 { label: "References", autogenerate: { directory: "reference" } },
-                ...openAPISidebarGroups
+                ...openAPISidebarGroups,
             ],
             title: "Tapp Docs",
         }),

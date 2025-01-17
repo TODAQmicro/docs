@@ -1,0 +1,144 @@
+openapi: 3.0.3
+info:
+  title: TODAQMicro Payment API
+  description: |-
+    The Payment API enables you to manage users, make twins, commodities, payments, personas, as well as validate payments and personas.
+  contact:
+    name: TODAQMicro
+    url: https://docs.m.todaq.net
+    email: support@todaq.net
+  version: 3.0.0
+servers:
+  - url: https://pay.m.todaq.net
+
+paths:
+  /v2/payment/{hash}:
+    post:
+      summary: Make a Payment
+      description: Make a payment from the authenticated twin to another twin if you have sufficient funds
+      tags:
+        - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hostname:
+                  type: string
+                  description: twin hostname to transfer funds to
+      parameters:
+        - in: path
+          name: hash
+          required: true
+          description: Commodity hash
+          schema:
+            type: string
+      responses:
+        202:
+          description: A valid payment has been made
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nonce:
+                    description: Payment validation nonce
+                    type: int
+                  timestamp:
+                    description: Payment validation timestamp
+                    type: string
+        500:
+          description: Payment could not be made
+
+  /v2/payment/{hash}/validate:
+    get:
+      summary: Get Payment Info
+      description: Get information about a payment to verify if it has been made and if it's been marked as spent
+      tags:
+        - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+
+      parameters:
+        - in: path
+          name: hash
+          required: true
+          description: Commodity hash
+          schema:
+            type: string
+        - in: query
+          name: nonce
+          required: true
+          schema:
+            type: int
+          description: The nonce from the validation
+        - in: query
+          name: timestamp
+          required: true
+          schema:
+            type: string
+          description: The timestamp from the validation
+      responses:
+        200:
+          description: The payment is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created_at:
+                    description: When the payment was created
+                    type: string
+                  expires_at:
+                    description: When the validation expires
+                    type: string
+                  used_at:
+                    description: If the validation has been marked as used by the endpoint above, the timestamp it occured
+                    type: string
+                  twin_id:
+                    description: The ID of the twin associated with the validation
+                    type: int
+                  nonce:
+                    description: Payment validation nonce
+                    type: int
+                  cost:
+                    description: The commodity cost
+                    type: int
+        404:
+          description: No validation found matching the provided parameters
+    post:
+      summary: Validate a Payment
+      description: Validate a payment and mark it as spent
+      tags:
+        - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nonce:
+                  type: int
+                  description: The nonce from the validation
+                timestamp:
+                  type: string
+                  description: The timestamp from the validation
+
+      parameters:
+        - name: hash
+          required: true
+          description: Commodity hash
+          in: path
+          schema:
+            type: string
+      responses:
+        200:
+          description: The payment is valid and has been marked as spent
+        400:
+          description: No validation found matching the provided parameters
+
