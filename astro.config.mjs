@@ -23,7 +23,11 @@ export default defineConfig({
                     },
                 ]),
             ],
-            sidebar: [...openAPISidebarGroups],
+            sidebar: [
+                { label: "User Guides", autogenerate: { directory: "guide" } },
+                { label: "References", autogenerate: { directory: "reference" } },
+                ...openAPISidebarGroups
+            ],
             title: "Tapp Docs",
         }),
         mdx(),
