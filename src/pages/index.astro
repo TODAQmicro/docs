@@ -3,11 +3,8 @@ import { getCollection } from 'astro:content';
 
 import Head from '../components/Head.astro';
 import Header from '../components/Header';
-import Navigation from '../components/Navigation';
 import Scripts from '../components/Scripts.astro';
 
-const guides = await getCollection('guide');
-const references = await getCollection('reference');
 ---
 
 <!doctype html>
