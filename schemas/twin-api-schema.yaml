@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: TODAQMicro Twin API
+  description: |
+
+    This object represents an existing digital twin. To learn more about digital twins [check this out](https://engineering.todaq.net/twin/).
+
+    Related guides:
+    - [Reactive payments](/guide/reactive-payment/)
+    - [Transparent payment button](/guide/transparent/)
+
+    ## The Twin Object
+
+    ### Attributes
+
+    ```javascript
+    {
+        "id": 224,
+        "hostname": "41a4d95eec0e66136d0d86c04b8cdfd8.micro-staging.biz.todaq.net",
+        "key": null,
+        "balances": {
+            "410ddbac7c8a259da8dfcc5f55bcb28b77d29be9c540a2c23444b416d584801c30": 0
+        }
+    }
+    ```
+
+  contact:
+    name: TODAQMicro
+    url: https://docs.m.todaq.net
+    email: support@todaq.net
+  version: 3.0.0
+servers:
+  - url: https://pay.m.todaq.net
+
+paths:
+  /v2/twin:
+    post:
+      summary: Create a Twin
+      description: Create a new Twin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dq:
+                  description: DQ hash to use
+                  type: string
+                  required: true
+                email:
+                  description: email address to associate with twin
+                  type: string
+                paywall:
+                  description: Website to paywall
+                  type: string
+      responses:
+        201:
+          description: Twin created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/twinProperties"
+        500:
+          description: Failed to Create Twin
+
+  /v2/twin/{hostname}:
+    get:
+      summary: Get Information on a Twin
+      description: Return information about a twin and its balances
+      parameters:
+        - name: hostname
+          required: true
+          description: Twin Hostname
+          in: path
+          schema:
+            type: string
+      responses:
+        201:
+          description: Twin created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/twinProperties"
+        500:
+          description: Failed to get twin information
+
+  /v2/twins:
+    get:
+      summary: Get Information on All Twins
+      description: Get an array of all twin information
+      responses:
+        200:
+          description: Twin information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  twins:
+                    description: list of twin info
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/twinProperties"
+        401:
+          description: Unauthorized
+
+  # Do we really want this public?
+  # /v2/twin/nonce:
+  #   post:
+  #   put:
+
+  /v2/twin/dq:
+    get:
+      summary: Get a Twin's Digital Quantities
+      description: Get a list of all the DQs a twin accepts
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  digital_quantities:
+                    description: List of DQs
+                    type: array
+                    items:
+                      type: string
+                      description: Hash of accepted DQ
+
+  /v2/twin/{hostname}/binder:
+    get:
+      summary: Get a Twin's Binder
+      description: Returns a binder of records for all transactions in the twin. The output can be a csv, a Toda file, or json
+      parameters:
+        - name: hostname
+          required: true
+          description: Twin Hostname
+          in: path
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns all binder entries ordered from newest to oldest
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    twistId:
+                      description: Entry hash
+                      type: string
+                    timestamp:
+                      description: Entry timestamp
+                      type: string
+                    data:
+                      description: Binder entry. Transactions from within the Tapp system will be formatted as follows, but this is not guaranteed for all transactions.
+                      type: object
+                      example: |
+                        {
+                          "entry": {
+                              "amount": 500,
+                              "fromAddress": "41eea37353cd0654130ba96e3fa6de415436562a6886553abb18d651d77c5fbecd",
+                              "type": "41fb1e11c2a9cc4072db7a835883cf9cd856f0d0c93bd5c1d8879e8921b0335e9f"
+                          },
+                          "entryAuthor": "TODAQ Twin System",
+                          "entryFiles": [
+                              "41ab5e18bc9ec3871b3d27cf909083a9dd71cc3f2ba5fb88415e9663f77730d256"
+                          ],
+                          "entryOperation": "receive",
+                          "entryType": "dqTX"
+                        }
+
+            text/csv:
+              schema:
+                type: string
+                description: Binder entries as a CSV
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: Binder entries as a Toda file
+
+  /v2/twin/{hostname}/inventory:
+    get:
+      summary: Get a Twin's Inventory
+      description:
+      parameters:
+        - name: hostname
+          required: true
+          description: Twin Hostname
+          in: path
+          schema:
+            type: string
+      responses:
+        200:
+          description: For each TODA file in a Twin, displays the issuer, file type, amount, rigging integrity check, and date/time of last time the file tethered to integrity network.
+          content:
+            text/csv:
+              schema:
+                type: string
+                description: Inventory data as a CSV
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: Binder entries as a Toda file
+
+components:
+  schemas:
+    twinProperties:
+      type: object
+      properties:
+        id:
+          description: Twin ID
+          type: number
+        hostname:
+          description: Twin Hostname
+          type: string
+        key:
+          description: API key for this twin
+          type: string
+        balances:
+          desctription: "list of DQ balances on this twin. A mapping of { <DQ hash> : <amount>, ... }"
+          type: object
+          properties:
+            <DQ hash>:
+              description: The amount of a particular DQ in the twin
+              type: number
+
+

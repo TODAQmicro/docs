@@ -1,0 +1,183 @@
+openapi: 3.0.3
+info:
+  title: TODAQMicro User Account Management API
+  description: User account management
+
+  contact:
+    name: TODAQMicro
+    url: https://docs.m.todaq.net
+    email: support@todaq.net
+  version: 3.0.0
+servers:
+  - url: https://pay.m.todaq.net
+
+paths:
+  /v2/account:
+    post:
+      summary: Make a New TodaQMicro Account
+      responses:
+        201:
+          description: New account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    description: New account ID
+                    type: string
+                  created_at:
+                    description: Account creation time
+                    type: string
+                  updated_at:
+                    description: Time account last updated
+                    type: string
+                  secrets:
+                    description: Account secrets
+                    type: array
+                    example: |
+                        secrets: [
+                          {
+                            public_secret: <secret>,
+                            created_at: <secret_created_at>,
+                            updated_at: <secret_updated_at>,
+                          },
+                          {
+                            client_id: <id>,
+                            client_secret: <secret>,
+                            created_at: <secret_created_at>,
+                            updated_at: <secret_updated_at>,
+                          }
+                        ]
+        500:
+          description: Could not create new account
+
+  /v2/account/oauth/token:
+    post:
+      summary: Authorize an Account
+      security:
+        - basicAuth: []
+      responses:
+        200:
+          description: Returns a new access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: 
+                    description: A new access token
+                    type: string
+                  expires_at:
+                    description: When the token expires
+                    type: string
+                    example: "1703349846"
+                  refresh_token:
+                    description: A token to refresh the access token
+                    type: string
+                  refresh_expires_at: 
+                    description: When the refresh token expires
+                    type: string
+                    example: "1703349846"
+
+        401:
+          description: Unauthorized
+
+# Make a User
+# POST /v2/user
+  /v2/user:
+    post:
+      summary: Make a New User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: Email for new user
+                  type: string
+                password:
+                  description: User password
+                  type: string
+      responses:
+        201:
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    description: User email
+                    type: string
+                  password:
+                    description: User password
+                    type: string
+                  secrets:
+                    description: Generated client secrets
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        client_id:
+                          description: Client ID
+                          type: string
+                        client_secret:
+                          description: Client Secret
+                          type: string
+                        created_at:
+                          description: When user was created
+                          type: string
+                        updated_at:
+                          description: When user was last updated
+                          type: string
+
+# Authorize a User
+# TODO - same as /v2/account/oauth/token ?
+# POST /v2/user/oauth/token
+
+# Get a User
+# GET /v2/user/:id
+  /v2/user/{id}:
+    get:
+      summary: Get User Information
+      parameters:
+        - name: id
+          required: true
+          description: User ID
+          in: path
+          schema:
+            type: string
+      responses:
+        200:
+          description: User Information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    description: User ID
+                    type: string
+                  email:
+                    description: User email
+                    type: string
+                  created_at:
+                    description: When user was created
+                    type: string
+                  updated_at:
+                    description: When user was last updated
+                    type: string
+                  deleted_at:
+                    description: When user was deleted
+                    type: string
+
+        404:
+          description: User not found
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic

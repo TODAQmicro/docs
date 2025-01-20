@@ -16,17 +16,35 @@ export default defineConfig({
             plugins: [
                 starlightOpenAPI([
                     {
-                        base: "api",
-                        label: "API Documentation",
+                        base: "payments",
+                        label: "Payments",
                         schema: "schemas/payment-api-schema.yaml",
                         collapsed: false,
-                    }
+                    },
+                    {
+                        base: "commodities",
+                        label: "Commodities",
+                        schema: "schemas/commodity-api-schema.yaml",
+                        collapsed: false,
+                    },
+                    {
+                        base: "twins",
+                        label: "Twins",
+                        schema: "schemas/twin-api-schema.yaml",
+                        collapsed: false,
+                    },
+                    {
+                        base: "users",
+                        label: "User Account Management",
+                        schema: "schemas/user-account-api-schema.yaml",
+                        collapsed: false,
+                    },
                 ]),
             ],
             sidebar: [
                 { label: "User Guides", autogenerate: { directory: "guide" } },
                 { label: "References", autogenerate: { directory: "reference" } },
-                ...openAPISidebarGroups,
+                { label: "API Documentation", items: openAPISidebarGroups },
             ],
             title: "Tapp Docs",
         }),

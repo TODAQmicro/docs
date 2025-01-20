@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: TODAQMicro Payment API
-  description: |-
-    The Payment API enables you to manage users, make twins, commodities, payments, personas, as well as validate payments and personas.
+  description: |
+    The Payment API enables you to make payments, get information on payments that have been made to you, as well as mark payments made to you as "spent" in order to prevent double spending.
   contact:
     name: TODAQMicro
     url: https://docs.m.todaq.net
@@ -16,8 +16,6 @@ paths:
     post:
       summary: Make a Payment
       description: Make a payment from the authenticated twin to another twin if you have sufficient funds
-      tags:
-        - Payments
       requestBody:
         content:
           application/json:
@@ -55,14 +53,6 @@ paths:
     get:
       summary: Get Payment Info
       description: Get information about a payment to verify if it has been made and if it's been marked as spent
-      tags:
-        - Payments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
 
       parameters:
         - in: path
@@ -114,8 +104,6 @@ paths:
     post:
       summary: Validate a Payment
       description: Validate a payment and mark it as spent
-      tags:
-        - Payments
       requestBody:
         content:
           application/json:
