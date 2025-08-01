@@ -1,0 +1,132 @@
+---
+title: Twins
+description: TODAQMicro Digital Twin APIs
+pubDate: June 15, 2024
+---
+
+## Twins
+
+## Endpoints
+
+##### **POST** `/v2/twin/`
+
+Create a Twin
+
+##### Request Body Schema
+
+```javascript
+{
+    "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73"
+}
+```
+
+##### Response Schema
+
+```javascript
+{
+    "id": 3539,
+    "hostname": "4151ee39de1566a3f9c90b8d5dc86ef4.micro.biz.todaq.net",
+    "key": "84c8a2f5-18ab-4bd1-859c-4fc6f8c30f04",
+    "balances": {
+        "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": 0
+    }
+}
+```
+
+##### **GET** `/v2/twin/:hostname`
+
+Get a Twin
+
+##### Request Body Schema
+
+```javascript
+{
+    "public_secret": "mp_35c783fe504b43e39dd62bc31295df81"
+}
+```
+
+##### Response Schema
+
+```javascript
+{
+    "id": 3539,
+    "hostname": "4151ee39de1566a3f9c90b8d5dc86ef4.micro.biz.todaq.net",
+    "key": "84c8a2f5-18ab-4bd1-859c-4fc6f8c30f04",
+    "balances": {
+        "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": 0
+    }
+}
+```
+
+##### **GET** `/v2/twins`
+
+Get all Twins
+
+##### Response Schema
+
+```javascript
+{
+    "twins": [
+        {
+            "id": 3539,
+            "key": "84c8a2f5-18ab-4bd1-859c-4fc6f8c30f04",
+            "hostname": "4151ee39de1566a3f9c90b8d5dc86ef4.micro.biz.todaq.net",
+            "balances": {
+                "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": 0
+            }
+        },
+        {
+            "id": 3397,
+            "key": "d365c8f2-1c0a-4162-be34-15433462cd83",
+            "hostname": "41dafc21efad17f4592451f8bdc26338.micro.biz.todaq.net",
+            "balances": {
+                "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": 7.42
+            }
+        }
+    ]
+}
+```
+
+##### **GET** `/v2/twin/:hostname/binder`
+
+Get a Twin's Binder
+
+##### Path Parameters
+
+###### hostname ***string***
+
+##### Request Headers
+
+###### Accept ***text/csv***
+
+##### Response Schema
+
+```csv
+timestamp,fileAction,fileIdentity,fileType,amount,fromAddress,destinationAddress
+2025-06-27T17:32:05.959Z,receive,41bc213cf869f80b372a5fbb82565f9bc794c86616914a3e9b5cbf29f71f231f6a,412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73,0.5,414e3aaa09d5349c44b6b80951f1ec94b46b21301cc436fbce7b1fa1a202ef8b6e,
+2025-06-26T13:16:02.388Z,receive,41a5f3e64be9d98175c1caeb45f311a7d0d980f016922bd124af8f4e0e9fc6f283,412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73,1,414e3aaa09d5349c44b6b80951f1ec94b46b21301cc436fbce7b1fa1a202ef8b6e,
+2025-06-23T14:43:32.365Z,receive,4193af803df03d9b665395100087dee6ff41ab4cbc9a83cfb59e61c5da424781e4,412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73,0.1,414e3aaa09d5349c44b6b80951f1ec94b46b21301cc436fbce7b1fa1a202ef8b6e,
+2025-06-20T21:36:25.589Z,receive,418764321d23eb530240d34d8e5f38bbff2edecb298d1319d230bf64cac5bb0903,,,41a9db17a53bf4b88f8f19af89ffece1e143129be46a79a3e70271a9b90804051f,
+2025-06-20T21:32:19.629Z,receive,41baa75b603499c90a7e27b404fed9d25d8e9b61991434474279d59ae4e9784fb5,,,41a9db17a53bf4b88f8f19af89ffece1e143129be46a79a3e70271a9b90804051f,
+2025-06-18T11:46:36.227Z,receive,41e3045f7f2f02fdc41e28bdba575ce3b897d7303d482ba7e6b09f5825623e8d64,412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73,1.68,41566b7c2ec36a9574e81035503bfbb17d526691e04d068f0155b4ccd7a70c6726,
+2025-06-17T15:32:59.943Z,receive,4121d9622a5735af5f4129ca217ca01a0f584e5a69e39fbe2a4b521fcca4656ca8,412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73,3.14,41566b7c2ec36a9574e81035503bfbb17d526691e04d068f0155b4ccd7a70c6726,
+2025-06-17T14:21:17.183Z,receive,41e00d1038fb677f3fb8b7ed4eb33dfeca6d995f275b4a36dcce59a378a09cc79e,412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73,1,4118226f252a07514b64c76bd19c1aa8ea2d643d74bc4225b3c011a671735559b2,
+```
+
+##### **GET** `/v2/twin/:hostname/inventory`
+
+Get a Twin's Inventory
+
+##### Path Parameters
+
+###### hostname ***string***
+
+##### Request Headers
+
+###### Accept ***text/csv***
+
+##### Response Schema
+
+```csv
+
+```

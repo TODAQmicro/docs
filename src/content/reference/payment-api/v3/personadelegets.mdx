@@ -1,0 +1,61 @@
+---
+title: Persona Delegates
+description: TODAQMicro Commodity APIs
+pubDate: July 29, 2025
+---
+
+## Persona Delegates
+
+## Endpoints
+
+##### **GET** /v3/persona/delegates
+
+Get the principles persona delegates
+
+##### Response Schema
+
+```
+{
+    "persona_hash": [
+        "persona_delegate_hash",
+        ...
+    ],
+    ...
+    "418f3a0105acb4016c71bd32fd60fb7ab3cc980597b4b27256eb41e02fde9791bd": [
+        "41baa75b603499c90a7e27b404fed9d25d8e9b61991434474279d59ae4e9784fb5"
+    ],
+    "419138efb9eb8af52a7185aca7abb972f42c0af9565a4d0ba535c1174cc840e6b5": [
+        "418764321d23eb530240d34d8e5f38bbff2edecb298d1319d230bf64cac5bb0903"
+    ]
+}
+```
+
+##### **GET** /v3/persona/:hash/verify
+
+Verify that a particular twin has a persona delegate.
+
+##### Path Parameters
+
+###### hash ***string***
+
+##### Request Body Schema
+
+```javascript
+{
+    "twin_id": 1234
+}
+```
+
+##### Response Schema
+
+```javascript
+{
+    "status": 200,
+    "message": "OK",
+    "hostname": "hostname_hash",
+    "instances": [
+        "persona_delegate_hash",
+        ...
+    ]
+}
+```

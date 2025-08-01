@@ -1,0 +1,57 @@
+---
+title: Commodities
+description: TODAQMicro Commodity APIs
+pubDate: July 28, 2025
+---
+
+## Commodities
+
+This object represents a transactable enitity (e.g. A video, concert
+ticket, etc.)
+
+## Endpoints
+
+<br /><br />
+##### **POST** `/v3/commodity/`
+
+##### Request Body Schema
+
+```javascript
+{
+    "descriptor": "ARCADE.PONG",
+    "dq": "410ddbac7c8a259da8dfcc5f55bcb28b77d29be9c540a2c23444b416d584801c30",
+    "cost": 1.00,
+    "twin_id": 1234
+}
+```
+
+##### Response Schema
+
+```javascript
+{
+    "hash": "c6f3b302-96f8-450a-b71f-b7c04618d5ba",
+    "descriptor": "ARCADE.PONG",
+    "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73",
+    "cost": 50,
+    "hostname": "41dafc21efad17f4592451f8bdc26338.micro.biz.todaq.net"
+}
+```
+
+<br /><br />
+##### **GET** `/v3/commodity/:hash`
+
+##### Path Parameters
+
+###### hash ***string***
+
+##### Response Schema
+
+```javascript
+{
+    "hash": "c6f3b302-96f8-450a-b71f-b7c04618d5ba",
+    "descriptor": "ARCADE.PONG",
+    "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73",
+    "cost": 50,
+    "hostname": "41dafc21efad17f4592451f8bdc26338.micro.biz.todaq.net"
+}
+```
