@@ -9,3 +9,43 @@ import Element from "../../../components/Element";
 
 <Element type="payment" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
 
+Implement code to generate the payment element dynamically when the page loads. This element will allow users to initiate purchases directly from your website or application.
+
+```javascript
+const micro = await loadMicroPayments(
+  // Replace <PUBLIC_SECRET> with your accounts' public secret.
+  "<PUBLIC_SECRET>",
+  { apiVersion: 'main' }
+);
+
+const elements = micro.elements();
+const element = await elements.create('payment', {
+  // Replace <HASH> with the commodities hash.
+  hash: '<HASH>',
+  theme: "light",
+  styles: {
+    colorPrimary: '#000000',
+    colorBackground: '#FDB902',
+    borderRadius: '0',
+  },
+});
+
+```
+
+Designate a suitable location on your webpage to mount the payment element. Consider user experience and accessibility when placing the payment interface to maximize conversion rates.
+
+```javascript
+if (element) {
+  element.mount("#signup-submit");
+}
+```
+
+Set up event listeners to detect when users initiate purchases or interact with the payment interface. This functionality will enable you to track user actions and respond accordingly to the purchase.
+
+When a payment has been made a `payment` event is emitted on the HTML `document` DOM element. Simply add an event listener and then you can validate the payment with the `validatePayment` function on the server side.
+
+```javascript
+document.addEventListener('payment', async (nonce) => {
+  // Validate payment and then provide content to the user.
+});
+```
