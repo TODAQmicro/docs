@@ -269,29 +269,195 @@ document.addEventListener('debateEnded', async (event) => {
 });
 ```
 
-## 🚀 **Hackathon Implementation Plan**
+## 🚀 **Iterative Implementation Plan**
 
-### **Day 1: Foundation (8 hours)**
-- [ ] Set up TODAQ Micro account and get API keys
-- [ ] Create platform Twin and core commodities (entry, argument, vote)
-- [ ] Build basic React/Next.js app with TODAQ SDK integration
-- [ ] Implement payment elements for entry fees
-- [ ] Create simple debate room UI
+### **🎯 MVP (2-3 hours) - Core Proof of Concept**
+**Goal**: Demonstrate basic micropayment-powered debate mechanics
 
-### **Day 2: Core Game Logic (8 hours)**
-- [ ] Build argument posting with payment validation
-- [ ] Implement voting system with micropayments
-- [ ] **Implement hidden scoring system** (votes count but scores not displayed)
-- [ ] Create game end conditions and **score reveal logic**
-- [ ] Add basic persona delegation (novice → skilled → master)
-- [ ] Build reward distribution with payback elements
+- [ ] **Setup TODAQ Account** (15 min)
+  - Create account, get API keys
+  - Create single commodity for "debate participation" ($0.50)
+  
+- [ ] **Minimal Frontend** (45 min)
+  - Single HTML page with TODAQ SDK
+  - Topic display: "Should AI replace human jobs?"
+  - Text area for arguments
+  - Payment button to submit argument
+  
+- [ ] **Basic Backend** (60 min)
+  - Node.js server with single endpoint `/submit-argument`
+  - In-memory storage (array of arguments)
+  - Payment validation with TODAQ
+  - Return success/failure response
+  
+- [ ] **Simple Display** (30 min)
+  - Show submitted arguments in list
+  - No voting, no scores - just payment → post → display
+  - Basic CSS for readability
 
-### **Day 3: Polish & Advanced Features (8 hours)**
-- [ ] Add verify elements for expert debates
-- [ ] Implement topic expertise personas
-- [ ] Build leaderboards and player profiles
-- [ ] Add real-time updates (WebSocket/Server-Sent Events)
-- [ ] Create demo data and polish UI/UX
+**MVP Demo**: "Pay $0.50 → Post argument → See it appear in list"
+
+---
+
+### **🔄 Iteration 1 (2-3 hours) - Add Voting**
+**Goal**: Enable paid voting with hidden scores
+
+- [ ] **Add Voting Commodities** (15 min)
+  - Create upvote commodity ($0.10)
+  - Create downvote commodity ($0.10)
+  
+- [ ] **Voting UI** (45 min)
+  - Add upvote/downvote buttons to each argument
+  - Payment elements for vote transactions
+  - Vote confirmation feedback
+  
+- [ ] **Vote Processing** (60 min)
+  - `/vote` endpoint with payment validation
+  - Store votes in memory with argument IDs
+  - Track vote counts (hidden from display)
+  
+- [ ] **Vote Indicators** (30 min)
+  - Show "X people voted" without revealing up/down counts
+  - Visual feedback that voting happened
+  - Keep scores completely hidden
+
+**Iteration 1 Demo**: "Submit arguments → Others can pay to vote → See voting activity"
+
+---
+
+### **🎮 Iteration 2 (2-3 hours) - Game Mechanics**
+**Goal**: Turn into actual game with winners
+
+- [ ] **Game Sessions** (30 min)
+  - Add game ID concept
+  - 5-minute timer for arguments
+  - 5-minute timer for voting
+  
+- [ ] **Score Reveal** (45 min)
+  - Calculate upvote ratios when game ends
+  - Animate score reveals
+  - Show winner announcement
+  
+- [ ] **Payback System** (60 min)
+  - Create winner reward commodity
+  - Implement payback element for winner
+  - Basic prize distribution (70% to winner)
+  
+- [ ] **Game Flow** (45 min)
+  - "Start New Game" button
+  - Game status display (arguing phase → voting phase → results)
+  - Reset for next round
+
+**Iteration 2 Demo**: "Complete game cycle with winner announcement and rewards"
+
+---
+
+### **🏆 Iteration 3 (3-4 hours) - Personas & Progression**
+**Goal**: Add skill progression system
+
+- [ ] **Basic Personas** (60 min)
+  - Create 3 persona commodities (Novice, Skilled, Master)
+  - Server-side persona delegation logic
+  - Track games played and win rates
+  
+- [ ] **Persona Display** (45 min)
+  - Show player's current skill level
+  - Badge/icon system for personas
+  - Progress indicators
+  
+- [ ] **Verify Elements** (60 min)
+  - Create "Expert Debate" mode
+  - Verify element requiring Skilled+ persona
+  - Higher stakes ($2 entry, $5 winner prize)
+  
+- [ ] **Player Profiles** (45 min)
+  - Simple profile page showing stats
+  - Games played, win rate, current persona
+  - Argument history
+
+**Iteration 3 Demo**: "Skill progression with exclusive expert debates"
+
+---
+
+### **🌟 Iteration 4 (3-4 hours) - Polish & Scale**
+**Goal**: Production-ready experience
+
+- [ ] **Database Integration** (90 min)
+  - Replace in-memory storage with PostgreSQL
+  - Proper data persistence
+  - User session management
+  
+- [ ] **Real-time Updates** (60 min)
+  - WebSocket integration
+  - Live player count
+  - Real-time argument submissions
+  
+- [ ] **UI Polish** (90 min)
+  - Professional styling with Tailwind
+  - Animations and transitions
+  - Mobile responsiveness
+  
+- [ ] **Multiple Topics** (30 min)
+  - Topic rotation system
+  - Random topic selection
+  - Topic categories
+
+**Iteration 4 Demo**: "Full-featured platform ready for multiple users"
+
+---
+
+### **🎪 Iteration 5 (Optional - Advanced Features)**
+**Goal**: Competitive tournament features
+
+- [ ] **Tournament Brackets** (2 hours)
+  - Multi-round elimination
+  - Tournament personas
+  - Championship rewards
+  
+- [ ] **Topic Expertise** (1.5 hours)
+  - Category-specific personas
+  - Expert verification per topic
+  - Specialized debate rooms
+  
+- [ ] **Advanced Analytics** (1 hour)
+  - Player statistics dashboard
+  - Argument quality metrics
+  - Community leaderboards
+
+---
+
+## **⚡ Quick Start Guide**
+
+### **Hour 1: Get Something Working**
+```bash
+# 1. Clone starter template
+npx create-next-app@latest debate-arena
+cd debate-arena
+
+# 2. Install TODAQ SDK
+npm install @todaqmicro/payment-js
+
+# 3. Create single page with payment button
+# 4. Set up TODAQ account and get first payment working
+```
+
+### **Hour 2: Basic Argument System**
+```bash
+# 1. Add Node.js backend
+# 2. Create /submit-argument endpoint
+# 3. Store arguments in memory
+# 4. Display submitted arguments
+```
+
+### **Hour 3: MVP Demo Ready**
+```bash
+# 1. Style with basic CSS
+# 2. Add topic display
+# 3. Test full flow: pay → submit → display
+# 4. Deploy to Vercel for demo
+```
+
+**Each iteration builds on the previous one, allowing you to have a working demo at any stage!**
 
 ### **Tech Stack Recommendation**
 - **Frontend**: Next.js 14 with TypeScript
