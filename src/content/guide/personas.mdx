@@ -4,7 +4,36 @@ description: How pesonas work, and how to leverage them in a purchase flow.
 pubDate: November 13, 2024
 ---
 
-## Getting Started
+## What Are Personas?
+
+**Personas** in the TODAQ Micro payment system serve as a **digital identity and access control mechanism**. They are:
+
+- **Digital identity tokens** that can be delegated to users after they make a purchase
+- **Access credentials** that prove a user has paid for specific content or services  
+- **Verification tokens** with different levels/tiers (like "fan #1", "fan #2", etc.)
+
+## How Personas Work
+
+1. **Purchase Flow**: User pays for content → system validates payment → **persona is delegated** to user's "twin" (their digital wallet)
+2. **Access Control**: User can later **verify** they have a specific persona to access premium content
+3. **Tiered Access**: Different personas provide different access levels
+
+## Use Cases
+
+- **Subscription/Membership** verification (prove you're a paying subscriber)
+- **Content Unlocking** (access premium articles, downloads, features after payment)
+- **Tiered Access** (different persona levels = different privileges)
+- **Persistent Identity** across sessions (once delegated, persona stays with user)
+
+## The Complete Flow
+
+```
+Payment → Validation → Persona Delegation → Future Access Verification
+```
+
+Essentially, personas solve the problem of **"How do I prove this user paid for access to X?"** - they're cryptographic proof of purchase that enables persistent access to paid content without requiring users to pay again for the same content.
+
+## Examples
 
 ### Simple signup delegate persona
 <iframe width="100%" height="400" src="/guide/example/form-persona" />
