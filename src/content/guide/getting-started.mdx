@@ -112,6 +112,8 @@ Your response should look like this:
 
 **Step 3: Create a Twin**
 
+A **Twin** is your digital wallet/merchant account that will own commodities and receive payments. Think of it as your business account in the TODAQ Micro system.
+
 Use the DQ to create a Twin and get a Twin ID:
 
 ```bash
@@ -136,7 +138,9 @@ Your response should look like this (save this for future reference):
 
 **Step 4: Create Your Commodity**
 
-Now create your commodity with the Twin ID and DQ (you can create multiple commodities with the same Twin ID):
+A **Commodity** represents a sellable item (like an article, download, or service) that belongs to your Twin. The `twin_id` links the commodity to your digital wallet - when someone purchases this commodity, the payment will go to your Twin's balance.
+
+You can create multiple commodities with the same Twin ID (one Twin can own many products):
 
 ```bash
 curl -X POST "https://pay.m.todaq.net/v2/commodity/" \
@@ -157,7 +161,16 @@ Your response should look like this:
 }
 ```
 
-**Congratulations!** You've successfully created a commodity. Save the **hash** value as you'll need it for the payment element in step 5.
+**Congratulations!** You've successfully created a commodity that's owned by your Twin. Save the **hash** value as you'll need it for the payment element in step 5.
+
+## Twin-Commodity Relationship Summary
+
+- **Twin** = Your digital wallet/merchant account (receives payments)
+- **Commodity** = Your product listing (what customers buy)
+- **Relationship**: Each commodity has a `twin_id` that identifies its owner
+- **Payment Flow**: Customer buys commodity → Payment goes to the owning Twin's balance
+
+For more details, see the [Twins API reference](/reference/payment-api/v2/twins) and [Commodities API reference](/reference/payment-api/v3/commodity).
 
 
 #### 3.b. Dynamic Pricing: Adjust prices based on market demand, customer behavior, or other factors.

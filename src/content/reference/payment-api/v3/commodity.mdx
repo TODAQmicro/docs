@@ -6,8 +6,25 @@ pubDate: July 28, 2025
 
 ## Commodities
 
-This object represents a transactable enitity (e.g. A video, concert
-ticket, etc.)
+A **Commodity** represents a transactable entity (e.g. a video, concert ticket, article access, etc.) that can be purchased using the TODAQ Micro payment system.
+
+### Relationship to Twins
+
+Commodities have a **many-to-one relationship** with Twins:
+- Each commodity must belong to a Twin (specified by `twin_id`)
+- One Twin can own multiple commodities
+- When a commodity is purchased, payment goes to the owning Twin's balance
+- The Twin acts as the merchant account that receives the revenue
+
+### Key Properties
+
+- **hash**: Unique identifier used in payment elements
+- **descriptor**: Human-readable name for the commodity  
+- **cost**: Price in the specified digital quantity
+- **twin_id**: ID of the Twin that owns this commodity
+- **dq**: Digital quantity (currency) used for pricing
+
+See [Twins API](/reference/payment-api/v2/twins) for creating the merchant account that will own your commodities.
 
 ## Endpoints
 
