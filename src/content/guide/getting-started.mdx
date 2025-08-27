@@ -8,33 +8,45 @@ pubDate: February 28, 2024
 
 [TOC]
 
+### Environment URLs
+
+**Staging:** [https://pay.stage.m.todaq.net](https://pay.stage.m.todaq.net)  
+**Production:** [https://pay.m.todaq.net](https://pay.m.todaq.net)
+
 ### 1. Obtain Your Account Details
 
 Before diving into setting up your online micropayment, you need to ensure you have the necessary account details from TODAQ Micro. This includes obtaining account keys: **public secret**, **client secret**, **client secret ID**.
+
+You can obtain your account details by sending a POST request to the account management endpoint:
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v2/account"
+```
 
 You will receive the following JSON object which contains everything you will need:
 
 ```json
 {
-   "id": 8,
-   "created_at": "1709323022",
-   "updated_at": "1709323022",
+   "id": 44,
+   "created_at": "1755529706",
+   "updated_at": "1755529706",
    "secrets": [
        {
-           "public_secret": "mp_4120157d4fef4cddb97209df1d930cda",
-           "created_at": "1709323022",
-           "updated_at": "1709323022"
+           "public_secret": "mp_4ce48bb7ad3242a49b587f9f24e6b7de",
+           "created_at": "1755529706",
+           "updated_at": "1755529706"
        },
        {
-           "client_id": "mid_a79128c68ad34887bb6bbc16488f19f1",
-           "client_secret": "mc_7a0ce09d7b9244b68bb5935c638ee0fb",
-           "created_at": "1709323022",
-           "updated_at": "1709323022"
+           "client_id": "mid_6c9e2550dc8148aba3e8569de696125d",
+           "client_secret": "mc_ef1e1579f7c04fa2b3ee1451c5c0af3b",
+           "created_at": "1755529706",
+           "updated_at": "1755529706"
        }
    ]
 }
-
 ```
+
+Make note of the **public_secret**, **client_secret**, and **client_id** as you'll need these for subsequent steps.
 
 ### 2. Determining Your Product
 
@@ -50,16 +62,107 @@ Decide on your pricing strategy, whether it's dynamic or static pricing.
 
 #### 3.a. Static Pricing: Set fixed prices for your products or services.
 
-Static pricing is the easiest route and eliminates extra back and forth network requests. While it’s not absolutely necessary, as you can still have static pricing and follow the below dynamic pricing route below.
+Static pricing is the easiest route and eliminates extra back and forth network requests. Follow these steps to create a commodity with a fixed price:
 
-Static pricing can be accomplished by creating a commodity out of band and statically setting the hash ID in the subsequent steps.
+**Step 1: Get an Access Token**
 
-To accomplish this you can either use your account keys to obtain an API access token and manually hit the TODAQ Micro [Payment API’s commodity endpoint](#), or create a script that uses the [Payment Node.JS SDK](#) to create a one-off commodity.
+First, obtain an access token using your client credentials:
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v2/account/oauth/token" \ 
+-u "$CLIENT_ID:$CLIENT_SECRET" \
+-d "grant_type=client_credentials"
+```
+
+Your response should look like this (access token expires in 1 hour):
+
+```json
+{
+  "access_token": "tqmt_7c34728f23b244eda907847982408b92",
+  "expires_at": "1755546848",
+  "refresh_token": "tqmt_5849fa5adc124e919a778ad228099363",
+  "refresh_expires_at": "1755546848"
+}
+```
+
+**Step 2: Get Available Digital Quantities (DQ)**
+
+Fetch available digital quantities:
+
+```bash
+curl -X GET "https://pay.m.todaq.net/v3/dq"
+```
+
+Your response should look like this:
+
+```json
+{
+  "digital_quantities": [
+    "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73"
+  ],
+  "metadata": {
+    "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": {
+      "name": "USD TDN",
+      "shortcode": "USD",
+      "shortdescription": "US Dollar Todaized Digital Quantity"
+    }
+  }
+}
+```
+
+**Step 3: Create a Twin**
+
+Use the DQ to create a Twin and get a Twin ID:
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v2/twin/" \
+-H "Authorization: Bearer $ACCESS_TOKEN" \
+-H "Content-Type: application/json" \
+-d '{"dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73"}'
+```
+
+Your response should look like this (save this for future reference):
+
+```json
+{
+  "id": 3992,
+  "hostname": "41b6fd6082ecbb5b6eab63c6a0317fcd.micro.biz.todaq.net",
+  "key": "7bf70690-bd62-48f8-ae69-396ca0628534",
+  "balances": {
+    "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": 0
+  }
+}
+```
+
+**Step 4: Create Your Commodity**
+
+Now create your commodity with the Twin ID and DQ (you can create multiple commodities with the same Twin ID):
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v2/commodity/" \
+-H "Authorization: Bearer $ACCESS_TOKEN" \
+-H "Content-Type: application/json" \
+-d '{"descriptor": "VEGEMITE.SANDWICH", "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73", "cost": 15.00, "twin_id": 3992 }' 
+```
+
+Your response should look like this:
+
+```json
+{                                            
+  "hash": "e3bd5945-851f-43de-b487-a9706576c905",
+  "descriptor": "VEGEMITE.SANDWICH",
+  "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73",
+  "cost": 15,
+  "hostname": "41b6fd6082ecbb5b6eab63c6a0317fcd.micro.biz.todaq.net"
+}
+```
+
+**Congratulations!** You've successfully created a commodity. Save the **hash** value as you'll need it for the payment element in step 5.
 
 
 #### 3.b. Dynamic Pricing: Adjust prices based on market demand, customer behavior, or other factors.
 
-**TBA**. [Check out the Payment Node.JS SDK](#).
+**TBA**. Check out the [Payment Node.JS SDK](/reference/payment-node).
 
 
 ### 4. Integrating Micropayments Library into Your Project
@@ -107,7 +210,7 @@ const element = await elements.create('payment', {
 
 ```
 
-Replace `<PUBLIC_SECRET>` with your account’s public secret obtained in [step 1](#). and `<HASH>` with the hash ID for the commodity in [step 3](#).
+Replace `<PUBLIC_SECRET>` with your account's public secret obtained in step 1, and `<HASH>` with the commodity hash from step 3a.
 
 
 ### 6. Mounting Payment Element on Your Webpage
