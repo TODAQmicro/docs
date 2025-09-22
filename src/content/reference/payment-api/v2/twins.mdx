@@ -6,6 +6,21 @@ pubDate: June 15, 2024
 
 ## Twins
 
+A **Twin** is a digital wallet/merchant account in the TODAQ Micro system. It serves as:
+
+- **Digital Wallet**: Holds balances of digital quantities (like USD)
+- **Merchant Account**: Owns commodities and receives payments from their sales
+- **Identity**: Has a unique hostname and key for identification
+
+### Relationship to Commodities
+
+Twins have a **one-to-many relationship** with commodities:
+- One Twin can own multiple commodities
+- Each commodity must have a `twin_id` linking it to its owning Twin
+- When a commodity is purchased, payment goes to the owning Twin's balance
+
+See [Commodities API](/reference/payment-api/v3/commodity) for creating products that belong to your Twin.
+
 ## Endpoints
 
 ##### **POST** `/v2/twin/`
