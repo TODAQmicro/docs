@@ -17,7 +17,7 @@
     "@astrojs/sitemap": "^3.1.6",
     "@emotion/react": "^11.13.3",
     "@theme-ui/mdx": "^0.16.2",
-    "@todaqmicro/payment-js": "^0.4.1",
+    "@todaqmicro/payment-js": "^0.4.2",
     "@todaqmicro/payment-node": "^0.3.4",
     "astro": "^4.13.4",
     "flexsearch": "^0.8.212",
