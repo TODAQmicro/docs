@@ -9,12 +9,11 @@
   </div>
   <code></code>
 </div>
-<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", async (event) => {
+<script is:inline type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", async () => {
     // Setup
 
-    // @ts-ignore
     const micro = await loadMicroPayments(
       // Replace <PUBLIC_SECRET> with your accounts' public secret.
       "mp_821c2d39fa044dccaad197498e4f214f",

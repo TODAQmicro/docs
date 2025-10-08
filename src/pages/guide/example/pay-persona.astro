@@ -8,12 +8,11 @@
   </div>
   <code></code>
 </div>
-<script type="module" crossorigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", async (event) => {
+<script is:inline type="module" crossorigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", async () => {
     // Setup
 
-    // @ts-ignore
     const micro = await loadMicroPayments(
       // Replace <PUBLIC_SECRET> with your accounts' public secret.
       // "mp_11b3958356d047f295c0595154541f4a",
@@ -42,7 +41,7 @@
     if (verifyButton && verifyElement) {
       verifyButton.mount(verifyElement);
 
-      document.addEventListener("verify", async (event) => {
+      document.addEventListener("verify", async () => {
         button.iframe.contentWindow.postMessage('_TQMToggle', '*');
       });
     }
