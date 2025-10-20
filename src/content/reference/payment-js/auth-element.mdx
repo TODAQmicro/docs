@@ -83,5 +83,9 @@ const authElement = await elements.create('auth', {
 
 // Mount the element
 authElement.mount('#auth-container');
+
+document.addEventListener('authorize', (event) => {
+    alert(`Session: ${event.details.session}`);
+});
 ```
 
