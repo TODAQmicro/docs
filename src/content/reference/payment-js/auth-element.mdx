@@ -10,15 +10,64 @@ import Element from "../../../components/Element";
 The Auth Element provides a secure authentication interface for users to access paywall-protected content. Once authenticated, you receive a session token that can be used to make paywall requests.
 
 <Element type="auth" theme="light" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+<script>{`
+    document.addEventListener("authorize", async (event) => {
+        const { session } = event.detail;
+        
+        console.log('User authenticated! Session:', session);
+
+        // Now you can make paywall requests with the session
+        try {
+            const response = await fetch('https://pay.m.todaq.net/v3/paywall', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'session_id=${session}'
+                },
+                body: JSON.stringify({
+                    paymentTypeHash: '412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73',
+                    amount: 0.10,
+                    destinationUrl: 'https://example.com'
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Payment approved!', data);
+                
+                // Grant access to protected content
+                showProtectedContent();
+            } else if (response.status === 408) {
+                console.log('Payment approval timeout');
+                showTimeoutMessage();
+            } else {
+                console.error('Payment failed:', response.status);
+                showErrorMessage();
+            }
+        } catch (error) {
+            console.error('ERROR making paywall request:', error);
+        }
+    });
+
+    function showProtectedContent() {
+        // Your code to display the protected content
+        document.getElementById('protected-content').style.display = 'block';
+    }
+
+    function showTimeoutMessage() {
+        alert('Payment approval timed out. Please try again.');
+    }
+
+    function showErrorMessage() {
+        alert('Payment failed. Please try again.');
+    }
+`}</script>
 
 ## Basic Integration
 
 Add the Auth Element to your page and listen for the `authorize` event:
 
-```html
-<div id="auth-container"></div>
-
-<script type="module">
+```javascript
 import { loadMicroPayments } from '@todaqmicro/payment-js';
 
 // Initialize MicroPayments
@@ -32,63 +81,5 @@ const authElement = await elements.create('auth', {
 
 // Mount the element
 authElement.mount('#auth-container');
-</script>
 ```
 
-## Making a Paywall Request
-
-After successful authentication, use the session token to make paywall requests:
-
-<script is:inline>
-document.addEventListener("authorize", async (event) => {
-    const { session } = event.detail;
-    
-    console.log('User authenticated! Session:', session);
-
-    // Now you can make paywall requests with the session
-    try {
-        const response = await fetch('https://pay.m.todaq.net/v3/paywall', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cookie': `session_id=${session}`
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                paymentTypeHash: '412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73',
-                amount: 0.10,
-                destinationUrl: 'https://example.com'
-            }),
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Payment approved!', data);
-            
-            // Grant access to protected content
-            showProtectedContent();
-        } else if (response.status === 408) {
-            console.log('Payment approval timeout');
-            showTimeoutMessage();
-        } else {
-            console.error('Payment failed:', response.status);
-            showErrorMessage();
-        }
-    } catch (error) {
-        console.error('ERROR making paywall request:', error);
-    }
-});
-
-function showProtectedContent() {
-    // Your code to display the protected content
-    document.getElementById('protected-content').style.display = 'block';
-}
-
-function showTimeoutMessage() {
-    alert('Payment approval timed out. Please try again.');
-}
-
-function showErrorMessage() {
-    alert('Payment failed. Please try again.');
-}
-</script>
