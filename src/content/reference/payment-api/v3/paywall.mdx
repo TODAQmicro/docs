@@ -1,0 +1,564 @@
+---
+title: Paywall API (v3)
+description: Secure payment authorization with push notifications
+pubDate: October 20, 2025
+---
+
+## Paywall API
+
+The Paywall API provides secure payment authorization through push notifications. When a user encounters a paywall, the system sends a notification to their mobile device for instant approval or denial.
+
+[TOC]
+
+## Endpoints
+
+### POST /v3/paywall
+
+Create a paywall payment request and wait for user approval via push notification.
+
+**Authentication:** Session cookie required
+
+**Headers:**
+```http
+Content-Type: application/json
+Cookie: session_id=<session_token>
+```
+
+**Request Body:**
+
+```typescript
+{
+  paymentTypeHash: string;    // Digital quantity type identifier
+  amount: number;             // Payment amount (e.g., 5.00)
+  destinationUrl: string;     // Merchant's payment destination URL
+  merchantName?: string;      // Optional display name for merchant
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v3/paywall" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: session_id=sess_abc123..." \
+  -d '{
+    "paymentTypeHash": "dq_xyz789",
+    "amount": 5.00,
+    "destinationUrl": "https://yoursite.com",
+    "merchantName": "Your Company"
+  }'
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "status": "success",
+  "transaction_id": "txn_abc123",
+  "amount": 5.00,
+  "merchant": "Your Company",
+  "timestamp": 1729468800
+}
+```
+
+**Timeout Response (408 Request Timeout):**
+
+User didn't respond within 30 seconds or denied the payment.
+
+```json
+{
+  "error": "Payment approval timeout. Please try again.",
+  "status": 408
+}
+```
+
+**Unauthorized Response (401 Unauthorized):**
+
+No valid session found.
+
+```json
+{
+  "error": "No session found. Please authenticate first.",
+  "status": 401
+}
+```
+
+**Forbidden Response (403 Forbidden):**
+
+User doesn't have permission.
+
+```json
+{
+  "error": "Forbidden",
+  "status": 403
+}
+```
+
+**Not Found Response (404 Not Found):**
+
+Twin (payment account) not found for user.
+
+```json
+{
+  "error": "Twin not found for user",
+  "status": 404
+}
+```
+
+---
+
+### GET /v3/paywall/authorizations
+
+Get all payment authorizations for the authenticated user.
+
+**Authentication:** Bearer token required
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://pay.m.todaq.net/v3/paywall/authorizations" \
+  -H "Authorization: Bearer your_access_token"
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "authorizations": [
+    {
+      "id": 123,
+      "merchant_url": "https://yoursite.com",
+      "merchant_name": "Your Company",
+      "payment_type_hash": "dq_xyz789",
+      "status": "pending",
+      "authorized_at": null,
+      "expires_at": 1729468830,
+      "created_at": 1729468800,
+      "metadata": {
+        "amount": 5.00,
+        "requestedAt": 1729468800
+      }
+    },
+    {
+      "id": 122,
+      "merchant_url": "https://othersite.com",
+      "merchant_name": "Other Company",
+      "payment_type_hash": "dq_xyz789",
+      "status": "approved",
+      "authorized_at": 1729468750,
+      "expires_at": 1729468780,
+      "created_at": 1729468750,
+      "metadata": {
+        "amount": 10.00,
+        "requestedAt": 1729468750
+      }
+    }
+  ]
+}
+```
+
+**Forbidden Response (403 Forbidden):**
+
+```json
+{
+  "error": "Forbidden",
+  "status": 403
+}
+```
+
+---
+
+### PUT /v3/paywall/authorizations
+
+Approve or deny a payment authorization.
+
+**Authentication:** Bearer token required
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```typescript
+{
+  authorizationId: string | number;  // ID of the authorization
+  approved: boolean;                  // true to approve, false to deny
+}
+```
+
+**Example Request (Approve):**
+
+```bash
+curl -X PUT "https://pay.m.todaq.net/v3/paywall/authorizations" \
+  -H "Authorization: Bearer your_access_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "authorizationId": "123",
+    "approved": true
+  }'
+```
+
+**Example Request (Deny):**
+
+```bash
+curl -X PUT "https://pay.m.todaq.net/v3/paywall/authorizations" \
+  -H "Authorization: Bearer your_access_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "authorizationId": "123",
+    "approved": false
+  }'
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "authorizationId": "123",
+  "status": "approved",
+  "message": "Payment authorization approved. Future payments from this merchant will be processed automatically."
+}
+```
+
+**Not Found Response (404 Not Found):**
+
+Authorization doesn't exist or doesn't belong to the user.
+
+```json
+{
+  "error": "Authorization not found",
+  "status": 404
+}
+```
+
+**Bad Request Response (400 Bad Request):**
+
+Authorization has already been processed or expired.
+
+```json
+{
+  "error": "Authorization has already been processed",
+  "status": 400
+}
+```
+
+```json
+{
+  "error": "Authorization has expired",
+  "status": 400
+}
+```
+
+**Forbidden Response (403 Forbidden):**
+
+```json
+{
+  "error": "Forbidden",
+  "status": 403
+}
+```
+
+---
+
+### DELETE /v3/paywall/authorizations
+
+Revoke an existing payment authorization.
+
+**Authentication:** Bearer token required
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```typescript
+{
+  authorizationId: string | number;  // ID of the authorization to revoke
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X DELETE "https://pay.m.todaq.net/v3/paywall/authorizations" \
+  -H "Authorization: Bearer your_access_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "authorizationId": "123"
+  }'
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Payment authorization revoked successfully"
+}
+```
+
+**Bad Request Response (400 Bad Request):**
+
+```json
+{
+  "error": "Missing required field: authorizationId",
+  "status": 400
+}
+```
+
+**Forbidden Response (403 Forbidden):**
+
+```json
+{
+  "error": "Forbidden",
+  "status": 403
+}
+```
+
+## Data Models
+
+### Authorization Object
+
+```typescript
+interface Authorization {
+  id: number;
+  merchant_url: string;
+  merchant_name: string;
+  payment_type_hash: string;
+  status: 'pending' | 'approved' | 'denied' | 'expired' | 'revoked';
+  authorized_at: number | null;
+  expires_at: number;
+  created_at: number;
+  metadata: {
+    amount: number;
+    requestedAt: number;
+    [key: string]: any;
+  };
+}
+```
+
+### Status Values
+
+- `pending`: Waiting for user response
+- `approved`: User approved the payment
+- `denied`: User denied the payment
+- `expired`: Authorization expired (30 seconds timeout)
+- `revoked`: User revoked the authorization
+
+## Flow Diagram
+
+```
+1. Website makes POST /v3/paywall request
+   ↓
+2. Backend creates authorization with status='pending'
+   ↓
+3. Backend sends push notification to user's device
+   ↓
+4. Backend polls authorization status every 1 second
+   ↓
+5. User receives notification and opens app
+   ↓
+6. User approves/denies via PUT /v3/paywall/authorizations
+   ↓
+7. Backend detects status change
+   ↓
+8. If approved: Process payment and return success
+   If denied: Return 408 timeout
+```
+
+## Implementation Examples
+
+### JavaScript/TypeScript
+
+```typescript
+// Create paywall request
+async function requestPayment(
+  sessionToken: string,
+  amount: number,
+  merchantName: string
+) {
+  const response = await fetch('https://pay.m.todaq.net/v3/paywall', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': `session_id=${sessionToken}`
+    },
+    body: JSON.stringify({
+      paymentTypeHash: 'your-payment-type',
+      amount,
+      destinationUrl: 'https://yoursite.com',
+      merchantName
+    })
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log('Payment approved:', data);
+    return { success: true, data };
+  } else if (response.status === 408) {
+    console.log('Payment timed out or denied');
+    return { success: false, reason: 'timeout' };
+  } else {
+    throw new Error(`Payment failed: ${response.status}`);
+  }
+}
+
+// Get authorizations
+async function getAuthorizations(accessToken: string) {
+  const response = await fetch(
+    'https://pay.m.todaq.net/v3/paywall/authorizations',
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    }
+  );
+
+  const data = await response.json();
+  return data.authorizations;
+}
+
+// Approve authorization
+async function approvePayment(
+  accessToken: string,
+  authorizationId: number
+) {
+  const response = await fetch(
+    'https://pay.m.todaq.net/v3/paywall/authorizations',
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        authorizationId,
+        approved: true
+      })
+    }
+  );
+
+  return response.json();
+}
+```
+
+### Flutter/Dart
+
+```dart
+// Approve authorization (mobile app)
+Future<void> approvePaymentAuthorization(
+  String accessToken,
+  String authorizationId,
+) async {
+  final response = await http.put(
+    Uri.https('pay.m.todaq.net', '/v3/paywall/authorizations'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    },
+    body: jsonEncode({
+      'authorizationId': authorizationId,
+      'approved': true,
+    }),
+  );
+
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    print('Payment approved successfully');
+  } else {
+    throw Exception('Failed to approve payment: ${response.statusCode}');
+  }
+}
+```
+
+## Security Considerations
+
+### Session Management
+
+Sessions are required for paywall requests to ensure user identity:
+
+1. Obtain a session via `/v3/session` endpoint
+2. Store the session token securely
+3. Include session token in Cookie header for paywall requests
+4. Sessions expire after 24 hours (configurable)
+
+### Authorization Expiration
+
+- Authorizations expire after 30 seconds
+- Expired authorizations return `status: 'expired'`
+- Expired authorizations cannot be approved
+
+### Rate Limiting
+
+To prevent abuse:
+- Maximum 10 paywall requests per minute per user
+- Maximum 100 authorization updates per minute per user
+
+## Best Practices
+
+### 1. Handle All Response Codes
+
+```javascript
+const response = await fetch('/v3/paywall', { /* ... */ });
+
+switch (response.status) {
+  case 200:
+    // Success - grant access
+    break;
+  case 401:
+    // Redirect to login
+    break;
+  case 408:
+    // Show retry option
+    break;
+  default:
+    // Show generic error
+}
+```
+
+### 2. Implement Timeout UI
+
+Show clear feedback during the 30-second approval window:
+
+```javascript
+showMessage('Please check your mobile device to approve this payment');
+// Show loading indicator for up to 30 seconds
+```
+
+### 3. Cleanup Expired Authorizations
+
+Periodically clean up expired authorizations:
+
+```sql
+DELETE FROM payment_authorizations
+WHERE expires_at < EXTRACT(EPOCH FROM NOW()) - 86400;
+```
+
+### 4. Test in Staging First
+
+Always test in the staging environment before production:
+
+```javascript
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://pay.m.todaq.net'
+  : 'https://pay.stage.m.todaq.net';
+```
+
+## Related Documentation
+
+- [Paywall with Push Notifications Guide](/guide/paywall-notifications)
+- [Notifications API](/reference/payment-api/v3/notifications)
+- [Session Management](/reference/payment-api/v3/sessions)
+- [Payment API Overview](/reference/payment-api)
+

@@ -1,0 +1,509 @@
+---
+title: Paywall with Push Notifications
+description: Implement secure paywall authentication with real-time push notifications
+pubDate: October 20, 2025
+---
+
+## Paywall with Push Notifications
+
+The TODAQMicro paywall system provides a secure, user-friendly way to handle payment authorization through push notifications. When a user encounters a paywall, they receive an instant notification on their mobile device to approve or deny the payment, eliminating the need for manual authentication on each transaction.
+
+[TOC]
+
+## Overview
+
+The paywall notification system works as follows:
+
+1. User encounters a paywall on a website
+2. System sends a push notification to the user's mobile app
+3. User approves or denies the payment on their device
+4. Paywall responds accordingly (allow or block access)
+
+### Key Features
+
+- **Real-time notifications** via Firebase Cloud Messaging (FCM)
+- **30-second approval window** for security
+- **Automatic fallback** to denial if no response
+- **Session-based authentication** for secure requests
+- **Cross-platform support** (iOS and Android)
+
+## Architecture
+
+```
+┌─────────────┐
+│   Website   │ ──► Paywall Request
+│   Paywall   │
+└─────────────┘
+       │
+       ▼
+┌─────────────────────────────┐
+│  Payment API                │
+│  - Creates authorization    │
+│  - Sends push notification  │
+│  - Waits for response       │
+└─────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────┐
+│  Firebase Cloud Messaging   │
+└─────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────┐
+│  Mobile App                 │
+│  - Shows approval modal     │
+│  - User approves/denies     │
+└─────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────┐
+│  Payment API                │
+│  - Updates authorization    │
+│  - Processes payment        │
+└─────────────────────────────┘
+```
+
+## Setup
+
+### Prerequisites
+
+1. **Firebase Project**: Set up Firebase Cloud Messaging
+2. **Service Account**: Download Firebase service account JSON
+3. **Mobile App**: Integrate Firebase SDK (see [App Integration](#app-integration))
+
+### 1. Configure Firebase
+
+Set the Firebase service account as an environment variable:
+
+```bash
+export FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"your-project",...}'
+```
+
+### 2. Enable Push Notifications
+
+The mobile app automatically registers for push notifications when the user authenticates. No additional setup is required on the backend.
+
+## Implementation
+
+### Creating a Paywall Request
+
+To create a paywall-protected resource, make a POST request to the paywall endpoint:
+
+```javascript
+// Example: Website paywall implementation
+fetch('https://pay.m.todaq.net/v3/paywall', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Cookie': `session_id=${sessionToken}`
+  },
+  body: JSON.stringify({
+    paymentTypeHash: 'your-payment-type-hash',
+    amount: 5.00,
+    destinationUrl: 'https://yoursite.com',
+    merchantName: 'Your Company Name'
+  })
+})
+.then(response => {
+  if (response.ok) {
+    // User approved - grant access
+    grantAccess();
+  } else if (response.status === 408) {
+    // Timeout or denial
+    showError('Payment was not approved');
+  }
+})
+```
+
+### Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `paymentTypeHash` | string | Yes | The digital quantity type identifier |
+| `amount` | number | Yes | Payment amount (e.g., 5.00) |
+| `destinationUrl` | string | Yes | Merchant's URL for payment destination |
+| `merchantName` | string | No | Display name for the merchant |
+
+### Session Authentication
+
+The paywall endpoint requires a valid session token in the Cookie header:
+
+```javascript
+// First, authenticate and get a session
+const response = await fetch('https://pay.m.todaq.net/v3/session', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
+  }
+});
+
+const { session_id } = await response.json();
+// Store session_id in cookie for subsequent paywall requests
+```
+
+## Response Flow
+
+### Success Response (HTTP 200)
+
+When the user approves the payment, the endpoint returns the payment confirmation:
+
+```json
+{
+  "status": "success",
+  "transaction_id": "txn_abc123",
+  "amount": 5.00,
+  "merchant": "Your Company Name"
+}
+```
+
+### Timeout Response (HTTP 408)
+
+If the user doesn't respond within 30 seconds or denies the payment:
+
+```json
+{
+  "error": "Payment approval timeout. Please try again.",
+  "status": 408
+}
+```
+
+### Error Response (HTTP 401)
+
+If no valid session is provided:
+
+```json
+{
+  "error": "No session found. Please authenticate first.",
+  "status": 401
+}
+```
+
+## App Integration
+
+### Mobile App Setup
+
+The mobile app handles push notifications automatically. Here's what happens behind the scenes:
+
+#### 1. FCM Token Registration
+
+When a user authenticates, the app registers its FCM token:
+
+```dart
+// Automatically called on authentication
+await NotificationService().registerFCMTokenWithAPI(accessToken);
+```
+
+#### 2. Receiving Notifications
+
+The app listens for incoming purchase request notifications:
+
+```dart
+// Set up in NotificationService
+NotificationService().onPurchaseRequestReceived = (notification) {
+  // Show purchase approval modal
+  showPurchaseApprovalModal(notification);
+};
+```
+
+#### 3. User Response
+
+When the user approves or denies:
+
+```dart
+// Approve
+await ApiController.approvePaymentAuthorization(
+  accessToken,
+  authorizationId
+);
+
+// Deny
+await ApiController.rejectPaymentAuthorization(
+  accessToken,
+  authorizationId
+);
+```
+
+## Database Schema
+
+The system uses the `payment_authorizations` table to track approval status:
+
+```sql
+CREATE TABLE payment_authorizations (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  merchant_url TEXT NOT NULL,
+  merchant_name TEXT,
+  payment_type_hash TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  authorized_at BIGINT,
+  expires_at BIGINT NOT NULL,
+  created_at BIGINT NOT NULL,
+  updated_at BIGINT NOT NULL,
+  metadata JSONB
+);
+```
+
+### Status Values
+
+- `pending`: Waiting for user response
+- `approved`: User approved the payment
+- `denied`: User denied the payment
+- `expired`: Authorization expired (30 seconds)
+- `revoked`: User revoked the authorization
+
+## API Reference
+
+### Endpoints
+
+#### POST /v3/paywall
+
+Create a paywall payment request and wait for user approval.
+
+**Headers:**
+- `Content-Type: application/json`
+- `Cookie: session_id=<session_token>`
+
+**Body:**
+```json
+{
+  "paymentTypeHash": "string",
+  "amount": 5.00,
+  "destinationUrl": "https://merchant.com",
+  "merchantName": "Merchant Name"
+}
+```
+
+**Response:** See [Response Flow](#response-flow)
+
+---
+
+#### GET /v3/paywall/authorizations
+
+Get all payment authorizations for the authenticated user.
+
+**Headers:**
+- `Authorization: Bearer <access_token>`
+
+**Response:**
+```json
+{
+  "authorizations": [
+    {
+      "id": 123,
+      "merchant_url": "https://merchant.com",
+      "merchant_name": "Merchant Name",
+      "status": "pending",
+      "expires_at": 1729468800,
+      "created_at": 1729468770,
+      "metadata": {
+        "amount": 5.00
+      }
+    }
+  ]
+}
+```
+
+---
+
+#### PUT /v3/paywall/authorizations
+
+Approve or deny a payment authorization.
+
+**Headers:**
+- `Authorization: Bearer <access_token>`
+- `Content-Type: application/json`
+
+**Body:**
+```json
+{
+  "authorizationId": "123",
+  "approved": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "authorizationId": "123",
+  "status": "approved",
+  "message": "Payment authorization approved."
+}
+```
+
+---
+
+#### POST /v3/pay/notifications/register
+
+Register a device's FCM token for push notifications.
+
+**Headers:**
+- `Authorization: Bearer <access_token>`
+- `Content-Type: application/json`
+
+**Body:**
+```json
+{
+  "fcmToken": "FCM_DEVICE_TOKEN",
+  "platform": "mobile"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "FCM token registered successfully",
+  "deviceId": "device-uuid",
+  "platform": "mobile",
+  "registeredAt": 1729468800
+}
+```
+
+## Security Considerations
+
+### Session Management
+
+- Sessions expire after a configured period (default: 24 hours)
+- Each paywall request requires a valid session cookie
+- Sessions are tied to specific user accounts
+
+### Authorization Expiration
+
+- Payment authorizations expire after 30 seconds
+- Expired authorizations cannot be approved
+- Expired authorizations are automatically cleaned up
+
+### FCM Token Security
+
+- Tokens are stored encrypted in the database
+- Tokens are refreshed regularly by the mobile app
+- Old tokens are invalidated on logout
+
+### HTTPS Only
+
+All API endpoints require HTTPS connections for secure communication.
+
+## Best Practices
+
+### 1. Handle Timeouts Gracefully
+
+Always provide clear feedback when a payment times out:
+
+```javascript
+if (response.status === 408) {
+  showNotification('Payment approval timed out. Please try again.');
+  // Optionally: Retry logic
+}
+```
+
+### 2. Implement Retry Logic
+
+Consider implementing exponential backoff for retries:
+
+```javascript
+async function requestPayment(attempt = 1) {
+  try {
+    const response = await fetch('/v3/paywall', { /* ... */ });
+    return response;
+  } catch (error) {
+    if (attempt < 3) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      return requestPayment(attempt + 1);
+    }
+    throw error;
+  }
+}
+```
+
+### 3. Provide User Feedback
+
+Keep users informed during the approval process:
+
+```javascript
+showNotification('Please check your mobile device to approve this payment');
+```
+
+### 4. Test in Development
+
+Use the staging environment for testing:
+
+```javascript
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://pay.m.todaq.net'
+  : 'https://pay.stage.m.todaq.net';
+```
+
+## Troubleshooting
+
+### No Push Notification Received
+
+**Problem:** User doesn't receive the push notification.
+
+**Solutions:**
+1. Verify FCM token is registered:
+   ```sql
+   SELECT fcm_token FROM users WHERE email = 'user@example.com';
+   ```
+2. Check notification permissions on device
+3. Verify Firebase service account is configured
+4. Check device is connected to internet
+
+### Payment Times Out
+
+**Problem:** Payment always times out even when user approves.
+
+**Solutions:**
+1. Check that the app is calling the correct API endpoint
+2. Verify the `authorizationId` matches between notification and approval
+3. Check database for authorization status updates
+4. Verify user has stable internet connection
+
+### App Crashes on Notification
+
+**Problem:** App crashes when receiving push notification.
+
+**Solutions:**
+1. Check notification payload format
+2. Verify all required fields are present
+3. Check for null safety issues in notification handling
+4. Review app logs for error messages
+
+## Performance Optimization
+
+### Polling Frequency
+
+The backend polls the database every 1 second for 30 seconds. For high-traffic applications:
+
+- Consider implementing WebSocket connections
+- Use Redis Pub/Sub for real-time updates
+- Implement caching for authorization status
+
+### Database Indexes
+
+Recommended indexes for optimal performance:
+
+```sql
+CREATE INDEX idx_payment_authorizations_user_status 
+ON payment_authorizations(user_id, status) 
+WHERE status = 'pending';
+
+CREATE INDEX idx_payment_authorizations_expires 
+ON payment_authorizations(expires_at) 
+WHERE expires_at > EXTRACT(EPOCH FROM NOW());
+```
+
+## Additional Resources
+
+- [Payment API Reference](/reference/payment-api)
+- [Firebase Cloud Messaging Documentation](https://firebase.google.com/docs/cloud-messaging)
+- [Getting Started Guide](/guide/getting-started)
+- [Session Management](/reference/payment-api/v3/sessions)
+
+## Support
+
+For additional help or questions:
+- Email: support@todaq.net
+- Documentation: https://docs.m.todaq.net
+

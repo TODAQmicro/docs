@@ -1,0 +1,685 @@
+---
+title: Notifications API (v3)
+description: Push notification management via Firebase Cloud Messaging
+pubDate: October 20, 2025
+---
+
+## Notifications API
+
+The Notifications API manages Firebase Cloud Messaging (FCM) tokens and sends push notifications to mobile devices. This is primarily used for payment authorization notifications in the paywall system.
+
+[TOC]
+
+## Endpoints
+
+### POST /v3/pay/notifications/register
+
+Register or update an FCM token for the authenticated user's device.
+
+**Authentication:** Bearer token required
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```typescript
+{
+  fcmToken: string;      // FCM device token from Firebase SDK
+  platform?: string;     // Optional: "mobile", "ios", "android" (default: "mobile")
+  deviceId?: string;     // Optional: unique device identifier
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v3/pay/notifications/register" \
+  -H "Authorization: Bearer your_access_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fcmToken": "fGCL9pHvRE2...",
+    "platform": "ios",
+    "deviceId": "device-uuid-123"
+  }'
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "FCM token registered successfully",
+  "deviceId": "device-uuid-123",
+  "platform": "ios",
+  "registeredAt": 1729468800000
+}
+```
+
+**Bad Request Response (400 Bad Request):**
+
+Invalid FCM token format:
+
+```json
+{
+  "error": "Invalid request",
+  "message": "fcmToken is required and must be a string",
+  "status": 400
+}
+```
+
+```json
+{
+  "error": "Invalid request",
+  "message": "Invalid FCM token format",
+  "status": 400
+}
+```
+
+**Unauthorized Response (401 Unauthorized):**
+
+```json
+{
+  "error": "Unauthorized",
+  "status": 401
+}
+```
+
+**Not Found Response (404 Not Found):**
+
+User not found:
+
+```json
+{
+  "error": "User not found",
+  "status": 404
+}
+```
+
+---
+
+### DELETE /v3/pay/notifications/unregister
+
+Unregister an FCM token (e.g., on logout or when user disables notifications).
+
+**Authentication:** Bearer token required
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```typescript
+{
+  fcmToken?: string;  // Optional: specific token to unregister
+}
+```
+
+**Example Request:**
+
+```bash
+# Unregister specific token
+curl -X DELETE "https://pay.m.todaq.net/v3/pay/notifications/unregister" \
+  -H "Authorization: Bearer your_access_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fcmToken": "fGCL9pHvRE2..."
+  }'
+
+# Unregister all tokens for user
+curl -X DELETE "https://pay.m.todaq.net/v3/pay/notifications/unregister" \
+  -H "Authorization: Bearer your_access_token" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "FCM token unregistered successfully",
+  "unregisteredAt": 1729468800000
+}
+```
+
+**Unauthorized Response (401 Unauthorized):**
+
+```json
+{
+  "error": "Unauthorized",
+  "status": 401
+}
+```
+
+**Forbidden Response (403 Forbidden):**
+
+```json
+{
+  "error": "Forbidden",
+  "status": 403
+}
+```
+
+---
+
+### POST /v3/pay/notifications/send
+
+Send a push notification to one or more users. **Admin only endpoint.**
+
+**Authentication:** Bearer token required (admin privileges)
+
+**Headers:**
+```http
+Authorization: Bearer <admin_access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```typescript
+{
+  // Target (one required)
+  userId?: number;
+  email?: string;
+  fcmToken?: string;
+  
+  // Notification content
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  imageUrl?: string;
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v3/pay/notifications/send" \
+  -H "Authorization: Bearer admin_access_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "title": "Payment Approved",
+    "body": "Your payment of $5.00 has been approved",
+    "data": {
+      "type": "purchaseApproved",
+      "amount": "5.00",
+      "merchant": "Example Store"
+    }
+  }'
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Notification sent successfully"
+}
+```
+
+**Bad Request Response (400 Bad Request):**
+
+```json
+{
+  "error": "Invalid request",
+  "message": "No valid target provided (userId, email, or fcmToken required)",
+  "status": 400
+}
+```
+
+**Forbidden Response (403 Forbidden):**
+
+```json
+{
+  "error": "Forbidden",
+  "status": 403
+}
+```
+
+## Data Models
+
+### FCM Token Registration
+
+```typescript
+interface FCMTokenRegistration {
+  userId: number;
+  fcmToken: string;
+  platform: 'mobile' | 'ios' | 'android';
+  deviceId: string;
+  registeredAt: number;
+  updatedAt: number;
+}
+```
+
+### Notification Payload
+
+```typescript
+interface NotificationPayload {
+  title: string;
+  body: string;
+  data?: {
+    type: 'purchaseRequest' | 'purchaseApproved' | 'purchaseRejected' | 'authRequest' | 'general';
+    [key: string]: any;
+  };
+  imageUrl?: string;
+}
+```
+
+## Notification Types
+
+### Purchase Request
+
+Sent when a paywall is encountered and user approval is needed:
+
+```json
+{
+  "title": "Purchase Request",
+  "body": "Merchant is requesting approval for a purchase ($5.00)",
+  "data": {
+    "type": "purchaseRequest",
+    "purchaseId": "123",
+    "authorizationId": "123",
+    "merchant": "Example Store",
+    "itemName": "Payment to Example Store",
+    "amount": "5.00",
+    "currency": "USD",
+    "session": "123",
+    "merchantUrl": "https://example.com",
+    "paymentTypeHash": "dq_xyz789"
+  }
+}
+```
+
+### Purchase Approved
+
+Sent when payment is successfully processed:
+
+```json
+{
+  "title": "Purchase Completed",
+  "body": "Your payment of $5.00 to Example Store has been processed successfully",
+  "data": {
+    "type": "purchaseCompleted",
+    "purchaseId": "123",
+    "merchant": "Example Store",
+    "amount": "5.00",
+    "currency": "USD",
+    "status": "completed"
+  }
+}
+```
+
+### Purchase Rejected
+
+Sent when user denies payment or it times out:
+
+```json
+{
+  "title": "Purchase Rejected",
+  "body": "Your purchase of Example Store ($5.00) has been rejected",
+  "data": {
+    "type": "purchaseRejected",
+    "purchaseId": "123",
+    "merchant": "Example Store",
+    "amount": "5.00",
+    "currency": "USD"
+  }
+}
+```
+
+## Implementation Examples
+
+### Mobile App (Flutter/Dart)
+
+#### Register FCM Token
+
+```dart
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+class NotificationService {
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  
+  Future<bool> registerFCMTokenWithAPI(String accessToken) async {
+    try {
+      // Get FCM token
+      final fcmToken = await _firebaseMessaging.getToken();
+      if (fcmToken == null) return false;
+
+      // Register with backend
+      final response = await http.post(
+        Uri.https('pay.m.todaq.net', '/v3/pay/notifications/register'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'fcmToken': fcmToken,
+          'platform': Platform.isIOS ? 'ios' : 'android',
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error registering FCM token: $e');
+      return false;
+    }
+  }
+}
+```
+
+#### Handle Incoming Notifications
+
+```dart
+Future<void> setupMessageHandlers() async {
+  // Foreground messages
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('Received message: ${message.data}');
+    
+    if (message.data['type'] == 'purchaseRequest') {
+      // Show purchase approval modal
+      showPurchaseApprovalModal(message.data);
+    }
+  });
+
+  // Background messages
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print('Message clicked: ${message.data}');
+    // Handle notification tap
+  });
+}
+```
+
+#### Unregister on Logout
+
+```dart
+Future<void> logout(String accessToken) async {
+  // Unregister FCM token
+  await http.delete(
+    Uri.https('pay.m.todaq.net', '/v3/pay/notifications/unregister'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    },
+    body: jsonEncode({}),
+  );
+
+  // Clear local data
+  await FirebaseAuth.instance.signOut();
+}
+```
+
+### Backend (Node.js/TypeScript)
+
+#### Send Notification
+
+```typescript
+import { pushNotificationService } from './PushNotificationService';
+
+// Send to specific user
+await pushNotificationService.sendToUser(userId, {
+  title: 'Purchase Request',
+  body: 'Merchant is requesting approval for $5.00',
+  data: {
+    type: 'purchaseRequest',
+    purchaseId: '123',
+    amount: '5.00',
+    merchant: 'Example Store'
+  }
+});
+
+// Send to email
+await pushNotificationService.sendToEmail('user@example.com', {
+  title: 'Payment Approved',
+  body: 'Your payment has been approved',
+  data: {
+    type: 'purchaseApproved',
+    amount: '5.00'
+  }
+});
+
+// Send to specific FCM token
+await pushNotificationService.sendToToken(fcmToken, {
+  title: 'Notification Title',
+  body: 'Notification body',
+  data: { customField: 'value' }
+});
+```
+
+## Firebase Setup
+
+### 1. Create Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Create a new project or select existing
+3. Enable Cloud Messaging
+
+### 2. Get Service Account
+
+1. Go to Project Settings > Service Accounts
+2. Click "Generate New Private Key"
+3. Download the JSON file
+
+### 3. Configure Backend
+
+Set environment variable:
+
+```bash
+export FIREBASE_SERVICE_ACCOUNT_JSON='{
+  "type": "service_account",
+  "project_id": "your-project-id",
+  "private_key_id": "...",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...",
+  "client_email": "firebase-adminsdk@your-project.iam.gserviceaccount.com",
+  ...
+}'
+```
+
+### 4. Configure Mobile App
+
+#### Android
+
+Add `google-services.json` to `android/app/`:
+
+```json
+{
+  "project_info": {
+    "project_number": "123456789",
+    "firebase_url": "https://your-project.firebaseio.com",
+    "project_id": "your-project-id",
+    "storage_bucket": "your-project.appspot.com"
+  },
+  ...
+}
+```
+
+#### iOS
+
+Add `GoogleService-Info.plist` to `ios/Runner/`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CLIENT_ID</key>
+  <string>...</string>
+  <key>REVERSED_CLIENT_ID</key>
+  <string>...</string>
+  ...
+</dict>
+</plist>
+```
+
+## Database Schema
+
+### users Table Extensions
+
+```sql
+ALTER TABLE users 
+  ADD COLUMN fcm_token TEXT,
+  ADD COLUMN fcm_token_updated_at BIGINT,
+  ADD COLUMN platform TEXT,
+  ADD COLUMN device_id TEXT;
+
+CREATE INDEX idx_users_fcm_token 
+  ON users(fcm_token) 
+  WHERE fcm_token IS NOT NULL;
+```
+
+## Security Considerations
+
+### FCM Token Validation
+
+The API validates FCM token format:
+- Must be a string
+- Must contain `:` character
+- Minimum length: 100 characters
+
+### Token Encryption
+
+FCM tokens are stored encrypted in the database using AES-256 encryption.
+
+### Token Expiration
+
+FCM tokens can expire or become invalid:
+- Mobile app refreshes tokens automatically
+- Old tokens are replaced when new ones are registered
+- Invalid tokens are removed on failed notification delivery
+
+### Rate Limiting
+
+- Maximum 100 notification registrations per hour per user
+- Maximum 1000 notifications per hour per admin user
+
+## Best Practices
+
+### 1. Register on Authentication
+
+Always register FCM token when user authenticates:
+
+```dart
+onAuthSuccess(String accessToken) async {
+  await notificationService.registerFCMTokenWithAPI(accessToken);
+}
+```
+
+### 2. Refresh Tokens Regularly
+
+Refresh FCM tokens when app comes to foreground:
+
+```dart
+@override
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  if (state == AppLifecycleState.resumed) {
+    notificationService.refreshFCMToken();
+  }
+}
+```
+
+### 3. Handle Permission Requests
+
+Always request notification permissions before registering:
+
+```dart
+final settings = await FirebaseMessaging.instance.requestPermission(
+  alert: true,
+  badge: true,
+  sound: true,
+);
+
+if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+  await registerFCMToken();
+}
+```
+
+### 4. Clean Up on Logout
+
+Always unregister FCM token when user logs out:
+
+```dart
+onLogout() async {
+  await notificationService.unregisterFCMToken(accessToken);
+}
+```
+
+## Troubleshooting
+
+### Token Not Registering
+
+**Problem:** FCM token registration fails
+
+**Solutions:**
+1. Verify Firebase is initialized before registration
+2. Check token format matches expected pattern
+3. Verify access token is valid
+4. Check network connectivity
+
+### Notifications Not Received
+
+**Problem:** User doesn't receive push notifications
+
+**Solutions:**
+1. Verify FCM token is registered in database
+2. Check Firebase service account is configured
+3. Verify notification permissions are granted
+4. Check device is connected to internet
+5. Verify Firebase project configuration
+
+### Multiple Notifications
+
+**Problem:** User receives duplicate notifications
+
+**Solutions:**
+1. Ensure only one FCM token is registered per device
+2. Clean up old tokens on app update
+3. Unregister tokens before re-registering
+
+## Performance Optimization
+
+### Token Caching
+
+Cache FCM tokens locally to avoid unnecessary API calls:
+
+```dart
+SharedPreferences prefs = await SharedPreferences.getInstance();
+String? cachedToken = prefs.getString('fcm_token');
+
+if (cachedToken != currentToken) {
+  await registerFCMToken(currentToken);
+  await prefs.setString('fcm_token', currentToken);
+}
+```
+
+### Batch Notifications
+
+For sending to multiple users, use batch API:
+
+```typescript
+await pushNotificationService.sendToMultiple(
+  targets: [
+    { userId: 1 },
+    { userId: 2 },
+    { email: 'user3@example.com' }
+  ],
+  payload: {
+    title: 'Announcement',
+    body: 'System maintenance scheduled'
+  }
+);
+```
+
+## Related Documentation
+
+- [Paywall API](/reference/payment-api/v3/paywall)
+- [Paywall with Push Notifications Guide](/guide/paywall-notifications)
+- [Firebase Cloud Messaging Documentation](https://firebase.google.com/docs/cloud-messaging)
+- [Payment API Overview](/reference/payment-api)
+
