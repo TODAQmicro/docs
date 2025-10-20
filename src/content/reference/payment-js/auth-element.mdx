@@ -22,7 +22,7 @@ The Auth Element provides a secure authentication interface for users to access 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cookie': 'session_id=${session}'
+                    'Cookie': 'session_id='+session,
                 },
                 body: JSON.stringify({
                     paymentTypeHash: '412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73',
