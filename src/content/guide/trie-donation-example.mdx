@@ -1,0 +1,108 @@
+---
+title: T.R.I.E. Donation Page Example
+description: Complete working example of a donation page using TodaQ micropayments
+pubDate: October 20, 2025
+---
+
+## T.R.I.E. Donation Page Example
+
+This guide walks through a complete implementation of a donation page for [T.R.I.E.](https://trie.site) (The Real Internet Experience) using TodaQ's micropayment system. This example demonstrates how to integrate multiple payment elements with different donation amounts.
+
+### 1. HTML Structure
+
+The page uses a simple HTML structure with three donation options:
+
+```html
+<body>
+  <main>
+    <h1><img id="logo" src="golden_TRIEangle.svg" alt="T.R.I.E."></h1>
+    <h2>Donate to T.R.I.E.</h2>
+    <h3>and feel good about yourself</h3>
+
+    <!-- Three donation options with unique IDs -->
+    <div class="payment" id="donate5"></div>
+    <div class="payment" id="donate05"></div>
+    <div class="payment" id="donate005"></div>
+  </main>
+</body>
+```
+
+### 2. TodaQ Micropayment CDN Integration
+
+Load the TodaQ micropayment library from CDN:
+
+```html
+<!-- Load TodaQ micropayment library from CDN -->
+<script type="module" crossorigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
+```
+
+### 3. Core Initialization Process
+
+The JavaScript code initializes the payment elements after the DOM is fully loaded (repeat for each unique amount):
+
+```javascript
+document.addEventListener("DOMContentLoaded", async () => {
+  // Initialize MicroPayments with merchant public key
+  const micro = await loadMicroPayments(
+    "mp_1d1ea49e1bfe48a9bc3ff8d06b5c3afc", // Merchant Public Key | Public Secret
+    { apiVersion: 'main' }                 // API Configuration
+  );
+
+  const elements = micro.elements();
+
+  // Create payment element
+  const element = await elements.create('payment', {
+    hash: 'fe490b57-9aa0-4cbc-886f-db1fc1c895e9', // Unique payment identifier | commodity hash
+    theme: "light",
+    styles: {
+      colorPrimary: '#000000',
+      colorBackground: '#FDB902', // Yellow background
+      borderRadius: '0',          // Square corners
+    },
+  });
+  element.mount("#donate5");
+});
+```
+
+### 4. Payment Event Handling
+
+Handle successful payments by listening for the global purchase event:
+
+```javascript
+// Global event listener for successful payments
+document.addEventListener('purchase', async (nonce) => {
+  location.assign('thanks.html'); // Redirect to thank you page
+});
+```
+
+### 5. Key Implementation Patterns
+
+1. **CDN Loading**: The TodaQ Micropay Library loads from `https://cdn.m.todaq.net/micropay.js`
+
+2. **Initialization Flow**:
+   - Wait for DOM content to load
+   - Initialize MicroPayments with merchant ID (public secret)
+   - Create elements with unique hashes (commodity hashes)
+   - Mount elements to specific DOM containers
+
+3. **Event Handling**:
+   - Listens for global purchase events
+   - Redirects to thanks.html on successful payment
+
+4. **Styling Consistency**:
+   - Black text on yellow background
+   - Square borders
+   - Light theme
+
+### 6. Considerations
+
+- **Merchant ID**: The public secret is hardcoded in this example.
+- **Commodity Hashes**: Each donation amount uses a different commodity hash, representing separate products in your Twin (digital wallet)
+- **Multiple Elements**: This example shows how to create multiple payment elements on the same page
+
+### 7. Dependencies
+
+- TodaQ Micropayment CDN (`https://cdn.m.todaq.net/micropay.js`)
+- DOM Content Loaded event for proper initialization timing
+
+This implementation provides a complete, working example that demonstrates the core concepts covered in the [Getting Started guide](/guide/getting-started), showing how to integrate multiple payment options with consistent styling and proper event handling.
