@@ -12,7 +12,7 @@ The Auth Element provides a secure authentication interface for users to access 
 <Element type="auth" theme="light" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
 <script>{`
     (() => {
-        document.addEventListener("authorize", async (event) => {
+        document.addEventListener("authorized", async (event) => {
             const { session } = event.detail;
             
             console.log('User authenticated! Session:', session);
@@ -84,7 +84,7 @@ const authElement = await elements.create('auth', {
 // Mount the element
 authElement.mount('#auth-container');
 
-document.addEventListener('authorize', (event) => {
+document.addEventListener('authorized', (event) => {
     alert(`Session: ${event.details.session}`);
 });
 ```
