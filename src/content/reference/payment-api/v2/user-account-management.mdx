@@ -12,6 +12,13 @@ pubDate: June 15, 2024
 
 Make an Account
 
+###### cURL Example
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v2/account" \
+  -H "Content-Type: application/json"
+```
+
 ###### Response Schema
 
 ```javascript
@@ -43,6 +50,14 @@ Authorize an Account
 
 ###### Authorization ***base64(client_id:client_secret)***
 
+###### cURL Example
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v2/account/oauth/token" \
+  -u "$CLIENT_ID:$CLIENT_SECRET" \
+  -H "Content-Type: application/json"
+```
+
 ##### Response Schema
 
 ```javascript
@@ -62,9 +77,19 @@ Create a User
 
 ```javascript
 {
-    "account_id": 8,
     "email": "mihok@todaq.net"
 }
+```
+
+###### cURL Example
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v3/user" \
+  -H "Authorization: Bearer YOUR_ACCOUNT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "mihok@todaq.net"
+  }'
 ```
 
 ###### Response Schema
@@ -91,14 +116,40 @@ Create a User
 }
 ```
 
-## Get a User
-##### **GET** `/v3/user/:id`
+##### **GET** `/v2/user/:user_id`
+
+Get User Information
 
 ##### Path Parameters
 
-###### id ***number***
+###### user_id ***number***
 
-##### Response Schema
+###### Request Body (for ACCOUNT authentication)
+
+```javascript
+{
+  "email": "mihok@todaq.net"
+}
+```
+
+###### cURL Examples
+
+**ACCOUNT with Bearer Token:**
+```bash
+curl -X GET "https://pay.m.todaq.net/v2/user/8" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "mihok@todaq.net"}'
+```
+
+**USER with Bearer Token (get own data):**
+```bash
+curl -X GET "https://pay.m.todaq.net/v2/user/8" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+###### Response Schema
 
 ```javascript
 {
