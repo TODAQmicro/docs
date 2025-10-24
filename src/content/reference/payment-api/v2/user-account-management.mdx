@@ -48,7 +48,7 @@ Authorize an Account
 
 ##### Request Headers
 
-###### Authorization ***base64(client_id:client_secret)***
+###### Authorization **_base64(client_id:client_secret)_**
 
 ###### cURL Example
 
@@ -58,7 +58,7 @@ curl -X POST "https://pay.m.todaq.net/v2/account/oauth/token" \
   -H "Content-Type: application/json"
 ```
 
-##### Response Schema
+###### Response Schema
 
 ```javascript
 {
@@ -121,9 +121,9 @@ Get User Information
 
 ##### Path Parameters
 
-###### user_id ***number***
+###### user_id **_number_**
 
-###### Request Body (for ACCOUNT authentication)
+###### Request Body
 
 ```javascript
 {
@@ -131,17 +131,10 @@ Get User Information
 }
 ```
 
-###### cURL Examples
+###### cURL Example
 
-**ACCOUNT with Bearer Token:**
-```bash
-curl -X GET "https://pay.m.todaq.net/v2/user/123" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "mihok@todaq.net"}'
-```
+**Bearer Token (get own user data):**
 
-**USER with Bearer Token (get own data):**
 ```bash
 curl -X GET "https://pay.m.todaq.net/v2/user/123" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -149,6 +142,8 @@ curl -X GET "https://pay.m.todaq.net/v2/user/123" \
 ```
 
 ###### Response Schema
+
+**Bearer Token Response (full user data with secrets):**
 
 ```javascript
 {
