@@ -96,21 +96,20 @@ curl -X POST "https://pay.m.todaq.net/v3/user" \
 
 ```javascript
 {
-   "id": 8,
+   "id": 123,
    "email": "mihok@todaq.net",
    "created_at": "1709323022",
    "updated_at": "1709323022",
+   "deleted_at": null,
+   "is_android": false,
+   "is_ios": false,
    "secrets": [
-       {
-           "public_secret": "mp_4120157d4fef4cddb97209df1d930cda",
-           "created_at": "1709323022",
-           "updated_at": "1709323022"
-       },
        {
            "client_id": "mid_a79128c68ad34887bb6bbc16488f19f1",
            "client_secret": "mc_7a0ce09d7b9244b68bb5935c638ee0fb",
            "created_at": "1709323022",
-           "updated_at": "1709323022"
+           "updated_at": "1709323022",
+           "deleted_at": null
        }
    ]
 }
@@ -136,7 +135,7 @@ Get User Information
 
 **ACCOUNT with Bearer Token:**
 ```bash
-curl -X GET "https://pay.m.todaq.net/v2/user/8" \
+curl -X GET "https://pay.m.todaq.net/v2/user/123" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"email": "mihok@todaq.net"}'
@@ -144,7 +143,7 @@ curl -X GET "https://pay.m.todaq.net/v2/user/8" \
 
 **USER with Bearer Token (get own data):**
 ```bash
-curl -X GET "https://pay.m.todaq.net/v2/user/8" \
+curl -X GET "https://pay.m.todaq.net/v2/user/123" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json"
 ```
@@ -153,21 +152,20 @@ curl -X GET "https://pay.m.todaq.net/v2/user/8" \
 
 ```javascript
 {
-   "id": 8,
+   "id": 123,
    "email": "mihok@todaq.net",
    "created_at": "1709323022",
    "updated_at": "1709323022",
+   "deleted_at": null,
+   "is_android": false,
+   "is_ios": false,
    "secrets": [
-       {
-           "public_secret": "mp_4120157d4fef4cddb97209df1d930cda",
-           "created_at": "1709323022",
-           "updated_at": "1709323022"
-       },
        {
            "client_id": "mid_a79128c68ad34887bb6bbc16488f19f1",
            "client_secret": "mc_7a0ce09d7b9244b68bb5935c638ee0fb",
            "created_at": "1709323022",
-           "updated_at": "1709323022"
+           "updated_at": "1709323022",
+           "deleted_at": null
        }
    ]
 }
