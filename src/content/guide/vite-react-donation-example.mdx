@@ -1,0 +1,364 @@
+---
+title: Vite + React Donation Page Example
+description: Complete working example of a donation page using TodaQ micropayments with Vite + React + TypeScript
+pubDate: October 20, 2025
+---
+
+## Vite + React Donation Page Example
+
+This guide walks through a complete implementation of a donation page using TodaQ's micropayment system integrated into a **Vite + React + TypeScript** application. The page loads payment elements via npm package and handles payment success events with React Router navigation. You can find the public repo [here](https://github.com/rellagant/shades-of-pemberley).
+
+**Reminder:**
+- "Public Key | Merchant Id etc." = your public secret from the initial POST request to the account management endpoint
+- "hash" = commodity hash
+
+### Prerequisites
+
+- Node.js 18+
+- Vite + React TypeScript project
+- React Router DOM for navigation
+
+### 1. Install Dependencies
+
+Install the TodaQ Micro Payment Package and other necessary dependencies:
+
+```bash
+npm install @todaqmicro/payment-js
+npm install --save-dev events
+npm install react-router-dom
+```
+
+### 2. Vite Configuration
+
+Update your `vite.config.ts` with the following minimal configuration:
+
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      'events': 'events' // Alias events module for browser compatibility
+    }
+  }
+})
+```
+
+### 3. Environment Variables
+
+Create a `.env` file in your project root with your payment configuration:
+
+```env
+VITE_TODAQ_PUBLIC_SECRET=your_public_secret_here
+VITE_TODAQ_HASH_5=your_commodity_hash_for_5_dollars
+VITE_TODAQ_HASH_05=your_commodity_hash_for_50_cents
+VITE_TODAQ_HASH_005=your_commodity_hash_for_5_cents
+```
+
+**Important Security Note:**
+- The `public_secret` and `commodity_hash` values are **public** and will be exposed in your client-side bundle regardless of how you store them
+- Using environment variables is a **preference** - it helps avoid accidentally committing these values to version control and makes it easier to manage different environments (development, staging, production)
+- You can also hardcode these values directly in your code if you prefer, as they're safe to expose publicly
+- **Never expose your `client_secret`** - that should only be used in server-side code
+- The choice between environment variables and hardcoded values is up to your team's workflow preferences
+
+### 4. React Component Structure
+
+The donation page uses React components with three donation options:
+
+```tsx
+// Donation.tsx
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loadMicroPayments } from '@todaqmicro/payment-js';
+import PaymentButton from './PaymentButton';
+
+const HASH_5 = import.meta.env.VITE_TODAQ_HASH_5; // Replace with your commodity hash
+const HASH_05 = import.meta.env.VITE_TODAQ_HASH_05; // Replace with your commodity hash
+const HASH_005 = import.meta.env.VITE_TODAQ_HASH_005; // Replace with your commodity hash
+
+export default function Donation() {
+  const [micro, setMicro] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        const micro = await loadMicroPayments(
+          import.meta.env.VITE_TODAQ_PUBLIC_SECRET, // Merchant ID | public secret
+          {
+            apiVersion: "main", // API version
+          }
+        );
+        setMicro(micro);
+        console.log("Payment engine initialized:", micro);
+      } catch (error) {
+        console.error("Failed to initialize payment engine:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    initialize();
+  }, []);
+
+  // Global event listener for successful payments
+  useEffect(() => {
+    const handlePayment = async (event: CustomEvent) => {
+      const amount = event.detail?.amount || 0;
+      navigate(`/thank-you?amount=${amount}`); // Redirect to thank you page based on amount
+    };
+
+    document.addEventListener('payment', handlePayment as EventListener);
+    return () => {
+      document.removeEventListener('payment', handlePayment as EventListener);
+    };
+  }, [navigate]);
+
+  if (loading) {
+    return <div>Loading payment engine...</div>;
+  }
+
+  return (
+    <main>
+      <h1><img id="logo" src="/golden_TRIEangle.svg" alt="T.R.I.E."></h1>
+      <h2>Donate to T.R.I.E.</h2>
+      <h3>and feel good about yourself</h3>
+
+      {/* Three donation options */}
+      <PaymentButton
+        amount={5.0}
+        hash={HASH_5}
+        engine={micro}
+        title="Grand Benefactor"
+        description="Depollution of the Shades of Pembereley"
+        buttonClass="is-success"
+      />
+      <PaymentButton
+        amount={0.50}
+        hash={HASH_05}
+        engine={micro}
+        title="Supporter"
+        description="Help keep T.R.I.E. running"
+        buttonClass="is-info"
+      />
+      <PaymentButton
+        amount={0.05}
+        hash={HASH_005}
+        engine={micro}
+        title="Friend"
+        description="Every bit helps"
+        buttonClass="is-primary"
+      />
+    </main>
+  );
+}
+```
+
+### 5. PaymentButton Component
+
+The `PaymentButton` component creates and mounts individual payment elements:
+
+```tsx
+// PaymentButton.tsx
+import { useEffect, useRef } from 'react';
+
+interface PaymentButtonProps {
+  amount: number;
+  hash: string;
+  engine: any;
+  title: string;
+  description: string;
+  buttonClass?: string;
+}
+
+export default function PaymentButton({
+  amount,
+  hash,
+  engine,
+  title,
+  description,
+  buttonClass = '',
+}: PaymentButtonProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!engine || !containerRef.current) return;
+
+    const initializeElement = async () => {
+      try {
+        const elements = engine.elements();
+        const containerId = `payment-element-container-${hash}`;
+        
+        // Set the container ID dynamically
+        if (containerRef.current) {
+          containerRef.current.id = containerId;
+        }
+
+        const element = await elements.create('payment', {
+          hash,
+          theme: 'light',
+          styles: {
+            colorPrimary: "#000000",
+            colorBackground: "#a39f96ff",
+            borderRadius: "1rem",
+          },
+        });
+
+        if (containerRef.current) {
+          element.mount(containerRef.current);
+        }
+      } catch (error) {
+        console.error(`Failed to create payment element for ${amount}:`, error);
+      }
+    };
+
+    initializeElement();
+  }, [engine, hash, amount]);
+
+  return (
+    <div className={`payment-button ${buttonClass}`}>
+      <h4>{title}</h4>
+      <p>{description}</p>
+      <div ref={containerRef} className="payment-element-container"></div>
+    </div>
+  );
+}
+```
+
+### 6. Core Implementation Details
+
+#### React useEffect Hook
+
+The `useEffect` hook serves as the React equivalent to `DOMContentLoaded` in the original TRIE site implementation guide:
+
+```tsx
+useEffect(() => {
+  const initialize = async () => {
+    try {
+      const micro = await loadMicroPayments(
+        import.meta.env.VITE_TODAQ_PUBLIC_SECRET, // Merchant ID | public secret
+        {
+          apiVersion: "main", // API version
+        }
+      );
+      setMicro(micro);
+      console.log("Payment engine initialized:", micro);
+    } catch (error) {
+      console.error("Failed to initialize payment engine:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  initialize();
+}, []);
+```
+
+#### loadMicroPayments() Function
+
+Returns a promise that resolves to a `micro` object containing the payment engine instance:
+
+```tsx
+const micro = await loadMicroPayments(
+  import.meta.env.VITE_TODAQ_PUBLIC_SECRET, // Merchant ID | public secret
+  {
+    apiVersion: "main", // API version
+  }
+);
+```
+
+#### elements() Method
+
+Returns an elements object with methods to create different payment UI components:
+
+```tsx
+const elements = micro.elements();
+```
+
+#### Payment Element Initialization
+
+The script creates three payment elements with different amounts using environment variables:
+
+```tsx
+const element = await elements.create('payment', {
+  hash, 
+  theme: 'light',
+  styles: {
+    colorPrimary: "#000000",
+    colorBackground: "#a39f96ff",
+    borderRadius: "1rem",
+  },
+});
+const container = document.getElementById(containerId);
+if (container) element.mount(container);
+```
+
+You can set your `containerId` to dynamically generate unique container IDs based on the hash you need (which you need to create multiple payment elements) like this:
+
+```tsx
+const containerId = `payment-element-container-${hash}`;
+```
+
+The donation element then repeats for $0.50 and $0.05 - each uses different hashes from environment variables, and retains identical styling for consistency.
+
+### 7. Payment Event Handling
+
+Global event listener for successful payments:
+
+```tsx
+// Global event listener for successful payments
+useEffect(() => {
+  const handlePayment = async (event: CustomEvent) => {
+    const amount = event.detail?.amount || 0;
+    navigate(`/thank-you?amount=${amount}`); // Redirect to thank you page based on amount
+  };
+
+  document.addEventListener('payment', handlePayment as EventListener);
+  return () => {
+    document.removeEventListener('payment', handlePayment as EventListener);
+  };
+}, [navigate]);
+```
+
+### 8. Key Implementation Patterns
+
+1. **Environment Variables**: All payment configuration uses environment variables (this is based on preference as trie.site does not use them)
+   - `VITE_TODAQ_PUBLIC_SECRET` - for merchant/user identification
+   - `VITE_TODAQ_HASH_*` for unique payment identifiers
+
+2. **Initialization Flow**:
+   - Wait for component mount with `useEffect`
+   - Initialize MicroPayments with merchant public secret from environment
+   - Create elements with unique hashes from environment variables
+   - Mount elements to specific containers
+
+3. **Event Handling**:
+   - Listens for global `payment` events
+   - Redirects to thank-you page with amount parameter on successful payment
+
+4. **Styling Consistency**:
+   - Black text on light background
+   - Rounded borders (`borderRadius: "1rem"`)
+   - Light theme
+
+### 9. Considerations
+
+- **Loading state management**: During payment engine initialization
+- **Error handling**: For payment initialization failures
+- **Environment variables**: Provide security and configuration flexibility
+- **React Router navigation**: For page transitions
+- **Component-based architecture**: Reusable `PaymentButton` component with props
+- **TypeScript support**: Full type safety throughout the implementation
+
+### 10. Dependencies
+
+- `@todaqmicro/payment-js` npm package (v0.3.3+)
+- Vite environment variable support
+- React hooks for state management
+- React Router DOM for navigation
+- DOM event listeners for payment success handling
+- `events` package (dev dependency) for browser compatibility
+
+This implementation provides a complete, working example that demonstrates the core concepts covered in the [Getting Started guide](/guide/getting-started), showing how to integrate multiple payment options with consistent styling and proper event handling in a modern Vite + React + TypeScript application.
