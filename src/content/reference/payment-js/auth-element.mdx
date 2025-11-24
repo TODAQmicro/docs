@@ -9,7 +9,7 @@ import Element from "../../../components/Element";
 
 The Auth Element provides a secure authentication interface for users to access paywall-protected content. Once authenticated, you receive a session token that can be used to make paywall requests.
 
-<Element type="auth" theme="light" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+<Element type="auth" theme="light" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" environment="cdn.m.todaq.net" client:load />
 <script>{`
     (() => {
         document.addEventListener("authorized", async (event) => {

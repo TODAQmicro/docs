@@ -36,14 +36,15 @@ type Props = {
   destroy?: boolean;
   hash: string;
   type: string;
+  environment: 'cdn.m.todaq.net' | 'cdn.stage.m.todaq.net';
 };
 
-export default function Element({ consent, destroy, hash, type }: Props) {
+export default function Element({ consent, destroy, hash, type, environment = 'cdn.stage.m.todaq.net' }: Props) {
   const [ random, _ ] = useState(uuidv4());
  
   return (
     <div style={{ display: 'flex' }}>
-      <script type="module" crossOrigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+      <script type="module" crossOrigin="anonymous" src={`https://${environment}/micropay.js`}></script>
       <div id={`ref-${random}`}><iframe frameBorder="0" width="auto" height="auto" /></div>
       {destroy && (
         <button id={`destroy-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
