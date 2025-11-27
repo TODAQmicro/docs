@@ -37,9 +37,10 @@ type Props = {
   hash: string;
   type: string;
   environment: 'cdn.m.todaq.net' | 'cdn.stage.m.todaq.net';
+  publicSecret: string;
 };
 
-export default function Element({ consent, destroy, hash, type, environment = 'cdn.stage.m.todaq.net' }: Props) {
+export default function Element({ consent, destroy, hash, type, environment = 'cdn.stage.m.todaq.net', publicSecret = 'mp_e4c4131291c24ea3922c9f376367a4f1' }: Props) {
   const [ random, _ ] = useState(uuidv4());
  
   return (
@@ -66,7 +67,7 @@ export default function Element({ consent, destroy, hash, type, environment = 'c
     const el = document.getElementById("ref-${random}");
     const destroy = document.getElementById("destroy-${random}");
     const reset = document.getElementById("reset-${random}");
-    const micro = await loadMicroPayments("mp_e4c4131291c24ea3922c9f376367a4f1", { apiVersion: "main" });
+    const micro = await loadMicroPayments("${publicSecret}", { apiVersion: "main" });
     const elements = micro.elements();
 
     if (elements) {
