@@ -40,7 +40,7 @@ type Props = {
   publicSecret: string;
 };
 
-export default function Element({ consent, destroy, hash, type, environment = 'cdn.stage.m.todaq.net', publicSecret = 'mp_e4c4131291c24ea3922c9f376367a4f1' }: Props) {
+export default function Element({ consent, destroy, hash, type, environment = 'cdn.m.todaq.net', publicSecret = 'mp_e4c4131291c24ea3922c9f376367a4f1' }: Props) {
   const [ random, _ ] = useState(uuidv4());
  
   return (
