@@ -6,7 +6,11 @@ import Micro from '@todaqmicro/payment-node';
 // const persona = "418274c1055fc2311584a10b95a9345ba96dc7c3fb095f508034044c51e20aa1df"; // Staging
 const persona = "419eee27815968b961dc090aaee01de10c237dd36bb15dd9c87ce0e1f214a80016";
 
-process.env.API_BASE_URL = 'https://pay.stage.m.todaq.net';
+// Use production API for 'main' version, staging for 'stage' version
+// Default to production if not set via environment variable
+if (!process.env.API_BASE_URL) {
+  process.env.API_BASE_URL = 'https://pay.m.todaq.net';
+}
 
 // The SDK needs to be initialized
 //
@@ -40,8 +44,12 @@ export const POST: APIRoute = async ({ request }) => {
 
     console.log('REQUEST1', body);
     if (hash && nonce && timestamp) {
+      console.log('VALIDATING PAYMENT', { hash, nonce, timestamp });
       // @ts-ignore
-      if (await micro.Payment.validPayment(micro.accessToken, hash, nonce, timestamp)) {
+      const isValid = await micro.Payment.validPayment(micro.accessToken, hash, nonce, timestamp);
+      console.log('PAYMENT VALIDATION RESULT', isValid);
+      
+      if (isValid) {
         // Now we know that the user is the actual person who made the purchase
         // We can delegate a persona to the users twin.
         //
@@ -54,13 +62,24 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({
           status: 200,
           message: "OK",
-        }));
+        }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
       } else {
+        console.error('PAYMENT VALIDATION FAILED', { hash, nonce, timestamp });
         return new Response(JSON.stringify({
             status: 406,
-            message: "Not Acceptable",
+            message: "Not Acceptable - Payment validation failed",
           }),
-          { status: 406 }
+          { 
+            status: 406,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
         );
       }
     } else {

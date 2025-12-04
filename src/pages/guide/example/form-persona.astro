@@ -13,6 +13,7 @@
     </fieldset>
     <fieldset id="submit" />
   </form>
+  <div id="verify-persona" style="margin-top: 16px;"></div>
 </div>
 <script is:inline type="module" crossorigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
 <script is:inline>
@@ -31,6 +32,13 @@
     // const hash = '0abc945b-9a3c-4dee-8ba8-4506428a192e'; // Borked
     const hash = 'dab7ec64-c3db-46ab-90e9-d46d7c98c9c2';
 
+    // Persona hash for verification (should match the one in delegate.ts)
+    const personaHash = '419eee27815968b961dc090aaee01de10c237dd36bb15dd9c87ce0e1f214a80016';
+
+    // Verify Button - will be shown after successful payment
+    const verifyElement = document.getElementById('verify-persona');
+    let verifyButton = null;
+
     // Payment Button
 
     // Elements.create allows you to create the button
@@ -47,7 +55,7 @@
         const { hostname, nonce, timestamp } = event.detail;
 
         try {
-          await fetch(`/api/delegate`, {
+          const response = await fetch(`/api/delegate`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -56,11 +64,30 @@
               hash,
               hostname,
               nonce,
-              timestamp: timestamp / 1000,
+              timestamp: Math.floor(timestamp / 1000),
               name: form.elements.name.value,
               email: form.elements.email.value,
             }),
-          });          
+          });
+
+          if (response.ok) {
+            // Payment successful and persona delegated, now show verify element
+            if (verifyElement && !verifyButton) {
+              verifyButton = await elements.create('verify', {
+                hash: personaHash,
+                theme: "light",
+                issueMin: 1,
+                issueMax: 10000,
+              });
+              
+              if (verifyButton) {
+                verifyButton.mount(verifyElement);
+              }
+            }
+          } else {
+            const errorData = await response.json();
+            console.error('DELEGATION ERROR', errorData);
+          }
         } catch (error) {
           console.error('ERROR', error);
         }
