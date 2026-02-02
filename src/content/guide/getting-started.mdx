@@ -20,7 +20,8 @@ Before diving into setting up your online micropayment, you need to ensure you h
 You can obtain your account details by sending a POST request to the account management endpoint:
 
 ```bash
-curl -X POST "https://pay.m.todaq.net/v2/account"
+curl -X POST "https://pay.m.todaq.net/v4/account"
+
 ```
 
 You will receive the following JSON object which contains everything you will need:
@@ -69,7 +70,8 @@ Static pricing is the easiest route and eliminates extra back and forth network 
 First, obtain an access token using your client credentials:
 
 ```bash
-curl -X POST "https://pay.m.todaq.net/v2/account/oauth/token" \ 
+curl -X POST "https://pay.m.todaq.net/v4/account/oauth/token" \ 
+ 
 -u "$CLIENT_ID:$CLIENT_SECRET" \
 -d "grant_type=client_credentials"
 ```
@@ -90,7 +92,8 @@ Your response should look like this (access token expires in 1 hour):
 Fetch available digital quantities:
 
 ```bash
-curl -X GET "https://pay.m.todaq.net/v3/dq"
+curl -X GET "https://pay.m.todaq.net/v4/dq"
+
 ```
 
 Your response should look like this:
@@ -117,7 +120,8 @@ A **Twin** is your digital wallet/merchant account that will own commodities and
 Use the DQ to create a Twin and get a Twin ID:
 
 ```bash
-curl -X POST "https://pay.m.todaq.net/v2/twin/" \
+curl -X POST "https://pay.m.todaq.net/v4/twin/" \
+
 -H "Authorization: Bearer $ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{"dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73"}'
@@ -143,7 +147,8 @@ A **Commodity** represents a sellable item (like an article, download, or servic
 You can create multiple commodities with the same Twin ID (one Twin can own many products):
 
 ```bash
-curl -X POST "https://pay.m.todaq.net/v2/commodity/" \
+curl -X POST "https://pay.m.todaq.net/v4/commodity/" \
+
 -H "Authorization: Bearer $ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{"descriptor": "VEGEMITE.SANDWICH", "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73", "cost": 15.00, "twin_id": 3992 }' 
@@ -170,7 +175,8 @@ Your response should look like this:
 - **Relationship**: Each commodity has a `twin_id` that identifies its owner
 - **Payment Flow**: Customer buys commodity → Payment goes to the owning Twin's balance
 
-For more details, see the [Twins API reference](/reference/payment-api/v2/twins) and [Commodities API reference](/reference/payment-api/v3/commodity).
+For more details, see the [Twins API reference](/reference/payment-api/v4/twins) and [Commodities API reference](/reference/payment-api/v4/commodity).
+
 
 
 #### 3.b. Dynamic Pricing: Adjust prices based on market demand, customer behavior, or other factors.
