@@ -1,13 +1,8 @@
 ---
-import { getCollection } from 'astro:content';
-
 import Head from '../components/Head.astro';
 import Header from '../components/Header/Header.astro';
 import Scripts from '../components/Scripts.astro';
 import '../styles/main.css';
-
-const guides = await getCollection('guide');
-const references = await getCollection('reference');
 ---
 
 <!doctype html>

@@ -14,7 +14,7 @@ const allReferences = [ ...await getCollection('reference') ];
 const paymentApiV4 = allReferences.filter(entry => entry.slug.includes('payment-api/v4'));
 const paymentApiLegacy = allReferences.filter(entry => entry.slug.includes('payment-api/v2') || entry.slug.includes('payment-api/v3'));
 
-const paymentJsIndex = allReferences.filter(entry => entry.slug === 'payment-js');
+const paymentJsIndex = allReferences.filter(entry => (entry.slug as string) === 'payment-js');
 const paymentJsChildren = allReferences.filter(entry => entry.slug.startsWith('payment-js/'));
 
 const paymentNodeItems = allReferences.filter(entry => entry.slug.startsWith('payment-node'));
@@ -23,7 +23,6 @@ const generalReferences = allReferences.filter(entry =>
   !entry.slug.includes('payment-api/v4') && 
   !entry.slug.includes('payment-api/v2') && 
   !entry.slug.includes('payment-api/v3') &&
-  entry.slug !== 'payment-api' &&
   !entry.slug.startsWith('payment-js') &&
   !entry.slug.startsWith('payment-node')
 );
