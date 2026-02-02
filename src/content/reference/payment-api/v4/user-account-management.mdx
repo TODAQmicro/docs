@@ -1,0 +1,175 @@
+---
+title: User Account Management
+description: TODAQMicro User and Account Management APIs
+pubDate: June 15, 2024
+---
+
+## User Account Management
+
+## Endpoints
+
+##### **POST** `/v4/account`
+
+
+Make an Account
+
+###### cURL Example
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v4/account" \
+
+  -H "Content-Type: application/json"
+```
+
+###### Response Schema
+
+```javascript
+{
+   "id": 8,
+   "created_at": "1709323022",
+   "updated_at": "1709323022",
+   "secrets": [
+       {
+           "public_secret": "mp_4120157d4fef4cddb97209df1d930cda",
+           "created_at": "1709323022",
+           "updated_at": "1709323022"
+       },
+       {
+           "client_id": "mid_a79128c68ad34887bb6bbc16488f19f1",
+           "client_secret": "mc_7a0ce09d7b9244b68bb5935c638ee0fb",
+           "created_at": "1709323022",
+           "updated_at": "1709323022"
+        }
+    ]
+}
+```
+
+##### **POST** `/v4/account/oauth/token`
+
+
+Authorize an Account
+
+##### Request Headers
+
+###### Authorization **_base64(client_id:client_secret)_**
+
+###### cURL Example
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v4/account/oauth/token" \
+
+  -u "$CLIENT_ID:$CLIENT_SECRET" \
+  -H "Content-Type: application/json"
+```
+
+###### Response Schema
+
+```javascript
+{
+    "access_token": "tqmt_dc5a6464e2d6477c8a0588f9f1c4f7cd",
+    "expires_at": "1754074378",
+    "refresh_token": "tqmt_a45ba0c6e03449ebb0530a534cd3ec2c",
+    "refresh_expires_at": "1754074378"
+}
+```
+
+##### **POST** `/v4/user`
+
+
+Create a User
+
+###### Request Body Schema
+
+```javascript
+{
+    "email": "mihok@todaq.net"
+}
+```
+
+###### cURL Example
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v4/user" \
+
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "mihok@todaq.net"
+  }'
+```
+
+###### Response Schema
+
+```javascript
+{
+   "id": 123,
+   "email": "mihok@todaq.net",
+   "created_at": "1709323022",
+   "updated_at": "1709323022",
+   "deleted_at": null,
+   "is_android": false,
+   "is_ios": false,
+   "secrets": [
+       {
+           "client_id": "mid_a79128c68ad34887bb6bbc16488f19f1",
+           "client_secret": "mc_7a0ce09d7b9244b68bb5935c638ee0fb",
+           "created_at": "1709323022",
+           "updated_at": "1709323022",
+           "deleted_at": null
+       }
+   ]
+}
+```
+
+##### **GET** `/v4/user/:user_id`
+
+
+Get User Information
+
+##### Path Parameters
+
+###### user_id **_number_**
+
+###### Request Body
+
+```javascript
+{
+  "email": "mihok@todaq.net"
+}
+```
+
+###### cURL Example
+
+**Bearer Token (get own user data):**
+
+```bash
+curl -X GET "https://pay.m.todaq.net/v4/user/123" \
+
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+###### Response Schema
+
+**Bearer Token Response (full user data with secrets):**
+
+```javascript
+{
+   "id": 123,
+   "email": "mihok@todaq.net",
+   "created_at": "1709323022",
+   "updated_at": "1709323022",
+   "deleted_at": null,
+   "is_android": false,
+   "is_ios": false,
+   "secrets": [
+       {
+           "client_id": "mid_a79128c68ad34887bb6bbc16488f19f1",
+           "client_secret": "mc_7a0ce09d7b9244b68bb5935c638ee0fb",
+           "created_at": "1709323022",
+           "updated_at": "1709323022",
+           "deleted_at": null
+       }
+   ]
+}
+```
