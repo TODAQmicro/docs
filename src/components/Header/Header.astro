@@ -1,0 +1,85 @@
+---
+import Logo from '../SVG/Logo.tsx';
+---
+
+<header class="site-header">
+  <div class="header-title">
+    <Logo />
+    <h1>
+      <span>Micro</span> Documentation
+    </h1>
+  </div>
+
+  <aside>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+      <span class="icon-light">🌙</span>
+      <span class="icon-dark" style="display: none;">☀️</span>
+    </button>
+  </aside>
+</header>
+
+<script is:inline>
+  const toggle = document.getElementById('theme-toggle');
+  const iconLight = toggle.querySelector('.icon-light');
+  const iconDark = toggle.querySelector('.icon-dark');
+
+  function updateIcon() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      iconLight.style.display = 'none';
+      iconDark.style.display = 'inline';
+    } else {
+      iconLight.style.display = 'inline';
+      iconDark.style.display = 'none';
+    }
+  }
+
+  // Initial Sync
+  updateIcon();
+
+  toggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateIcon();
+  });
+  
+  // Listen for changes from other tabs/windows if needed, or just re-sync updateIcon if attributes change elsewhere
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === "data-theme") {
+        updateIcon();
+      }
+    });
+  });
+  observer.observe(document.documentElement, { attributes: true });
+</script>
+
+<style>
+  .theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+  }
+
+  .theme-toggle span {
+    font-size: 1.2rem; /* Adjusted for better visibility */
+    line-height: 1;
+  }
+  
+  .theme-toggle span.icon-light, .theme-toggle span.icon-dark {
+      font-size: 0.8rem; /* Make emojis smaller as requested */
+  }
+</style>
+
+<style>
+/* Ensure local styles match the previous component structure if any were missing */
+</style>

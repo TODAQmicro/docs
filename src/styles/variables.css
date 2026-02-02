@@ -1,0 +1,84 @@
+:root {
+    /* Brand Colors */
+    --color-primary: #e2134c;
+    --color-primary-hover: #c00f3f;
+    --color-secondary: #2d334a;
+
+    /* Background Colors */
+    --bg-body: #f8f9fa;
+    --bg-surface: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-code: #f1f3f5;
+    --bg-header: rgba(255, 255, 255, 0.8);
+
+    /* Text Colors */
+    --text-main: #2d334a;
+    --text-muted: #6c757d;
+    --text-inverted: #ffffff;
+
+    /* Scrollbar */
+    --scrollbar-thumb: #ced4da;
+    --scrollbar-track: transparent;
+
+    /* Borders */
+    --border-color: #e9ecef;
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.05);
+
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --space-5: 2rem;
+    --space-6: 3rem;
+    --space-8: 4rem;
+
+    /* Typography */
+    --font-sans: 'Open Sans', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Dark Mode Support (Future proofing/if system preference) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg-body: #1a1b1e;
+        --bg-surface: #25262b;
+        --bg-sidebar: #25262b;
+        --bg-code: #2c2e33;
+
+        --text-main: #e9ecef;
+        --text-muted: #adb5bd;
+
+        --border-color: #373a40;
+
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+
+        --bg-header: rgba(37, 38, 43, 0.8);
+    }
+}
+
+:root[data-theme="dark"] {
+    --bg-body: #1a1b1e;
+    --bg-surface: #25262b;
+    --bg-sidebar: #25262b;
+    --bg-code: #2c2e33;
+
+    --text-main: #e9ecef;
+    --text-muted: #adb5bd;
+
+    --border-color: #373a40;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+
+    --bg-header: rgba(37, 38, 43, 0.8);
+}

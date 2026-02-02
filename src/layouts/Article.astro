@@ -2,12 +2,31 @@
 import { getCollection } from 'astro:content';
 
 import Head from '../components/Head.astro';
-import Header from '../components/Header';
+import Header from '../components/Header/Header.astro';
 import Navigation from '../components/Navigation';
 import Scripts from '../components/Scripts.astro';
 
+import '../styles/main.css';
+
 const guides = [ ...await getCollection('guide') ];
-const references = [ ...await getCollection('reference') ];
+const allReferences = [ ...await getCollection('reference') ];
+
+const paymentApiV4 = allReferences.filter(entry => entry.slug.includes('payment-api/v4'));
+const paymentApiLegacy = allReferences.filter(entry => entry.slug.includes('payment-api/v2') || entry.slug.includes('payment-api/v3'));
+
+const paymentJsIndex = allReferences.filter(entry => entry.slug === 'payment-js');
+const paymentJsChildren = allReferences.filter(entry => entry.slug.startsWith('payment-js/'));
+
+const paymentNodeItems = allReferences.filter(entry => entry.slug.startsWith('payment-node'));
+
+const generalReferences = allReferences.filter(entry => 
+  !entry.slug.includes('payment-api/v4') && 
+  !entry.slug.includes('payment-api/v2') && 
+  !entry.slug.includes('payment-api/v3') &&
+  entry.slug !== 'payment-api' &&
+  !entry.slug.startsWith('payment-js') &&
+  !entry.slug.startsWith('payment-node')
+);
 ---
 
 <!doctype html>
@@ -15,14 +34,48 @@ const references = [ ...await getCollection('reference') ];
   <Head />
   <body>
     <Header />
-    <div style={{ display: 'flex' }}>
-      <aside style={{ padding: '32px 16px'}}>
-        <h4 style={{ fontWeight: 600, color: '#000000' }}>User Guides</h4>
+    
+    <div class="docs-layout">
+      <aside class="sidebar">
+        <h4>User Guides</h4>
         <Navigation entries={guides} root={true}/>
-        <h4 style={{ fontWeight: 600, color: '#000000' }}>References</h4>
-        <Navigation entries={references} root={true}/>
+        
+        <Navigation entries={generalReferences} root={true}/>
+        
+        <div class="nav-tree-node">
+          <div class="nav-tree-header">Payment JS</div>
+          <div class="nav-tree-children">
+            <Navigation entries={paymentJsIndex} root={false}/>
+            <Navigation entries={paymentJsChildren} root={false}/>
+          </div>
+        </div>
+
+        <div class="nav-tree-node">
+          <div class="nav-tree-header">Payment Node</div>
+          <div class="nav-tree-children">
+            <Navigation entries={paymentNodeItems} root={false}/>
+          </div>
+        </div>
+
+        <div class="nav-tree-node">
+          <div class="nav-tree-header">Payment API</div>
+          <div class="nav-tree-children">
+            
+            <div class="nav-tree-node">
+              <div class="nav-tree-header-sub">Latest (V4)</div>
+               <Navigation entries={paymentApiV4} root={false}/>
+            </div>
+
+            <div class="nav-tree-node">
+              <div class="nav-tree-header-sub">Legacy (V2/V3)</div>
+               <Navigation entries={paymentApiLegacy} root={false}/>
+            </div>
+
+          </div>
+        </div>
+
       </aside>
-      <section style={{ flexGrow: 4, padding: '16px' }}>
+      <section class="main-content">
         <slot />        
       </section>
     </div>

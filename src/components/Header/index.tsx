@@ -1,44 +1,54 @@
+import React, { useEffect, useState } from 'react';
 import Logo from '../SVG/Logo';
 
-const styles = {
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    height: '64px',
-    borderBottom: '1px solid #e8e8ec', 
-  },
-  headerTitle: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  headerHeading: {
-    fontFamily: 'Playfair Display, serif',
-    fontWeight: 300,
-    margin: 0,
-    color: '#7A7E8E',
-  },
-  logoSpan: {
-    fontFamily: 'Open Sans, sans-serif',
-    fontWeight: 400,
-    textTransform: 'uppercase' as const,
-    color: '#2D334A',
-  },
-};
-
 export default function Header() {
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+    // Sync with current document state on mount
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (currentTheme) {
+      setTheme(currentTheme);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
   return (
-    <header style={styles.header}>
-      <div style={styles.headerTitle}>
-        <Logo /> 
-        <h1 style={styles.headerHeading}>
-          <span style={styles.logoSpan}>Micro</span> Documentation
+    <header className="site-header">
+      <div className="header-title">
+        <Logo />
+        <h1>
+          <span>Micro</span> Documentation
         </h1>
       </div>
- 
-      <aside>
 
+      <aside>
+        <button
+          onClick={toggleTheme}
+          className="theme-toggle"
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--border-radius-sm)',
+            padding: '6px 10px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-main)'
+          }}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
       </aside>
 
-    </header> 
+    </header>
   );
 }
