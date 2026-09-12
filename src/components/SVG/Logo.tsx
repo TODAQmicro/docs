@@ -10,9 +10,9 @@ import React from 'react';
  *
  * The mark is stroke-drawn, not filled — do not add a `fill`.
  *
- * The mark rather than the full lockup, because this sits beside the
- * "Micro Documentation" title: a lockup here would set the word "Qatom"
- * twice over, once as artwork and once as the heading next to it.
+ * The mark rather than the full lockup, because the title beside it already
+ * sets "Qatom" as type. Mark plus wordmark is the lockup; using the packaged
+ * lockup here would set the word twice over.
  */
 export default function Logo({ size = 32 }: { size?: number }) {
   return (
