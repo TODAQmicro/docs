@@ -52,7 +52,7 @@
     color: var(--text-muted);
     margin-top: var(--space-4);
     margin-bottom: var(--space-2);
-    font-weight: 700;
+    font-weight: 500;
 }
 
 /* Navigation Tree */
@@ -68,7 +68,7 @@
     /* Align with h4 */
     margin-top: var(--space-4);
     margin-bottom: var(--space-2);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
@@ -80,7 +80,7 @@
     color: var(--text-muted);
     padding: 4px 12px;
     /* Match nav link padding horizontal */
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-top: var(--space-2);
@@ -177,7 +177,7 @@ nav a.active,
 nav a.nav-link[aria-current="page"] {
     background-color: rgba(226, 19, 76, 0.08);
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: 500;
     border-left-color: var(--color-primary);
 }
 

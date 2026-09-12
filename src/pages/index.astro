@@ -28,22 +28,33 @@ const scalarTheme = `
        64px, so its sidebar and content start below rather than underneath. */
     --scalar-custom-header-height: 64px;
 
-    --scalar-font: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
-    --scalar-color-accent: #e2134c;
-    --scalar-color-1: #2d334a;
-    --scalar-background-1: #ffffff;
-    --scalar-background-2: #f8f9fa;
-    --scalar-border-color: rgba(45, 51, 74, 0.12);
-    --scalar-radius: 8px;
-    --scalar-radius-lg: 12px;
+    /* Qatom Brand OS v4.1.0. The accent is the contrast-solved teal, not
+       verdigris: verdigris is a fill and never text (QA-COL-001), and almost
+       everything Scalar colours with the accent is a link or a label. */
+    --scalar-font: 'Hanken Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --scalar-font-code: 'IBM Plex Mono', Consolas, ui-monospace, monospace;
+    --scalar-bold: 500;
+    --scalar-semibold: 500;
+    --scalar-color-accent: #087066;
+    --scalar-color-1: #2a2b2a;
+    --scalar-color-2: #1c3f42;
+    --scalar-color-3: #2c777b;
+    --scalar-background-1: #f7f6f2;
+    --scalar-background-2: #efefe9;
+    --scalar-background-3: #e3e3dd;
+    --scalar-border-color: #cecdca;
   }
 
   .dark-mode .scalar-app {
-    --scalar-color-accent: #ff4d7d;
-    --scalar-color-1: #e9ecef;
-    --scalar-background-1: #25262b;
-    --scalar-background-2: #1a1b1e;
-    --scalar-border-color: rgba(233, 236, 239, 0.14);
+    /* On the dark ground verdigris reaches 8.2:1, so it is the accent here. */
+    --scalar-color-accent: #6fc4b8;
+    --scalar-color-1: #f7f6f2;
+    --scalar-color-2: #ccdbdb;
+    --scalar-color-3: #9fc4c4;
+    --scalar-background-1: #2a2b2a;
+    --scalar-background-2: #343634;
+    --scalar-background-3: #3d403d;
+    --scalar-border-color: #4e514e;
   }
 `;
 ---

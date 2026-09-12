@@ -1,35 +1,64 @@
-:root {
-    /* Brand Colors */
-    --color-primary: #e2134c;
-    --color-primary-hover: #c00f3f;
-    --color-secondary: #2d334a;
+/*
+ * Qatom Brand OS v4.1.0 — fonts and colour.
+ *
+ * Values are the Brand OS palette verbatim (QATOM-BRAND-KIT.md, generated from
+ * qatom.css). They are mapped onto this site's existing variable names rather
+ * than introducing a --qatom-* register, so the change is a re-skin: no
+ * component had to move.
+ *
+ * Two rules from the kit shape the mapping and are worth knowing before
+ * editing:
+ *
+ *   QA-COL-001  Verdigris (#6FC4B8) and marigold (#E8A33D) are FILLS. Never
+ *               text, never a line, never a border. Verdigris is 1.9:1 on the
+ *               light ground. A documentation site is mostly links, so
+ *               --color-primary is NOT verdigris on light: it is the
+ *               contrast-solved teal at the same hue (5.5:1) that qatom-ui
+ *               derives for exactly this purpose. Verdigris is available as
+ *               --color-accent-fill for plates and buttons.
+ *               On the dark ground verdigris reaches 8.2:1, so it is the
+ *               accent there.
+ *
+ *   QA-TYP-003  Weights 300, 400 and 500 only. There is no bold in this
+ *               system; emphasis is weight 500, or colour.
+ */
 
-    /* Background Colors */
-    --bg-body: #f8f9fa;
-    --bg-surface: #ffffff;
-    --bg-sidebar: #ffffff;
-    --bg-code: #f1f3f5;
-    --bg-header: rgba(255, 255, 255, 0.8);
+:root {
+    /* Accent — text-safe teal on the light ground; see QA-COL-001 above. */
+    --color-primary: #087066;
+    --color-primary-hover: #075c54;
+    --color-secondary: #1c3f42;
+
+    /* Verdigris. A fill: plates, buttons, marks — never text or a line. */
+    --color-accent-fill: #6fc4b8;
+    --color-accent-fill-ink: #15110c;
+
+    /* Background Colors — ground is the page, surface the raised plane. */
+    --bg-body: #f7f6f2;
+    --bg-surface: #f7f6f2;
+    --bg-sidebar: #efefe9;
+    --bg-code: #efefe9;
+    --bg-header: rgba(247, 246, 242, 0.8);
 
     /* Text Colors */
-    --text-main: #2d334a;
-    --text-muted: #6c757d;
-    --text-inverted: #ffffff;
+    --text-main: #2a2b2a;
+    --text-muted: #2c777b;
+    --text-inverted: #f7f6f2;
 
     /* Scrollbar */
-    --scrollbar-thumb: #ced4da;
+    --scrollbar-thumb: #cecdca;
     --scrollbar-track: transparent;
 
     /* Borders */
-    --border-color: #e9ecef;
+    --border-color: #cecdca;
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
     --border-radius-lg: 12px;
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 2px rgba(42, 43, 42, 0.05);
+    --shadow-md: 0 4px 6px rgba(42, 43, 42, 0.05), 0 1px 3px rgba(42, 43, 42, 0.1);
+    --shadow-lg: 0 10px 15px rgba(42, 43, 42, 0.05), 0 4px 6px rgba(42, 43, 42, 0.05);
 
     /* Spacing */
     --space-1: 0.25rem;
@@ -40,45 +69,59 @@
     --space-6: 3rem;
     --space-8: 4rem;
 
-    /* Typography */
-    --font-sans: 'Open Sans', system-ui, -apple-system, sans-serif;
-    --font-serif: 'Playfair Display', Georgia, serif;
-    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    /* Typography — the three Brand OS faces, each with its sanctioned
+       fallback. None of the three ships with Windows or macOS, so the
+       fallback is named deliberately rather than left to the browser. */
+    --font-sans: 'Hanken Grotesk', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Source Serif 4', Georgia, serif;
+    --font-mono: 'IBM Plex Mono', Consolas, ui-monospace, Menlo, monospace;
 }
 
-/* Dark Mode Support (Future proofing/if system preference) */
+/* Dark palette — the Brand OS dark column. */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --bg-body: #1a1b1e;
-        --bg-surface: #25262b;
-        --bg-sidebar: #25262b;
-        --bg-code: #2c2e33;
+        --color-primary: #6fc4b8;
+        --color-primary-hover: #8fd1c8;
+        --color-secondary: #ccdbdb;
 
-        --text-main: #e9ecef;
-        --text-muted: #adb5bd;
+        --bg-body: #2a2b2a;
+        --bg-surface: #2a2b2a;
+        --bg-sidebar: #343634;
+        --bg-code: #343634;
+        --bg-header: rgba(42, 43, 42, 0.8);
 
-        --border-color: #373a40;
+        --text-main: #f7f6f2;
+        --text-muted: #9fc4c4;
+        --text-inverted: #2a2b2a;
 
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+        --scrollbar-thumb: #4e514e;
+        --border-color: #4e514e;
 
-        --bg-header: rgba(37, 38, 43, 0.8);
+        --shadow-sm: 0 1px 2px rgba(14, 18, 16, 0.3);
+        --shadow-md: 0 4px 6px rgba(14, 18, 16, 0.3), 0 1px 3px rgba(14, 18, 16, 0.2);
+        --shadow-lg: 0 10px 15px rgba(14, 18, 16, 0.3), 0 4px 6px rgba(14, 18, 16, 0.2);
     }
 }
 
 :root[data-theme="dark"] {
-    --bg-body: #1a1b1e;
-    --bg-surface: #25262b;
-    --bg-sidebar: #25262b;
-    --bg-code: #2c2e33;
+    --color-primary: #6fc4b8;
+    --color-primary-hover: #8fd1c8;
+    --color-secondary: #ccdbdb;
 
-    --text-main: #e9ecef;
-    --text-muted: #adb5bd;
+    --bg-body: #2a2b2a;
+    --bg-surface: #2a2b2a;
+    --bg-sidebar: #343634;
+    --bg-code: #343634;
+    --bg-header: rgba(42, 43, 42, 0.8);
 
-    --border-color: #373a40;
+    --text-main: #f7f6f2;
+    --text-muted: #9fc4c4;
+    --text-inverted: #2a2b2a;
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    --scrollbar-thumb: #4e514e;
+    --border-color: #4e514e;
 
-    --bg-header: rgba(37, 38, 43, 0.8);
+    --shadow-sm: 0 1px 2px rgba(14, 18, 16, 0.3);
+    --shadow-md: 0 4px 6px rgba(14, 18, 16, 0.3), 0 1px 3px rgba(14, 18, 16, 0.2);
+    --shadow-lg: 0 10px 15px rgba(14, 18, 16, 0.3), 0 4px 6px rgba(14, 18, 16, 0.2);
 }
