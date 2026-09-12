@@ -10,9 +10,9 @@ import React from 'react';
  *
  * The mark is stroke-drawn, not filled — do not add a `fill`.
  *
- * The mark rather than the full lockup, because the title beside it already
- * sets "Qatom" as type. Mark plus wordmark is the lockup; using the packaged
- * lockup here would set the word twice over.
+ * The mark alone carries the identity here. The wordmark is placed artwork and
+ * is never typed in any face (QA-IDN-003), so the title beside this reads only
+ * "Documentation" — the mark is what says Qatom.
  */
 export default function Logo({ size = 32 }: { size?: number }) {
   return (

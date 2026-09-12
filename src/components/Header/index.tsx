@@ -24,7 +24,7 @@ export default function Header() {
       <div className="header-title">
         <Logo />
         <h1>
-          <span>Qatom</span> Documentation
+          Documentation
         </h1>
       </div>
 
