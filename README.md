@@ -2,6 +2,26 @@
 
 This is the documentation site for TODAQ Micro's payment system, built with Astro and deployed to `https://docs.m.todaq.net`.
 
+## The API reference
+
+The HTTP API reference at `/` is not written here. It is rendered by
+[Scalar](https://github.com/scalar/scalar) from the OpenAPI document the payment
+API generates about itself from its mounted route table, and serves at
+`/v4/openapi.json`. Endpoints are documented in that repository, next to the
+controllers that implement them; nothing in this repository needs to change when
+the API does.
+
+The document is fetched at runtime, so the reference always describes what the
+environment is actually running. Point it elsewhere to preview changes before
+they ship:
+
+```bash
+PUBLIC_OPENAPI_URL=http://localhost:8500/v4/openapi.json npm run dev
+```
+
+See `.env.example`. What remains in `src/content/` is the material Scalar does
+not cover: the guides, the SDK references, and the interactive examples.
+
 ## How HTML is Generated
 
 This documentation site uses **Astro** with the following architecture:
@@ -36,10 +56,10 @@ src/content/
 │   ├── getting-started.mdx
 │   ├── personas.mdx
 │   └── ...
-└── reference/       # API documentation (.mdx files)
-    ├── payment-api/
+└── reference/       # SDK documentation (.mdx files)
     ├── payment-js/
-    └── ...
+    └── payment-node/
+
 ```
 
 ### Layout System

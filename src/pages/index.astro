@@ -1,8 +1,51 @@
 ---
+import { ScalarComponent } from '@scalar/astro';
+
 import Head from '../components/Head.astro';
 import Header from '../components/Header/Header.astro';
-import Scripts from '../components/Scripts.astro';
 import '../styles/main.css';
+
+/**
+ * The reference renders whatever the API is currently serving. The payment API
+ * generates its own OpenAPI document from the mounted route table and serves it
+ * with permissive CORS, so the docs never need a vendored copy to refresh.
+ *
+ * Point PUBLIC_OPENAPI_URL at staging or a local server to preview changes
+ * before they reach production.
+ */
+const openApiUrl =
+  import.meta.env.PUBLIC_OPENAPI_URL ?? 'https://pay.m.todaq.net/v4/openapi.json';
+
+/**
+ * Aligns Scalar's palette and type with the rest of the site. Scalar exposes
+ * its theme as CSS custom properties, so this is a re-skin rather than an
+ * override of its layout.
+ */
+const scalarTheme = `
+  .scalar-app {
+    /* Scalar sizes and sticks its own panes against the viewport. This is the
+       supported way to tell it that the site header already occupies the top
+       64px, so its sidebar and content start below rather than underneath. */
+    --scalar-custom-header-height: 64px;
+
+    --scalar-font: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+    --scalar-color-accent: #e2134c;
+    --scalar-color-1: #2d334a;
+    --scalar-background-1: #ffffff;
+    --scalar-background-2: #f8f9fa;
+    --scalar-border-color: rgba(45, 51, 74, 0.12);
+    --scalar-radius: 8px;
+    --scalar-radius-lg: 12px;
+  }
+
+  .dark-mode .scalar-app {
+    --scalar-color-accent: #ff4d7d;
+    --scalar-color-1: #e9ecef;
+    --scalar-background-1: #25262b;
+    --scalar-background-2: #1a1b1e;
+    --scalar-border-color: rgba(233, 236, 239, 0.14);
+  }
+`;
 ---
 
 <!doctype html>
@@ -10,213 +53,106 @@ import '../styles/main.css';
   <Head />
   <body>
     <Header />
-    
-    <main class="home-container">
-      <section class="hero">
-        <div class="hero-content">
-          <h1>Build seamless <span class="text-gradient">payment experiences</span></h1>
-          <p class="hero-subtitle">
-            Integrate TAPP's powerful payment infrastructure with our comprehensive guides and APIs. 
-            Secure, scalable, and developer-first.
-          </p>
-          <div class="hero-actions">
-            <a href="/guide/getting-started/" class="btn btn-primary">Get Started</a>
-          </div>
-        </div>
-        <div class="hero-visual">
-            <div class="glow-orb"></div>
-        </div>
-      </section>
+
+    <main class="reference-shell">
+      <ScalarComponent
+        renderMode="client"
+        configuration={{
+          url: openApiUrl,
+          layout: 'modern',
+          searchHotKey: 'k',
+          hideModels: false,
+          customCss: scalarTheme,
+        }}
+      />
     </main>
 
-    <Scripts />
+    <script is:inline>
+      // Scalar mounts from the CDN after this runs, and decides its own initial
+      // palette. Seed it from the visitor's stored choice so the reference opens
+      // in the same mode as the rest of the site rather than following the OS
+      // and then flipping.
+      (function seedScalarTheme() {
+        var stored = null;
+        try {
+          stored = localStorage.getItem('theme');
+        } catch (error) {
+          // Private browsing; fall back to the OS preference.
+        }
+
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        document.querySelectorAll('[data-scalar-client]').forEach(function (element) {
+          try {
+            var configuration = JSON.parse(element.getAttribute('data-configuration') || '{}');
+            configuration.darkMode = dark;
+            element.setAttribute('data-configuration', JSON.stringify(configuration));
+          } catch (error) {
+            // Leave Scalar's own default in place.
+          }
+        });
+      })();
+
+      // Two theme switches now exist on this page: the site header's, which sets
+      // `data-theme`, and Scalar's own, which sets `dark-mode` on the body.
+      // Mirror each onto the other so either one moves the whole page.
+      (function syncScalarTheme() {
+        var root = document.documentElement;
+        var body = document.body;
+        var syncing = false;
+
+        function siteIsDark() {
+          return root.getAttribute('data-theme') === 'dark';
+        }
+
+        function scalarIsDark() {
+          return body.classList.contains('dark-mode');
+        }
+
+        function pushToScalar() {
+          if (syncing) return;
+          syncing = true;
+          body.classList.toggle('dark-mode', siteIsDark());
+          body.classList.toggle('light-mode', !siteIsDark());
+          syncing = false;
+        }
+
+        function pullFromScalar() {
+          if (syncing || scalarIsDark() === siteIsDark()) return;
+          syncing = true;
+          var theme = scalarIsDark() ? 'dark' : 'light';
+          root.setAttribute('data-theme', theme);
+          try {
+            localStorage.setItem('theme', theme);
+          } catch (error) {
+            // Nothing to persist to; the in-page state is still correct.
+          }
+          syncing = false;
+        }
+
+        pushToScalar();
+        new MutationObserver(pushToScalar).observe(root, {
+          attributes: true,
+          attributeFilter: ['data-theme'],
+        });
+        new MutationObserver(pullFromScalar).observe(body, {
+          attributes: true,
+          attributeFilter: ['class'],
+        });
+      })();
+    </script>
   </body>
 </html>
 
-<style>
-  .home-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--space-4);
-  }
-
-  /* Hero Section */
-  .hero {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-8) 0;
-    min-height: 500px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero-content {
-    flex: 1;
-    max-width: 600px;
-    z-index: 2;
-  }
-
-  h1 {
-    font-size: 3.5rem;
-    line-height: 1.1;
-    font-weight: 800;
-    margin-bottom: var(--space-4);
-    letter-spacing: -0.02em;
-  }
-
-  .text-gradient {
-    background: linear-gradient(135deg, var(--color-primary), #ff6b6b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .hero-subtitle {
-    font-size: 1.25rem;
-    color: var(--text-muted);
-    margin-bottom: var(--space-6);
-    line-height: 1.6;
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: var(--space-3);
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--border-radius-md);
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-
-  .btn-primary {
-    background-color: var(--color-primary);
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background-color: var(--color-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-
-  .btn-secondary {
-    background-color: var(--bg-surface);
-    color: var(--text-main);
-    border: 1px solid var(--border-color);
-  }
-
-  .btn-secondary:hover {
-    background-color: var(--bg-body);
-    border-color: var(--text-muted);
-  }
-
-  /* Hero Visual (Abstract) */
-  .hero-visual {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    right: -100px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1;
-    pointer-events: none;
-  }
-
-  .glow-orb {
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(226, 19, 76, 0.15) 0%, rgba(226, 19, 76, 0) 70%);
-    border-radius: 50%;
-    filter: blur(40px);
-  }
-
-  /* Features Section */
-  .features {
-    padding: var(--space-8) 0;
-    margin-bottom: var(--space-8);
-  }
-
-  .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--space-4);
-  }
-
-  .feature-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: var(--space-5);
-    text-decoration: none;
-    color: var(--text-main);
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--color-primary);
-  }
-
-  .card-icon {
-    font-size: 2rem;
-    margin-bottom: var(--space-3);
-  }
-
-  .feature-card h3 {
-    margin-bottom: var(--space-2);
-    font-size: 1.25rem;
-    font-weight: 700;
-  }
-
-  .feature-card p {
-    color: var(--text-muted);
-    line-height: 1.5;
-    flex-grow: 1;
-  }
-
-  /* Dark mode tweaks */
-  :global(:root:not([data-theme="light"])) .btn-secondary {
-      background-color: transparent;
-      border-color: var(--border-color);
-  }
-  
-  :global(:root:not([data-theme="light"])) .btn-secondary:hover {
-      background-color: rgba(255,255,255,0.05);
-  }
-
-  @media (max-width: 768px) {
-    .hero {
-      flex-direction: column;
-      text-align: center;
-      padding-top: var(--space-6);
-    }
-    
-    .hero-content {
-      max-width: 100%;
-    }
-
-    .hero-actions {
-      justify-content: center;
-    }
-    
-    .hero-visual {
-      display: none;
-    }
-    
-    h1 {
-      font-size: 2.5rem;
-    }
+<style is:global>
+  /* Scalar scrolls the document itself and sticks its sidebar against the
+     viewport, offset by --scalar-custom-header-height. The page must therefore
+     keep its normal scrolling; the only thing to fix is the site header, so the
+     sidebar has something to sit beneath. */
+  body:has(.reference-shell) header.site-header {
+    position: sticky;
+    top: 0;
   }
 </style>
