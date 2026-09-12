@@ -124,9 +124,10 @@ header.site-header {
 }
 
 .header-title h1 span {
+    /* The wordmark is set as it is written: mixed case, and at the same weight
+       as the rest of the title. Only the sans face and the stronger colour
+       separate it from 'Documentation'. */
     font-family: var(--font-sans);
-    font-weight: 700;
-    text-transform: uppercase;
     color: var(--text-main);
     margin-right: var(--space-1);
 }
