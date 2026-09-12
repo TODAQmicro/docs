@@ -3,14 +3,20 @@ import Logo from '../SVG/Logo.tsx';
 ---
 
 <header class="site-header">
-  <div class="header-title">
+  <a class="header-title" href="/">
     <Logo />
     <h1>
       <span>Micro</span> Documentation
     </h1>
-  </div>
+  </a>
 
   <aside>
+    <nav class="header-nav">
+      <a href="/">API Reference</a>
+      <a href="/guide/getting-started/">Guides</a>
+      <a href="/reference/payment-js/payment-element/">SDKs</a>
+    </nav>
+
     <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
       <span class="icon-light">🌙</span>
       <span class="icon-dark" style="display: none;">☀️</span>
@@ -58,6 +64,44 @@ import Logo from '../SVG/Logo.tsx';
 </script>
 
 <style>
+  .header-title {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  aside {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .header-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .header-nav a:hover {
+    color: var(--color-primary);
+  }
+
+  @media (max-width: 640px) {
+    .header-nav {
+      gap: var(--space-3);
+    }
+
+    .header-nav a {
+      font-size: 0.8rem;
+    }
+  }
+
   .theme-toggle {
     background: transparent;
     border: 1px solid var(--border-color);
