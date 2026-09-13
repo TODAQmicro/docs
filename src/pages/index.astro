@@ -21,6 +21,40 @@ const openApiUrl =
  * its theme as CSS custom properties, so this is a re-skin rather than an
  * override of its layout.
  */
+/**
+ * The snippet picker offers two clients and no more: curl and Node.js.
+ *
+ * Scalar ships samples for twenty-two languages. A picker that long buries the
+ * two an integrator here actually reaches for, and every extra sample is
+ * another thing that can be subtly wrong without anyone noticing. Whole
+ * languages are hidden with `true`; `shell` and `node` list the clients to
+ * drop, leaving curl and fetch.
+ */
+const HIDDEN_CLIENTS: Record<string, true | string[]> = {
+  c: true,
+  clojure: true,
+  csharp: true,
+  dart: true,
+  fsharp: true,
+  go: true,
+  http: true,
+  java: true,
+  js: true,
+  julia: true,
+  kotlin: true,
+  objc: true,
+  ocaml: true,
+  php: true,
+  powershell: true,
+  python: true,
+  r: true,
+  ruby: true,
+  rust: true,
+  swift: true,
+  shell: ['httpie', 'wget'],
+  node: ['undici', 'native', 'axios', 'ofetch'],
+};
+
 const scalarTheme = `
   .scalar-app {
     /* Scalar sizes and sticks its own panes against the viewport. This is the
@@ -43,6 +77,18 @@ const scalarTheme = `
     --scalar-background-2: #efefe9;
     --scalar-background-3: #e3e3dd;
     --scalar-border-color: #cecdca;
+  }
+
+  /* Scalar's own attribution: the sidebar footer link and the watermark on an
+     empty response pane. There is no configuration option for either, so they
+     go by selector. Scalar is MIT licensed, so this is permitted.
+
+     Scoped by href rather than by Scalar's utility classes, which change
+     between releases — but excluding .disclaimerLink, because the Ask AI
+     panel's Terms and Privacy Policy links also point at scalar.com and those
+     stay. */
+  .scalar-app a[href*='scalar.com']:not(.disclaimerLink) {
+    display: none !important;
   }
 
   .dark-mode .scalar-app {
@@ -74,6 +120,9 @@ const scalarTheme = `
           searchHotKey: 'k',
           hideModels: false,
           customCss: scalarTheme,
+          hideClientButton: true,
+          hiddenClients: HIDDEN_CLIENTS,
+          defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
         }}
       />
     </main>
