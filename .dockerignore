@@ -1,0 +1,11 @@
+# The image runs dist/ and reads server secrets from the service's environment
+# at runtime. Keep local env files out of the build context.
+.env
+.env.*
+!.env.example
+
+# Git metadata can carry credentials in .git/config (actions/checkout persists
+# the job's token there unless told not to). .claude/ holds agent worktrees,
+# each with its own .env.
+.git
+.claude

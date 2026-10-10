@@ -22,7 +22,7 @@ The public developer documentation site for Qatom payments, served at https://do
 - **Optional nix:** `.envrc` runs `use nix` for direnv users; `shell.nix` supplies Node 20 and a few CLI tools.
 - **No GitHub Packages auth.** `@todaqmicro/payment-js` and `@todaqmicro/payment-node` install from public npm. If your `~/.npmrc` maps the `@todaqmicro` scope to GitHub Packages, npm looks for them there instead; add `--@todaqmicro:registry=https://registry.npmjs.org` to the install. The tracked `.npmrc` is empty; keep it free of registries and tokens, and do not delete it: the Dockerfile runs `rm .npmrc`, so `docker build` fails without it.
 - **No local services needed.** By default the reference reads production's OpenAPI document. To preview API reference changes, run payment locally (port 8500) or use staging and set `PUBLIC_OPENAPI_URL`.
-- **.env:** `cp .env.example .env` and uncomment one `PUBLIC_OPENAPI_URL` line. Astro loads `.env` in dev and build; restart the dev server after editing it. Only `.env` and `.env.production` are gitignored, so do not create `.env.local` or other variants.
+- **.env:** `cp .env.example .env` and uncomment one `PUBLIC_OPENAPI_URL` line. Astro loads `.env` into `import.meta.env` in dev and build, not into `process.env`; restart the dev server after editing it. To run `/api/delegate`, export `DELEGATE_CLIENT_ID` and `DELEGATE_CLIENT_SECRET` in the shell that runs `npm run dev`, or start the built server with `node --env-file=.env ./dist/server/entry.mjs`. Only `.env` and `.env.production` are gitignored, so do not create `.env.local` or other variants. The Dockerfile runs `COPY . .`, so `.dockerignore` keeps `.env`, `.env.*`, `.git` and `.claude` (agent worktrees, each with its own `.env`) out of the image; keep it.
 
 ## Configuration
 
@@ -30,6 +30,7 @@ The public developer documentation site for Qatom payments, served at https://do
 |---|---|---|---|
 | `PUBLIC_OPENAPI_URL` | no | build time (Astro inlines `PUBLIC_*`) | OpenAPI document Scalar renders at `/`. Defaults to the production payment API's `/v4/openapi.json` |
 | `API_BASE_URL` | no | server runtime, when payment-node loads | Payment API base URL for `/api/delegate`. Defaults to production |
+| `DELEGATE_CLIENT_ID`, `DELEGATE_CLIENT_SECRET` | for `/api/delegate` | server runtime, `process.env` on the first request | The demo account's client pair. Without them the route logs the missing names and answers 500; the rest of the site is unaffected |
 | `HOST`, `PORT` | set by Dockerfile | server runtime | Listen address of the standalone server (`0.0.0.0`, `80` in the image) |
 
 - Build-time (`PUBLIC_*`) values for production go in the build step `env` of `.github/workflows/production.yml`. It does not set `PUBLIC_OPENAPI_URL`, so production renders the production document. That step also exports `API_BASE_URL` and `CDN_*` variables; they do not reach the running server, and nothing in `src/` reads the `CDN_*` names. Do not add runtime variables there.
@@ -51,7 +52,7 @@ The public developer documentation site for Qatom payments, served at https://do
 | `src/components/Navigation/` | Sidebar lists (React, rendered on the server) |
 | `src/components/Element/` | Live element embed for MDX (`<Element type="payment" hash="…" client:load />`); loads `micropay.js` from the CDN host in `environment` (production by default) |
 | `src/pages/guide/example/*-persona.astro` | Standalone persona demos, embedded by iframe in `guide/personas.mdx` |
-| `src/pages/api/delegate.ts` | The only server route: `POST /api/delegate` validates a payment and delegates a persona through payment-node |
+| `src/pages/api/delegate.ts` | The only server route: `POST /api/delegate` validates a payment and delegates a persona through payment-node, signed in with the `DELEGATE_*` pair from `process.env` |
 | `src/styles/` | `main.css` imports `variables.css` (Brand OS tokens), `reset.css`, `typography.css`, `layout.css` |
 
 The one way to do each thing here:
@@ -71,7 +72,7 @@ The one way to do each thing here:
 - Every change also needs: open each changed page in `npm run dev` (or `npm run preview`) in light and dark themes. For reference changes, `/` renders and the picker offers only curl and Node fetch.
 - Code samples: run shell samples against local or staging payment (at minimum `bash -n` on the block), and check paths, methods and fields against the OpenAPI document.
 - Links: the target slug must exist (`/reference/payment-node/usage/`; there is no `/reference/payment-node` page). No `(#)` placeholder links. `[TOC]` is not expanded (no remark plugins are configured), so do not add it.
-- Element embeds, `/guide/example/*` and `/api/delegate` call the production payment API and CDN by default, even in dev. View them, but do not complete payments or submit the persona form while testing.
+- Element embeds, `/guide/example/*` and `/api/delegate` call the production payment API and CDN by default, even in dev. View them, but do not complete payments or submit the persona form while testing. To exercise `/api/delegate` without reaching production, run the built server with `API_BASE_URL=http://127.0.0.1:9` and dummy `DELEGATE_*` values: a valid body answers 502, a malformed one 400, and a missing pair 500.
 
 ## Deploy & release
 
@@ -81,6 +82,7 @@ The one way to do each thing here:
 | `production.yml` | push to `main` | `npm install` and `npm run build` on the runner, `docker build`, push the image, roll the production service and wait until it is stable |
 
 - Merging to `main` is a production release. There is no staging deployment of the site and no manual release step (no migrations).
+- `production.yml` builds the image from its own checkout, so its checkout step sets `persist-credentials: false`: otherwise `actions/checkout` writes the job's GitHub token into `.git/config`. Keep it, and keep `.git` in `.dockerignore`.
 - The deploy job uses `npm install` on the runner's default Node, while PR CI uses `npm ci`. Commit `package-lock.json` with every dependency change so both resolve the same tree.
 - No `workflow_dispatch` exists. To redeploy `main` unchanged, a human re-runs the latest `production.yml` run in GitHub Actions; do not push empty commits. Roll back by reverting through a PR.
 - Verify a release: the `production.yml` run is green (it waits for stability), then https://docs.m.todaq.net/ renders the reference, `/guide/getting-started/` and `/reference/payment-js/payment-element/` load, and the changed pages show the change.
@@ -109,7 +111,7 @@ Nothing imports this repo, but other services link to it: payment's OpenAPI docu
 - A credential a server route needs is read from `process.env` by name at runtime. Never give a secret a `PUBLIC_` prefix: `PUBLIC_*` values are inlined into the build.
 - Server routes never log request bodies, emails, payment hashes or nonces, tokens, or SDK objects and responses. Log an event name and a status.
 - Server routes validate their JSON body with zod (`import { z } from 'astro/zod'`) and return 400 on failure.
-- Recorded exception: `/api/delegate` predates the logging and validation rules above and does not follow them yet. It is a demo backend with one caller (the signup persona demo), so the next PR that changes it brings it up to both.
+- payment-node 0.3.6 itself `console.log`s the client secret, tokens, request headers and the persona's name and email. `/api/delegate` runs every SDK call inside `quietly()`, which mutes `console.log`, and logs with `console.info`/`console.error` only. Keep new SDK calls inside it until a payment-node release stops logging.
 - Recorded exception to the shared v4-only rule: payment-node still calls the payment API's v2 and v3 endpoints, so `/api/delegate` (`apiVersion: 'v2'`) and the payment-node page use it as published until payment-node moves to v4. HTTP samples in guides stay v4.
 - Shell samples run when pasted: a continuation is `\` immediately followed by a newline, with no blank lines inside a command, and paths match the spec exactly (no trailing slash). Some curl blocks in `getting-started.mdx` do not yet; fix them when editing that page.
 - Integrator-facing samples use the production hosts (`pay.m.todaq.net`, `cdn.m.todaq.net`); staging hosts appear only in an explicitly labelled environment list. `getting-started`, `reactive-payment` and `transparent` still load `micropay.js` from the staging CDN; fix this when editing them.
@@ -123,9 +125,9 @@ There is no OpenAPI or Postman file here: `/` renders payment's live `/v4/openap
 
 | File | What it covers | Update it when |
 |---|---|---|
-| `README.md` | What the site is, how `/` is rendered and previewed (`PUBLIC_OPENAPI_URL`), content layout, dev, build and preview commands. Incomplete: no prerequisites, `API_BASE_URL`, testing or release process; this file takes precedence until it is fixed | Commands, setup, configuration or the content layout change |
+| `README.md` | What the site is, how `/` is rendered and previewed (`PUBLIC_OPENAPI_URL`), the `.env.example` variables, content layout, dev, build and preview commands. Incomplete: no prerequisites, `API_BASE_URL`, testing or release process; this file takes precedence until it is fixed | Commands, setup, configuration or the content layout change |
 | `CLAUDE.md` (`AGENTS.md` is a symlink to it) | This guide, followed by the shared standards block. | See "Keeping documentation true" |
-| `.env.example` | `PUBLIC_OPENAPI_URL`, with commented local (port 8500) and staging values; unset means production | A variable is added, renamed or removed |
+| `.env.example` | `PUBLIC_OPENAPI_URL`, with commented local (port 8500) and staging values (unset means production), and the server-only `DELEGATE_CLIENT_ID` / `DELEGATE_CLIENT_SECRET` pair | A variable is added, renamed or removed |
 | `src/pages/index.astro` | The API reference at `/`: Scalar setup, theme and client picker. Endpoint text comes from payment | Scalar configuration or brand values change; endpoint wording changes in payment, not here |
 | `src/content/guide/getting-started.mdx` | Account, token, digital quantity, twin and commodity via v4 curl, then loading, mounting and listening to a payment element. Partly out of date: staging CDN script, curl blocks that do not paste cleanly, `[TOC]`, and links to `/reference/payment-node`, which has no page | The v4 setup endpoints or the payment-js load flow change |
 | `src/content/guide/reactive-payment.mdx`, `transparent.mdx` | Pay to keep watching a video; a transparent payment button over existing content. Out of date: staging CDN script, `[TOC]`, `(#)` links, and `reactive-payment` calls `element.toggle()`, which payment-js does not provide; payment-js takes precedence until they are fixed | Payment element options, methods or events change |
