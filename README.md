@@ -22,6 +22,21 @@ PUBLIC_OPENAPI_URL=http://localhost:8500/v4/openapi.json npm run dev
 See `.env.example`. What remains in `src/content/` is the material Scalar does
 not cover: the guides, the SDK references, and the interactive examples.
 
+## Configuration
+
+The variables in `.env.example`:
+
+| Variable | Read | Purpose |
+|---|---|---|
+| `PUBLIC_OPENAPI_URL` | build time | OpenAPI document the reference at `/` renders. Defaults to production |
+| `DELEGATE_CLIENT_ID`, `DELEGATE_CLIENT_SECRET` | server runtime, from `process.env` | The demo account's client pair, which `/api/delegate` (the persona demo's server route) uses to call the payment API. Required by that route, which answers 500 without them |
+
+Astro loads `.env` into `import.meta.env`, not into `process.env`. To run
+`/api/delegate` locally, export the pair in the shell that runs `npm run dev`,
+or start the built server with `node --env-file=.env ./dist/server/entry.mjs`.
+Never commit a client secret or give it a `PUBLIC_` prefix: `PUBLIC_*` values
+are inlined into the build, and this repository is public.
+
 ## How HTML is Generated
 
 This documentation site uses **Astro** with the following architecture:
