@@ -33,6 +33,9 @@
     --color-accent-fill: #6fc4b8;
     --color-accent-fill-ink: #15110c;
 
+    /* A dark merchant page, behind the dark-theme element demos. The same in both themes. */
+    --demo-dark-page: #0c1a17;
+
     /* Background Colors — ground is the page, surface the raised plane. */
     --bg-body: #f7f6f2;
     --bg-surface: #f7f6f2;

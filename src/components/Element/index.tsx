@@ -31,7 +31,24 @@ type ActiveConsent = {
   checked: boolean;
 }
 
-type Props = {
+/** The payment element's display options, as payment-js's `create()` takes them. */
+type DisplayOptions = {
+  theme?: 'light' | 'dark';
+  decimalPoints?: number;
+  leading?: string;
+  middle?: string;
+  trailing?: string;
+  styles?: Record<string, string | number>;
+};
+
+/** JSON that is inert inside an inline script: nothing can close the element. */
+const scriptJson = (value: unknown) =>
+  JSON.stringify(value ?? null)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
+
+type Props = DisplayOptions & {
   consent?: { [key: string]: ConsentOptions };
   destroy?: boolean;
   hash: string;
@@ -40,7 +57,21 @@ type Props = {
   publicSecret: string;
 };
 
-export default function Element({ consent, destroy, hash, type, environment = 'cdn.m.todaq.net', publicSecret = 'mp_e4c4131291c24ea3922c9f376367a4f1' }: Props) {
+export default function Element({
+  consent,
+  destroy,
+  hash,
+  type,
+  environment = 'cdn.m.todaq.net',
+  publicSecret = 'mp_e4c4131291c24ea3922c9f376367a4f1',
+  theme,
+  decimalPoints,
+  leading,
+  middle,
+  trailing,
+  styles,
+}: Props) {
+  const display: DisplayOptions = { theme, decimalPoints, leading, middle, trailing, styles };
   const [ random, _ ] = useState(uuidv4());
  
   return (
@@ -72,8 +103,9 @@ export default function Element({ consent, destroy, hash, type, environment = 'c
 
     if (elements) {
       const options = {
-${`        consent: JSON.parse('${JSON.stringify(consent ? consent : null)}'),`}
-        hash: "${hash}",
+        ...${scriptJson(Object.fromEntries(Object.entries(display).filter(([, v]) => v !== undefined)))},
+        consent: ${scriptJson(consent ?? null)},
+        hash: ${scriptJson(hash)},
       };
 
       const embed = await elements.create("${type}", options);

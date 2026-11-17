@@ -1,53 +1,203 @@
 ---
 title: Payment Element
-description: TODAQMicro Elements Payment element.
+description: Add a Qatom pay button to your page, configure how it looks, and confirm each payment on your server.
 pubDate: July 25, 2024
+updatedDate: November 17, 2026
 ---
 import Element from "../../../components/Element";
 
 ## Payment Element
 
-<Element type="payment" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
- 
-## Basic Integration
+The payment element is a **pay button** for one item you sell. A shopper presses it, and a checkout opens over your page: they sign in with their email (or approve in the Qatom app), pay from their Qatom wallet, and top up by card if the wallet is short. When the payment completes, your page receives a `payment` event, and your server confirms it before handing over what was bought.
 
-Implement code to generate the payment element dynamically when the page loads. This element will allow users to initiate purchases directly from your website or application.
+<Element type="payment" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+
+You need two things from your Qatom account:
+
+- your account's **public secret**, which is safe to put in a web page, and
+- the **hash** of the item (a commodity) the button sells. [Getting started](/guide/getting-started/) shows how to create one.
+
+## Quick start
+
+Load payment-js, create the element for your item, and mount it where the button should appear.
+
+```html
+<div id="pay"></div>
+
+<script type="module">
+  import "https://cdn.m.todaq.net/micropay.js";
+
+  const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+
+  const element = await micro.elements().create("payment", {
+    hash: "<HASH>",
+  });
+
+  if (element) {
+    element.mount("#pay");
+  }
+
+  document.addEventListener("payment", (event) => {
+    // event.detail: { hash, hostname, nonce, timestamp }
+    // Send it to your server to confirm the payment (see below).
+  });
+</script>
+```
+
+If you build with a bundler, install the package instead of loading the script:
+
+```bash
+npm install @todaqmicro/payment-js
+```
 
 ```javascript
-const micro = await loadMicroPayments(
-  // Replace <PUBLIC_SECRET> with your accounts' public secret.
-  "<PUBLIC_SECRET>",
-  { apiVersion: 'main' }
-);
+import { loadMicroPayments } from "@todaqmicro/payment-js";
 
-const elements = micro.elements();
-const element = await elements.create('payment', {
-  // Replace <HASH> with the commodities hash.
-  hash: '<HASH>',
-  theme: "light",
+const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+```
+
+Always pass `{ apiVersion: "main" }`: it is the only version, and `loadMicroPayments` rejects without an options object.
+
+## What your shopper sees
+
+1. **The pay button**, on your page, showing the item's price.
+2. **Checkout**, a sheet that opens from the bottom of the screen over your page. The shopper enters their email and types the code they are sent. If they use the Qatom app, they approve the sign-in there instead.
+3. **Confirm**: the item's total, their wallet balance, and what will remain. One tap pays from the wallet.
+4. **Top up**, only when the wallet cannot cover the price: they choose an amount and pay by card. Card payments are processed by Stripe; card details never reach your page or Qatom.
+5. **Payment complete**: the sheet closes and your page receives the `payment` event.
+
+A shopper with no Qatom wallet gets one as part of this; there is nothing for you to set up.
+
+## Options
+
+Pass these to `create("payment", options)`. Only `hash` is required.
+
+| Option | Type | Default | What it does |
+|---|---|---|---|
+| `hash` | string | — | The item the button sells. **Required.** |
+| `theme` | `"light"` \| `"dark"` | `"light"` | Match your page. `light` draws a dark button for a light page; `dark` draws a white button for a dark page. |
+| `decimalPoints` | number, 0–6 | `3` | How many decimals the price shows: `3` shows `$5.000`, `2` shows `$5.00`. |
+| `leading` | string | the Qatom mark | Text shown in place of the Qatom mark. |
+| `middle` | string | `"Pay"` | The word before the price. |
+| `trailing` | string | `"Pay $5.000"` | Replaces the whole label after the mark, price included. Use it for a call to action such as `"Unlock article"`. |
+| `styles` | object | — | Fine-tune the button. See below. |
+
+### `styles`
+
+Each key overrides one part of the button's look; anything you leave out keeps the theme's value.
+
+| Key | Example | What it changes |
+|---|---|---|
+| `colorBackground` | `"#4F46E5"` | The button's fill. |
+| `colorPrimary` | `"#FFFFFF"` | The label and the mark. |
+| `borderRadius` | `"999px"` | The corners. |
+| `padding` | `"0 20px"` | Space inside the button. The height stays 44px. |
+| `border` | `"1px solid #E4EBE8"` or `1` | A border. A number is a width in pixels, drawn in the label's colour. |
+| `fontFamily` | `"Inter, sans-serif"` | The label's typeface. It must already be available to the page inside the frame, so stick to system fonts or the default. |
+
+Values must be plain CSS: no `url(...)`, no `<`, `>` or `\`, at most 200 characters each and 50 keys in all. A value outside those rules makes the element fail to load, and the button does not appear.
+
+### Examples
+
+A dark page:
+
+<div style={{ background: "var(--demo-dark-page)", padding: "var(--space-4)", borderRadius: "var(--border-radius-lg)", display: "inline-block" }}>
+  <Element type="payment" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+</div>
+
+```javascript
+await micro.elements().create("payment", { hash: "<HASH>", theme: "dark" });
+```
+
+Two decimals, a rounded button in your brand colour, and your own words:
+
+<Element type="payment" decimalPoints={2} trailing="Unlock article" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+
+```javascript
+await micro.elements().create("payment", {
+  hash: "<HASH>",
+  decimalPoints: 2,
+  trailing: "Unlock article",
   styles: {
-    colorPrimary: '#000000',
-    colorBackground: '#FDB902',
-    borderRadius: '0',
+    colorBackground: "#4F46E5",
+    borderRadius: "999px",
   },
 });
-
 ```
 
-Designate a suitable location on your webpage to mount the payment element. Consider user experience and accessibility when placing the payment interface to maximize conversion rates.
+## Mounting and removing
+
+`mount(target)` takes a CSS selector or an `HTMLElement`, and replaces whatever that element contains with the button. The button lives in an iframe that sizes itself to fit; while checkout is open, the iframe covers the whole window, and it shrinks back to the button when checkout closes.
+
+`destroy()` removes the button from the page.
 
 ```javascript
-if (element) {
-  element.mount("#signup-submit");
-}
+element.mount(document.querySelector("#pay"));
+
+// Later, for example when the item is no longer for sale:
+element.destroy();
 ```
 
-Set up event listeners to detect when users initiate purchases or interact with the payment interface. This functionality will enable you to track user actions and respond accordingly to the purchase.
+`create()` resolves to `null` instead of an element when the item cannot be loaded, for example when the hash does not exist. Check for it before calling `mount`.
 
-When a payment has been made a `payment` event is emitted on the HTML `document` DOM element. Simply add an event listener and then you can validate the payment with the `validatePayment` function on the server side.
+## The `payment` event
+
+When a payment completes, payment-js dispatches a `payment` event on `document`. Its `detail` says what was paid:
+
+| Field | What it is |
+|---|---|
+| `hash` | The item that was paid for. |
+| `nonce` | A one-time reference to this payment. |
+| `timestamp` | When it was paid, in Unix seconds. With `nonce` it identifies the payment. |
+| `hostname` | The shopper's Qatom wallet. |
 
 ```javascript
-document.addEventListener('payment', async (nonce) => {
-  // Validate payment and then provide content to the user.
+document.addEventListener("payment", async (event) => {
+  const { hash, nonce, timestamp } = event.detail;
+
+  const response = await fetch("/purchases", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ hash, nonce, timestamp }),
+  });
+
+  if (response.ok) {
+    // Show what was bought.
+  }
 });
 ```
+
+The same event is also dispatched as `purchase`, an older name kept for existing pages. Listen for `payment` in new code.
+
+## Confirm each payment on your server
+
+An event in the browser is not proof of payment: anyone can dispatch one. Before you hand over what was bought, have your server confirm the payment with Qatom, using your account's access token (see [Getting started](/guide/getting-started/)). Never put that token in the page.
+
+**Check** that a payment is genuine, without using it up:
+
+```bash
+curl "https://pay.m.todaq.net/v4/payment/$HASH/validate?nonce=$NONCE&timestamp=$TIMESTAMP" \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
+A `200` returns the payment, including `cost` and `used_at`, which stays `null` until the payment is redeemed. A `404` means no payment matches.
+
+**Redeem** it at the moment you deliver, so the same payment cannot be used twice:
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v4/payment/$HASH/validate" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"nonce\": \"$NONCE\", \"timestamp\": $TIMESTAMP}"
+```
+
+A `200` means the payment was valid and is now used. A `400` means it does not exist or was already redeemed: do not deliver. Both calls are in the [API reference](/).
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| `create()` resolves to `null` | The item could not be loaded. Check that the hash exists in the environment you are calling. |
+| `loadMicroPayments` rejects with a `TypeError` | It was called without an options object. Pass `{ apiVersion: "main" }`. |
+| No button appears, and the iframe shows an error | A `styles` value broke the rules above, or `theme` is not `light` or `dark`. |
+| The `payment` event never fires | Listen on `document`, not on the element, and add the listener before the shopper can pay. |
