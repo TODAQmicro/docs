@@ -1,45 +1,163 @@
 ---
 title: Personas
-description: How pesonas work, and how to leverage them in a purchase flow.
+description: Issue a pass to a shopper after they pay, and check for it later with the verify element.
 pubDate: November 13, 2024
+updatedDate: November 18, 2026
 ---
 
-## What Are Personas?
+## What personas are
 
-**Personas** in the TODAQ Micro payment system serve as a **digital identity and access control mechanism**. They are:
+A **persona** is an identity your Qatom account owns, anchored to one of your twins: a membership, a ticket type, a fan club. It can issue **passes** to shoppers. Each pass lands in the shopper's Qatom wallet, and records:
 
-- **Digital identity tokens** that can be delegated to users after they make a purchase
-- **Access credentials** that prove a user has paid for specific content or services  
-- **Verification tokens** with different levels/tiers (like "fan #1", "fan #2", etc.)
+- an **issue number**, which counts up as you issue passes, so you can tell the first fan from the hundredth,
+- an **expiry**, one year out unless you choose another date (at most five years), and
+- optionally the shopper's name and email.
 
-## How Personas Work
+The API calls an issued pass a **delegate**, and the routes that issue them live under `/v4/persona/{hash}/delegate`.
 
-1. **Purchase Flow**: User pays for content → system validates payment → **persona is delegated** to user's "twin" (their digital wallet)
-2. **Access Control**: User can later **verify** they have a specific persona to access premium content
-3. **Tiered Access**: Different personas provide different access levels
+Passes answer the question "has this shopper paid for access to X?" without asking them to pay again. Because the pass is in their wallet, not in your session or cookies, it stays with them across devices and visits, for as long as it is valid. Typical uses:
 
-## Use Cases
+- **Memberships and subscriptions**: issue a pass with each payment, and let members back in by checking for it.
+- **Unlocking content**: articles, downloads or features for holders only.
+- **Tiers**: the issue number range decides who gets in, so the first 100 holders can see something the rest cannot.
 
-- **Subscription/Membership** verification (prove you're a paying subscriber)
-- **Content Unlocking** (access premium articles, downloads, features after payment)
-- **Tiered Access** (different persona levels = different privileges)
-- **Persistent Identity** across sessions (once delegated, persona stays with user)
+## The flow
 
-## The Complete Flow
+1. The shopper **pays** for an item with the [payment element](/reference/payment-js/payment-element/). Your page receives a `payment` event with the payment's `nonce`, `timestamp` and the shopper's wallet `hostname`.
+2. Your page sends those to **your server**, which confirms the payment with Qatom and then **issues a pass** from your persona to that wallet. This needs your account's credentials, so it never happens in the browser.
+3. Later, on any page, the shopper presses a **verify element**. They sign in, and Qatom checks their wallet for a pass from your persona. Your page receives `verified` or `unverified`.
 
+You need a persona anchored to a twin your account manages. `POST /v4/persona` registers one; see the [API reference](/).
+
+## Issue a pass after a payment
+
+Your server makes three calls, all with your account's access token. Keep the client pair and the token on the server; never put them in a page.
+
+**1. Get an access token** with your account's client pair. A token lasts an hour, and asking again while it has more than five minutes left returns the same one.
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v4/account/oauth/token" \
+  -u "<CLIENT_ID>:<CLIENT_SECRET>"
 ```
-Payment → Validation → Persona Delegation → Future Access Verification
+
+**2. Redeem the payment**, with the item's hash and the `nonce` and `timestamp` from the `payment` event. A `200` means it was a real payment and is now used, so it cannot earn a second pass. A `400` means no unused payment matches: do not issue.
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v4/payment/$HASH/validate" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"nonce\": \"$NONCE\", \"timestamp\": $TIMESTAMP}"
 ```
 
-Essentially, personas solve the problem of **"How do I prove this user paid for access to X?"** - they're cryptographic proof of purchase that enables persistent access to paid content without requiring users to pay again for the same content.
+**3. Issue the pass** to the shopper's wallet `hostname`. `name`, `email` and `expiry` (an ISO 8601 date-time) are optional.
+
+```bash
+curl -X POST "https://pay.m.todaq.net/v4/persona/$PERSONA_HASH/delegate" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"hostname\": \"$SHOPPER_HOSTNAME\"}"
+```
+
+A `204` means the pass was issued. A `404` means the persona is not one your account manages, and a `502` that the shopper's or your twin failed; the payment is already redeemed, so retry the issue rather than asking the shopper to pay again.
+
+The same, as a server route in Node 18 or later:
+
+```javascript
+const API = "https://pay.m.todaq.net";
+
+// Your persona. Keep it on the server, so a page cannot ask for another one.
+const PERSONA_HASH = "<PERSONA_HASH>";
+
+async function accessToken() {
+  const credentials = Buffer.from(
+    `${process.env.QATOM_CLIENT_ID}:${process.env.QATOM_CLIENT_SECRET}`,
+  ).toString("base64");
+
+  const response = await fetch(`${API}/v4/account/oauth/token`, {
+    method: "POST",
+    headers: { Authorization: `Basic ${credentials}` },
+  });
+  if (!response.ok) throw new Error(`token: ${response.status}`);
+  return (await response.json()).access_token;
+}
+
+// Called with what the page received in its `payment` event.
+export async function issuePass({ hash, nonce, timestamp, hostname }) {
+  const token = await accessToken();
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  const redeemed = await fetch(`${API}/v4/payment/${hash}/validate`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ nonce, timestamp }),
+  });
+  if (!redeemed.ok) return false; // Not a payment, or already used.
+
+  const issued = await fetch(`${API}/v4/persona/${PERSONA_HASH}/delegate`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ hostname }),
+  });
+  if (!issued.ok) throw new Error(`issue: ${issued.status}`); // Retry later.
+  return true;
+}
+```
+
+Redeeming proves that someone paid for the item. The `hostname` comes from the shopper's page, so check that the item is one that should earn this persona's pass, and do not accept a persona hash from the page.
+
+The signup demo below runs on this site's own route, `/api/delegate`, which does the same with [payment-node](/reference/payment-node/usage/) 0.3.6 (`apiVersion: "v2"`). That release still calls the older v2 and v3 routes, and writes your client secret and tokens to `console.log`; new integrations should call the v4 routes above.
+
+## Check for a pass in the browser
+
+On the page that should be for holders only, mount a [verify element](/reference/payment-js/verify-element/) for your persona, with the range of issue numbers that may enter:
+
+```html
+<div id="verify"></div>
+
+<script type="module">
+  import "https://cdn.m.todaq.net/micropay.js";
+
+  const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+
+  const element = await micro.elements().create("verify", {
+    hash: "<PERSONA_HASH>",
+    issueMin: 1,
+    issueMax: 10000,
+  });
+
+  if (element) {
+    element.mount("#verify");
+  }
+
+  document.addEventListener("verified", () => {
+    // Show the holders' parts of the page.
+  });
+</script>
+```
+
+Set `issueMax`: without it, only issue number 1 passes. The `verified` event is for your page, not proof your server can rely on; the [verify element reference](/reference/payment-js/verify-element/#checking-the-result-on-your-server) covers checking on the server, every option and the events.
 
 ## Examples
 
-### Simple signup delegate persona
+These run against production with a demo account. Press the buttons to see each step, but do not complete a payment or submit the form.
+
+### Sign up, pay and receive a pass
+
+A form takes the shopper's name and email, and a payment element sells a membership. When the `payment` event arrives, the page posts the payment and the form fields to `/api/delegate`, which redeems the payment and issues the pass to the shopper's wallet, recording their name and email on it. The page then shows a verify element for the same persona.
+
 <iframe width="100%" height="400" src="/guide/example/form-persona" />
 
-### Verify different persona levels
+### Verify by issue number
+
+Three verify elements for one persona, each with its own range: issue numbers 1 to 2, 3 to 4, and 5 or higher. The same shopper passes exactly one of them, depending on when their pass was issued. The labels come from `trailing`.
+
 <iframe width="100%" height="400" src="/guide/example/verify-persona" />
 
-### Verify to purchase
+### Verify before buying
+
+A verify element in front of an item for holders only. The item's payment button is drawn transparent, so the shopper sees only Verify; when the verify element reports success (the demo listens for `verify`, which fires with `verified`), the page opens that payment button's checkout. To open checkout, the demo posts a message into the payment element's iframe, which is not part of payment-js's API, so do not copy that part. As with any event, a script on the page could dispatch `verified` itself, so this keeps casual visitors out rather than enforcing access.
+
 <iframe width="100%" height="400" src="/guide/example/pay-persona" />

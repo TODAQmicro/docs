@@ -1,0 +1,199 @@
+---
+title: Verify Element
+description: Add a Verify button that checks whether a shopper holds one of your personas, and react to the result on your page.
+pubDate: November 18, 2026
+---
+import Element from "../../../components/Element";
+import Gallery from "../../../components/Gallery/Gallery.astro";
+import GalleryItem from "../../../components/Gallery/GalleryItem.astro";
+
+## Verify Element
+
+The verify element is a **Verify button** for one of your [personas](/guide/personas/): a pass, membership or tier you issue to shoppers. A shopper presses it, and a sheet opens over your page: they sign in with their email (or approve in the Qatom app), and Qatom checks their wallet for an unexpired pass from that persona with an issue number in the range you set. Your page then receives a `verified` event, or `unverified` if they do not hold one.
+
+<Element type="verify" hash="41c620bd743cff3e4abed056c10a336477ab86b47f6677fc96cd0851abbe475f9c" issueMin={1} issueMax={10000} />
+
+You need two things from your Qatom account:
+
+- your account's **public secret**, which is safe to put in a web page, and
+- the **hash** of the persona to check. This is a persona hash, not the hash of an item you sell: the [personas guide](/guide/personas/) shows how shoppers come to hold one.
+
+## Quick start
+
+Load payment-js, create the element for your persona, mount it where the button should appear, and listen for the result.
+
+```html
+<div id="verify"></div>
+
+<script type="module">
+  import "https://cdn.m.todaq.net/micropay.js";
+
+  const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+
+  const element = await micro.elements().create("verify", {
+    hash: "<PERSONA_HASH>",
+    issueMin: 1,
+    issueMax: 10000,
+  });
+
+  if (element) {
+    element.mount("#verify");
+  }
+
+  document.addEventListener("verified", () => {
+    // The shopper holds a pass: show the members' parts of your page.
+  });
+
+  document.addEventListener("unverified", () => {
+    // They do not hold one, or it has expired.
+  });
+</script>
+```
+
+If you build with a bundler, install the package instead of loading the script:
+
+```bash
+npm install @todaqmicro/payment-js
+```
+
+```javascript
+import { loadMicroPayments } from "@todaqmicro/payment-js";
+
+const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+```
+
+Always pass `{ apiVersion: "main" }`: it is the only version, and `loadMicroPayments` rejects without an options object.
+
+## What your shopper sees
+
+1. **The Verify button**, on your page: the Qatom mark and "Verify".
+2. **Sign in**, a sheet that opens at the bottom of the window. It asks the shopper to link their Qatom wallet by email (its wording mentions a purchase, but nothing is charged), or to start with **I'm New to Qatom**. They type the code they are sent, or approve in the Qatom app if they use it. A shopper who signed in on this device before skips this step.
+3. **Wallet**: their wallet loads. A shopper with no Qatom wallet gets one here; it holds no passes yet, so the check that follows fails.
+4. **Verifying your pass…** while Qatom reads the passes in their wallet.
+5. **Successfully verified!** or **Unable to verify pass.** The sheet closes by itself a second later, and your page receives `verified` or `unverified`.
+
+Nothing is charged, and the shopper's email and wallet are never shared with your page.
+
+## Options
+
+Pass these to `create("verify", options)`. Only `hash` is required, but set `issueMax`: without it, only issue number 1 passes.
+
+| Option | Type | Default | What it does |
+|---|---|---|---|
+| `hash` | string | — | The persona to check for. **Required.** |
+| `issueMin` | number | `1` | The lowest issue number that passes. |
+| `issueMax` | number | `1` | The highest issue number that passes. |
+| `theme` | `"light"` \| `"dark"` | `"light"` | Passed to the sheet. The button looks the same in both: use `styles` to change it. |
+| `leading` | string | the Qatom mark | Text shown in place of the Qatom mark. |
+| `trailing` | string | `"Verify"` | Replaces the word "Verify". |
+| `styles` | object | — | Fine-tune the button. See below. |
+
+### Issue numbers
+
+Each pass a persona issues carries an **issue number** and an **expiry**. The element passes when the shopper holds at least one pass from this persona that has not expired and whose issue number is between `issueMin` and `issueMax`, inclusive. Use the range to tell tiers or early holders apart: `issueMin: 1, issueMax: 100` admits the first hundred passes issued. To admit every holder, set `issueMax` higher than you will ever issue, as the quick start does.
+
+### `styles`
+
+The verify button reads four keys; anything you leave out keeps its default, a black button with a white label.
+
+| Key | Example | What it changes |
+|---|---|---|
+| `colorBackground` | `"#4F46E5"` | The button's fill. |
+| `colorPrimary` | `"#9FE0D6"` | The label and the mark. |
+| `borderRadius` | `"999px"` | The corners. |
+| `padding` | `"8px 20px"` | Space inside the button. |
+
+The payment and auth elements' other keys, such as `border` and `fontFamily`, are accepted but have no effect on this button. `middle` is accepted too, but this button does not show it.
+
+### Gallery
+
+Each button checks the same demo persona; the caption is what you add to `create("verify", { hash, issueMin, issueMax, ... })` to get it. Press any of them to see the sheet, but you do not need to sign in.
+
+<Gallery>
+  <GalleryItem code={`// no options`} note="The default: the Qatom mark and “Verify”.">
+    <Element type="verify" hash="41c620bd743cff3e4abed056c10a336477ab86b47f6677fc96cd0851abbe475f9c" issueMin={1} issueMax={10000} />
+  </GalleryItem>
+  <GalleryItem code={`leading: "Qatom"`} note="Text in place of the Qatom mark.">
+    <Element type="verify" leading="Qatom" hash="41c620bd743cff3e4abed056c10a336477ab86b47f6677fc96cd0851abbe475f9c" issueMin={1} issueMax={10000} />
+  </GalleryItem>
+  <GalleryItem code={`trailing: "Members only"`} note="Your own words.">
+    <Element type="verify" trailing="Members only" hash="41c620bd743cff3e4abed056c10a336477ab86b47f6677fc96cd0851abbe475f9c" issueMin={1} issueMax={10000} />
+  </GalleryItem>
+  <GalleryItem code={`styles: { colorBackground: "#4F46E5" }`}>
+    <Element type="verify" styles={{ colorBackground: "#4F46E5" }} hash="41c620bd743cff3e4abed056c10a336477ab86b47f6677fc96cd0851abbe475f9c" issueMin={1} issueMax={10000} />
+  </GalleryItem>
+  <GalleryItem code={`styles: {
+  colorBackground: "#FFFFFF",
+  colorPrimary: "#111114",
+}`} note="A white button for a dark page." dark>
+    <Element type="verify" styles={{ colorBackground: "#FFFFFF", colorPrimary: "#111114" }} hash="41c620bd743cff3e4abed056c10a336477ab86b47f6677fc96cd0851abbe475f9c" issueMin={1} issueMax={10000} />
+  </GalleryItem>
+  <GalleryItem code={`styles: { borderRadius: "999px", padding: "8px 20px" }`}>
+    <Element type="verify" styles={{ borderRadius: "999px", padding: "8px 20px" }} hash="41c620bd743cff3e4abed056c10a336477ab86b47f6677fc96cd0851abbe475f9c" issueMin={1} issueMax={10000} />
+  </GalleryItem>
+</Gallery>
+
+## Mounting and removing
+
+`mount(target)` takes a CSS selector or an `HTMLElement`, and replaces whatever that element contains with the button. The button lives in an iframe 171 pixels wide. While the sheet is open, the iframe covers the whole window and the button's space on your page collapses, so content below it moves up until the sheet closes.
+
+`destroy()` removes the button from the page.
+
+```javascript
+element.mount(document.querySelector("#verify"));
+
+// Later, for example once the shopper is verified:
+element.destroy();
+```
+
+`create()` resolves to `null` instead of an element when the persona cannot be loaded, for example when the hash does not exist. Check for it before calling `mount`.
+
+## Events
+
+payment-js dispatches these on `document`. None of them carries a `detail`.
+
+| Event | When |
+|---|---|
+| `verified` | The shopper holds a pass in range that has not expired. |
+| `verify` | At the same moment as `verified`; an older name kept for existing pages. Listen for `verified` in new code. |
+| `unverified` | The shopper holds no such pass, it has expired, its issue number is out of range, or the check failed. |
+
+Because the events carry no `detail` and are not tied to an element, a page with several verify elements cannot tell from the event which one fired. Put one verify element on a page, or note which button the shopper pressed last.
+
+```javascript
+document.addEventListener("verified", () => {
+  document.querySelector("#members").hidden = false;
+});
+```
+
+## Checking the result on your server
+
+The `verified` event is a signal for your page, not proof: any script on the page can dispatch one, and it carries nothing your server could check. Use it to change what the page shows. Do not release anything of value because of it alone.
+
+Qatom checks a persona only on behalf of the shopper. `PUT /v4/persona/{hash}/verify` reads the passes in the signed-in shopper's own wallet, so it takes the shopper's token, not your account's: an account token is refused with `403`. If your app signs shoppers in with Qatom through OpenID Connect (the discovery document is at `https://pay.m.todaq.net/v4/oidc/.well-known/openid-configuration`), your server can call it with that shopper's token:
+
+```bash
+curl -X PUT "https://pay.m.todaq.net/v4/persona/$PERSONA_HASH/verify" \
+  -H "Authorization: Bearer $SHOPPER_TOKEN"
+```
+
+| Status | What it means |
+|---|---|
+| `200` | The shopper holds passes from this persona. `instances` lists them; check each one's issue number and expiry, as the element does. |
+| `204` | The shopper holds no pass from this persona. |
+| `401` | The token is missing or has expired. |
+| `403` | The token is an account's, not a shopper's. |
+| `404` | No persona has that hash, or the shopper has no wallet. |
+
+Without a shopper's token, keep your own record: you [issue each pass](/guide/personas/#issue-a-pass-after-a-payment) from your server, after confirming a payment, so your server already knows who it gave one to.
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| `create()` resolves to `null` | The persona could not be loaded. Check that `hash` is a persona hash, not an item's, and that it exists in the environment you are calling. |
+| `loadMicroPayments` rejects with a `TypeError` | It was called without an options object. Pass `{ apiVersion: "main" }`. |
+| A shopper with a pass gets `unverified` | `issueMax` is not set, so only issue 1 passes; or their pass has expired. |
+| `theme: "dark"` does not change the button | The button takes its colours from `styles` only. |
+| The label is cut off | The frame is 171 pixels wide. Keep `leading` and `trailing` short. |
+| The events never fire | Listen on `document`, not on the element. |
