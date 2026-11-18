@@ -16,25 +16,22 @@ This guide walks through implementing a donation page using TodaQ's micropayment
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 24 (the current LTS; Vite 7 needs at least 20.19)
 - Vite + React TypeScript project
 - React Router DOM for navigation
 
 ### 1. Install Dependencies
 
-Install the TodaQ Micro Payment Package and other necessary dependencies:
+Install the TodaQ Micro Payment Package and other necessary dependencies. This guide needs payment-js 0.5.5 or later:
 
 ```bash
 npm install @todaqmicro/payment-js
-npm install --save-dev events
 npm install react-router-dom
 ```
 
-payment-js imports `EventEmitter` from the `events` package but does not list it as a dependency, so install `events` yourself; without it, Vite substitutes an empty stub for Node's built-in `events` and the elements fail to load.
-
 ### 2. Vite Configuration
 
-Update your `vite.config.ts` with the following minimal configuration:
+No extra configuration is needed. The `vite.config.ts` that the `react-ts` template creates works for both `npm run dev` and `npm run build`:
 
 ```typescript
 import { defineConfig } from 'vite'
@@ -42,15 +39,8 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  build: {
-    dynamicImportVarsOptions: {
-      exclude: [], // Let Vite bundle payment-js's dynamic import of its elements
-    },
-  },
 })
 ```
-
-`loadMicroPayments` loads its elements with a dynamic import built from the API version. By default Vite's production build leaves such imports in `node_modules` unbundled, so `npm run dev` works but the site from `npm run build` fails with "Failed to fetch dynamically imported module". The `exclude: []` setting makes the build include them.
 
 ### 3. Environment Variables
 
@@ -227,11 +217,10 @@ The PaymentButton component receives props from Donation.tsx with environment va
 
 ### 7. Dependencies
 
-- `@todaqmicro/payment-js` npm package (this guide was tested with 0.5.4)
+- `@todaqmicro/payment-js` npm package, 0.5.5 or later (this guide was tested with 0.5.5)
 - Vite environment variable support
 - React hooks for state management
 - React Router DOM for navigation
 - DOM event listeners for payment success handling
-- `events` package (dev dependency), which payment-js needs but does not install
 
 This implementation guide demonstrates the core concepts covered in the [Getting Started guide](/guide/getting-started), showing how to integrate multiple payment options with consistent styling and proper event handling in a modern Vite + React + TypeScript application.
