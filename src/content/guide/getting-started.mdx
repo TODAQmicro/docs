@@ -2,52 +2,61 @@
 title: Getting Started
 description: Quick intro to setting up micropayments
 pubDate: February 28, 2024
+updatedDate: November 18, 2026
 ---
 
 ## Getting Started
 
-[TOC]
+This guide takes you from no account to a working pay button: you create a Qatom account, get an access token, create a twin to be paid into and a commodity to sell, then put the payment element on your page and confirm each payment on your server.
 
 ### Environment URLs
 
 **Staging:** [https://pay.stage.m.todaq.net](https://pay.stage.m.todaq.net)  
 **Production:** [https://pay.m.todaq.net](https://pay.m.todaq.net)
 
+The samples below use production. To try the flow without real money, replace `https://pay.m.todaq.net` with the staging URL in every command; staging has its own accounts and its own digital quantity.
+
 ### 1. Obtain Your Account Details
 
-Before diving into setting up your online micropayment, you need to ensure you have the necessary account details from TODAQ Micro. This includes obtaining account keys: **public secret**, **client secret**, **client secret ID**.
+Before diving into setting up your online micropayment, you need account details: a **public secret**, a **client ID** and a **client secret**.
 
-You can obtain your account details by sending a POST request to the account management endpoint:
+Create an account with a POST request to the account endpoint:
 
 ```bash
 curl -X POST "https://pay.m.todaq.net/v4/account"
-
 ```
 
-You will receive the following JSON object which contains everything you will need:
+You will receive a JSON object like this one, which contains everything you will need:
 
 ```json
 {
-   "id": 44,
-   "created_at": "1755529706",
-   "updated_at": "1755529706",
-   "secrets": [
-       {
-           "public_secret": "<PUBLIC_SECRET>",
-           "created_at": "1755529706",
-           "updated_at": "1755529706"
-       },
-       {
-           "client_id": "<CLIENT_ID>",
-           "client_secret": "<CLIENT_SECRET>",
-           "created_at": "1755529706",
-           "updated_at": "1755529706"
-       }
-   ]
+  "id": 1234,
+  "created_at": "1763424000",
+  "updated_at": "1763424000",
+  "secrets": [
+    {
+      "public_secret": "<PUBLIC_SECRET>",
+      "created_at": "1763424000",
+      "updated_at": "1763424000"
+    },
+    {
+      "client_id": "<CLIENT_ID>",
+      "client_secret": "<CLIENT_SECRET>",
+      "created_at": "1763424000",
+      "updated_at": "1763424000"
+    }
+  ]
 }
 ```
 
-Make note of the **public_secret**, **client_secret**, and **client_id** as you'll need these for subsequent steps.
+Store the **public_secret**, **client_id** and **client_secret** now: this response is the only time the client secret is returned. The public secret goes in your web page; the client ID and client secret stay on your server.
+
+The commands that follow read them from shell variables:
+
+```bash
+CLIENT_ID="<CLIENT_ID>"
+CLIENT_SECRET="<CLIENT_SECRET>"
+```
 
 ### 2. Determining Your Product
 
@@ -55,56 +64,53 @@ Identify what you want to sell through your online platform. Whether it's physic
 
 In this guide we will take the example of a paywall for an article or blog post. Some other examples include: Book chapter, file download, form submission, etc.
 
+### 3. Create What You Sell
 
-### 3. Pricing Strategy
-
-Decide on your pricing strategy, whether it's dynamic or static pricing.
-
-
-#### 3.a. Static Pricing: Set fixed prices for your products or services.
-
-Static pricing is the easiest route and eliminates extra back and forth network requests. Follow these steps to create a commodity with a fixed price:
+Each thing you sell is a **commodity** with a fixed price, owned by the **twin** that is paid when someone buys it.
 
 **Step 1: Get an Access Token**
 
-First, obtain an access token using your client credentials:
+Exchange your client credentials for an access token. `-u` sends them as `Authorization: Basic`, which is all the token endpoint needs:
 
 ```bash
-curl -X POST "https://pay.m.todaq.net/v4/account/oauth/token" \ 
- 
--u "$CLIENT_ID:$CLIENT_SECRET" \
--d "grant_type=client_credentials"
-```
-
-Your response should look like this (access token expires in 1 hour):
-
-```json
-{
-  "access_token": "tqmt_7c34728f23b244eda907847982408b92",
-  "expires_at": "1755546848",
-  "refresh_token": "tqmt_5849fa5adc124e919a778ad228099363",
-  "refresh_expires_at": "1755546848"
-}
-```
-
-**Step 2: Get Available Digital Quantities (DQ)**
-
-Fetch available digital quantities:
-
-```bash
-curl -X GET "https://pay.m.todaq.net/v4/dq"
-
+curl -X POST "https://pay.m.todaq.net/v4/account/oauth/token" \
+  -u "$CLIENT_ID:$CLIENT_SECRET"
 ```
 
 Your response should look like this:
 
 ```json
 {
+  "access_token": "<ACCESS_TOKEN>",
+  "expires_at": 1763427600,
+  "refresh_token": "<REFRESH_TOKEN>",
+  "refresh_expires_at": 1763427600
+}
+```
+
+The access token lasts an hour. Calling the endpoint again while it has more than five minutes left returns the same token. Keep both tokens on your server, and set the access token for the next commands:
+
+```bash
+ACCESS_TOKEN="<ACCESS_TOKEN>"
+```
+
+**Step 2: Get Available Digital Quantities (DQ)**
+
+A **digital quantity** is the unit prices and balances are counted in. Fetch the available ones:
+
+```bash
+curl "https://pay.m.todaq.net/v4/dq"
+```
+
+On production, your response should look like this:
+
+```json
+{
   "digital_quantities": [
-    "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73"
+    "41a9d3f9d1b412cc0075971c05fca49b8ce1ef0dcc621babad92379eda793c8894"
   ],
   "metadata": {
-    "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": {
+    "41a9d3f9d1b412cc0075971c05fca49b8ce1ef0dcc621babad92379eda793c8894": {
       "name": "USD TDN",
       "shortcode": "USD",
       "shortdescription": "US Dollar Todaized Digital Quantity"
@@ -113,159 +119,164 @@ Your response should look like this:
 }
 ```
 
+Set the hash of the one you will price in:
+
+```bash
+DQ="<DQ_HASH>"
+```
+
 **Step 3: Create a Twin**
 
-A **Twin** is your digital wallet/merchant account that will own commodities and receive payments. Think of it as your business account in the TODAQ Micro system.
+A **Twin** is your digital wallet and merchant account in one: it owns your commodities and receives their payments.
 
-Use the DQ to create a Twin and get a Twin ID:
-
-```bash
-curl -X POST "https://pay.m.todaq.net/v4/twin/" \
-
--H "Authorization: Bearer $ACCESS_TOKEN" \
--H "Content-Type: application/json" \
--d '{"dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73"}'
-```
-
-Your response should look like this (save this for future reference):
-
-```json
-{
-  "id": 3992,
-  "hostname": "41b6fd6082ecbb5b6eab63c6a0317fcd.micro.biz.todaq.net",
-  "key": "7bf70690-bd62-48f8-ae69-396ca0628534",
-  "balances": {
-    "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73": 0
-  }
-}
-```
-
-**Step 4: Create Your Commodity**
-
-A **Commodity** represents a sellable item (like an article, download, or service) that belongs to your Twin. The `twin_id` links the commodity to your digital wallet - when someone purchases this commodity, the payment will go to your Twin's balance.
-
-You can create multiple commodities with the same Twin ID (one Twin can own many products):
+Create a twin that holds your digital quantity:
 
 ```bash
-curl -X POST "https://pay.m.todaq.net/v4/commodity/" \
-
--H "Authorization: Bearer $ACCESS_TOKEN" \
--H "Content-Type: application/json" \
--d '{"descriptor": "VEGEMITE.SANDWICH", "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73", "cost": 15.00, "twin_id": 3992 }' 
+curl -X POST "https://pay.m.todaq.net/v4/twin" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"dq\": \"$DQ\"}"
 ```
 
 Your response should look like this:
 
 ```json
-{                                            
-  "hash": "e3bd5945-851f-43de-b487-a9706576c905",
-  "descriptor": "VEGEMITE.SANDWICH",
-  "dq": "412964f209c966234250eba05d1a118da128925084df9f5459eb9243157e452e73",
-  "cost": 15,
-  "hostname": "41b6fd6082ecbb5b6eab63c6a0317fcd.micro.biz.todaq.net"
+{
+  "id": 1001,
+  "hostname": "00000000000000000000000000000000.micro.biz.todaq.net",
+  "key": "<TWIN_KEY>",
+  "balances": {
+    "<DQ_HASH>": 0
+  }
 }
 ```
 
-**Congratulations!** You've successfully created a commodity that's owned by your Twin. Save the **hash** value as you'll need it for the payment element in step 5.
+Save the `id`: you need it to create commodities. The `key` authenticates operations on the twin, so treat it as a secret: keep it on your server, never put it in a page, and never share it.
 
-## Twin-Commodity Relationship Summary
+**Step 4: Create Your Commodity**
 
-- **Twin** = Your digital wallet/merchant account (receives payments)
-- **Commodity** = Your product listing (what customers buy)
-- **Relationship**: Each commodity has a `twin_id` that identifies its owner
-- **Payment Flow**: Customer buys commodity → Payment goes to the owning Twin's balance
+A **Commodity** represents a sellable item (like an article, download, or service) that belongs to your Twin. `twin_id` is the `id` of the twin from step 3: when someone buys this commodity, the payment goes to that twin's balance. One twin can own many commodities.
 
-For the full request and response schemas, see the [Twins](/#tag/twins) and [Commodities](/#tag/commodities) sections of the [API reference](/).
+`cost` is the price, counted in the digital quantity's own unit. For the USD digital quantity that is US dollars, so `0.25` is twenty-five cents, and the pay button shows it as `$0.250`. A `cost` of `0` makes the item free.
 
+```bash
+TWIN_ID=1001
+curl -X POST "https://pay.m.todaq.net/v4/commodity" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"descriptor\": \"Premium article\", \"cost\": 0.25, \"dq\": \"$DQ\", \"twin_id\": $TWIN_ID}"
+```
 
+Your response should look like this:
 
-#### 3.b. Dynamic Pricing: Adjust prices based on market demand, customer behavior, or other factors.
+```json
+{
+  "id": 2001,
+  "catalog_item_id": 3001,
+  "hash": "00000000-0000-4000-8000-000000000000",
+  "descriptor": "Premium article",
+  "dq": "<DQ_HASH>",
+  "cost": 0.25,
+  "hostname": "00000000000000000000000000000000.micro.biz.todaq.net"
+}
+```
 
-**TBA**. Check out the [Payment Node.JS SDK](/reference/payment-node).
+**Congratulations!** You've created a commodity that's owned by your Twin. Save the **hash**: the payment element in step 5 uses it.
 
+## How twins, commodities and catalog items fit together
+
+- **Twin** = your digital wallet and merchant account (receives payments)
+- **Commodity** = your product listing (what customers buy), with its price and its `twin_id`
+- **Catalog item** = the sales record behind the commodity. Creating a commodity also creates a plain catalog item for it (`catalog_item_id` in the response), and points the commodity's twin at that item before the call answers. If the twin refuses the price, the call fails with `502` and nothing is created.
+- **Payment flow**: a customer buys the commodity, the payment goes to the owning twin's balance, and the sale is recorded against the catalog item, whether it was made through the payment element or another route.
+
+Because every sale is recorded against the catalog item, you can read your takings with [`GET /v4/catalog/revenue`](/#tag/catalog) (pass `catalog_item_id` for one item) and look up a single sale with `GET /v4/catalog/purchases/{transaction_id}`. To give the item a name and description, call `POST /v4/catalog/items` with the commodity's `commodity_id`: while the plain item is untouched, that updates it instead of adding a second one.
+
+For the full request and response schemas, see the [Twins](/#tag/twins), [Commodities](/#tag/commodities) and [Catalog](/#tag/catalog) sections of the [API reference](/).
+
+To create commodities from a Node.js server instead of curl, see the [payment-node SDK](/reference/payment-node/usage/).
 
 ### 4. Integrating Micropayments Library into Your Project
 
-Choose an import mechanism that suits your project requirements and integrate it into your website or application.
+Load payment-js, Qatom's browser library, in the way that suits your project.
 
-You can use either from a CDN:
+From the CDN:
 
 ```html
-<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<script type="module" crossorigin="anonymous" src="https://cdn.m.todaq.net/micropay.js"></script>
 ```
 
 <p>
-  <strong>Note</strong>: `type="module"` and `crossorigin="anonymous"` are required attributes.
+  <strong>Note</strong>: `type="module"` and `crossorigin="anonymous"` are required attributes. The script sets `window.loadMicroPayments`.
 </p>
 
-Or through `npm` and have the bundler of your choice include it in the build files.
+Or install it from npm and let your bundler include it:
 
 ```bash
-npm install --save @todaqmicro/payment-js
+npm install @todaqmicro/payment-js
+```
+
+```javascript
+import { loadMicroPayments } from "@todaqmicro/payment-js";
 ```
 
 ### 5. Generating Payment Element on Page Load
 
-Implement code to generate the payment element dynamically when the page loads. This element will allow users to initiate purchases directly from your website or application.
+Create the payment element when the page loads. It is the button your shoppers press to pay.
 
 ```javascript
 const micro = await loadMicroPayments(
-  // Replace <PUBLIC_SECRET> with your accounts' public secret.
+  // Replace <PUBLIC_SECRET> with your account's public secret.
   "<PUBLIC_SECRET>",
-  { apiVersion: 'main' }
+  { apiVersion: "main" }
 );
 
 const elements = micro.elements();
-const element = await elements.create('payment', {
-  // Replace <HASH> with the commodities hash.
-  hash: '<HASH>',
+const element = await elements.create("payment", {
+  // Replace <HASH> with the commodity's hash.
+  hash: "<HASH>",
   theme: "light",
-  styles: {
-    colorPrimary: '#000000',
-    colorBackground: '#FDB902',
-    borderRadius: '0',
-  },
 });
-
 ```
 
-Replace `<PUBLIC_SECRET>` with your account's public secret obtained in step 1, and `<HASH>` with the commodity hash from step 3a.
-
+Replace `<PUBLIC_SECRET>` with your account's public secret from step 1, and `<HASH>` with the commodity hash from step 3. Always pass `{ apiVersion: "main" }`. For every option, including `styles`, see the [payment element reference](/reference/payment-js/payment-element/).
 
 ### 6. Mounting Payment Element on Your Webpage
 
-Designate a suitable location on your webpage to mount the payment element. Consider user experience and accessibility when placing the payment interface to maximize conversion rates.
+Put an empty element where the button should appear:
+
+```html
+<div id="pay"></div>
+```
+
+Then mount the payment element into it:
 
 ```javascript
 if (element) {
-  element.mount("#signup-submit");
+  element.mount("#pay");
 }
 ```
 
-The `mount` function takes a string and is fed into the `querySelector` function so anything that works there will work when given to the `mount` function.
-
+`mount` takes a CSS selector or an `HTMLElement`. `create()` resolves to `null` when the commodity cannot be loaded, for example when the hash does not exist, so check for it before mounting.
 
 ### 7. Listening for Purchase Events
 
-Set up event listeners to detect when users initiate purchases or interact with the payment interface. This functionality will enable you to track user actions and respond accordingly to the purchase.
-
-When a payment has been made a `payment` event is emitted on the HTML `document` DOM element. Simply add an event listener and then you can validate the payment with the `validatePayment` function on the server side.
+When a payment completes, payment-js dispatches a `payment` event on `document`. Its `detail` says what was paid: `{ hash, hostname, nonce, timestamp }`.
 
 ```javascript
-document.addEventListener('payment', async (nonce) => {
-  // Validate payment and then provide content to the user.
+document.addEventListener("payment", (event) => {
+  const { hash, nonce, timestamp } = event.detail;
+  // Send hash, nonce and timestamp to your server, which confirms the payment
+  // (step 8) before you show the content.
 });
 ```
 
-
 ### 8. Validating Purchases
 
-Implement validation logic to verify the legitimacy of purchases and ensure that transactions meet your business rules and requirements. This step is essential for preventing fraudulent activities and maintaining the integrity of your payment system.
-
-Check out the Node.JS SDK reference guide for [validating payments](/reference/payment-node).
+An event in the browser is not proof of payment: anyone can dispatch one. Before you hand over what was bought, have your server confirm the payment with Qatom using your access token, and redeem it so it cannot be used twice. The payment element reference shows both calls: [Confirm each payment on your server](/reference/payment-js/payment-element/#confirm-each-payment-on-your-server).
 
 ### 9. Complete Working Example
 
-See a real-world implementation of a donation page with multiple payment options in our [T.R.I.E. Donation Example](/guide/trie-donation-example).
+See a real-world implementation of a donation page with multiple payment options in our [T.R.I.E. Donation Example](/guide/trie-donation-example/).
 
-For a Vite + React + TypeScript implementation guide, see our [Vite + React Donation Example](/guide/vite-react-donation-example).
+For a Vite + React + TypeScript implementation guide, see our [Vite + React Donation Example](/guide/vite-react-donation-example/).
