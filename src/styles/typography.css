@@ -111,3 +111,31 @@ hr {
     border-top: 1px solid var(--border-color);
     margin: var(--space-6) 0;
 }
+
+table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin-bottom: var(--space-4);
+    font-size: 14px;
+    line-height: 21px;
+}
+
+th,
+td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+td:first-child {
+    white-space: nowrap;
+}

@@ -72,23 +72,80 @@ A shopper with no Qatom wallet gets one as part of this; there is nothing for yo
 
 ## Options
 
-Pass these to `create("payment", options)`. Only `hash` is required.
+Pass options to `create("payment", { hash, ... })`. Only `hash` is required; the rest change how the button looks. Each live button on this page sells the same demo item: press one to see checkout, but you don't need to pay.
 
-| Option | Type | Default | What it does |
+| Option | Type | Default | Section |
 |---|---|---|---|
-| `hash` | string | — | The item the button sells. **Required.** |
-| `theme` | `"light"` \| `"dark"` | `"light"` | Match your page. `light` draws a dark button for a light page; `dark` draws a white button for a dark page. |
-| `decimalPoints` | number, 1–6 | `3` | How many decimals the price shows: `3` shows `$5.000`, `2` shows `$5.00`. `0` has no effect yet: payment-js does not pass it on, so the price keeps three decimals. |
-| `leading` | string | the Qatom mark | Text shown in place of the Qatom mark. |
+| `hash` | string | — (required) | [Item](#item-hash) |
+| `theme` | `"light"` \| `"dark"` | `"light"` | [Theme](#theme-theme) |
+| `leading` | string | the Qatom mark | [Label](#label-leading-middle-trailing) |
+| `middle` | string | `"Pay"` | [Label](#label-leading-middle-trailing) |
+| `trailing` | string | — | [Label](#label-leading-middle-trailing) |
+| `decimalPoints` | number, 1–6 | `3` | [Price](#price-decimalpoints) |
+| `styles` | object | — | [Look](#look-styles) |
 
-Keep `leading`, `middle` and `trailing` to plain ASCII text for now: other characters, such as `→` or `é`, currently display garbled.
-| `middle` | string | `"Pay"` | The word before the price. |
-| `trailing` | string | `"Pay $5.000"` | Replaces the whole label after the mark, price included. Use it for a call to action such as `"Unlock article"`. |
-| `styles` | object | — | Fine-tune the button. See below. |
+### Item: `hash`
 
-### `styles`
+The commodity hash of the item the button sells. The button shows its price, and checkout charges it. [Getting started](/guide/getting-started/) shows how to create one.
 
-Each key overrides one part of the button's look; anything you leave out keeps the theme's value.
+### Theme: `theme`
+
+Match the page the button sits on. `"light"`, the default, draws a dark button for a light page; `"dark"` draws a white button for a dark page.
+
+<Gallery>
+  <GalleryItem code={`theme: "light"`} note="The default.">
+    <Element type="payment" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`theme: "dark"`} dark>
+    <Element type="payment" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+</Gallery>
+
+### Label: `leading`, `middle`, `trailing`
+
+The label has three parts, and each option replaces one of them:
+
+| Part | Default | Replaced by |
+|---|---|---|
+| Before the words | the Qatom mark | `leading` |
+| The word before the price | `Pay` | `middle` |
+| The words and the price together | `Pay $0.050` | `trailing` |
+
+When `trailing` is set, `middle` and the price are not shown. Keep label text to plain ASCII for now: other characters, such as `→` or `é`, currently display garbled.
+
+<Gallery>
+  <GalleryItem code={`leading: "Qatom"`}>
+    <Element type="payment" leading="Qatom" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`middle: "Tip"`}>
+    <Element type="payment" middle="Tip" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`trailing: "Unlock article"`}>
+    <Element type="payment" trailing="Unlock article" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+</Gallery>
+
+### Price: `decimalPoints`
+
+How many decimals the price shows, from 1 to 6. The default is 3. `0` has no effect yet: the price keeps three decimals.
+
+<Gallery>
+  <GalleryItem code={`decimalPoints: 1`}>
+    <Element type="payment" decimalPoints={1} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`decimalPoints: 2`}>
+    <Element type="payment" decimalPoints={2} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`decimalPoints: 6`}>
+    <Element type="payment" decimalPoints={6} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+</Gallery>
+
+### Look: `styles`
+
+<span id="styles"></span>
+
+Fine-tune the button with CSS values.
 
 | Key | Example | What it changes |
 |---|---|---|
@@ -97,79 +154,34 @@ Each key overrides one part of the button's look; anything you leave out keeps t
 | `borderRadius` | `"999px"` | The corners. |
 | `padding` | `"0 20px"` | Space inside the button. The height stays 44px. |
 | `border` | `"1px solid #E4EBE8"` or `1` | A border. A number is a width in pixels, drawn in the label's colour. |
-| `fontFamily` | `"Inter, sans-serif"` | The label's typeface. It must already be available to the page inside the frame, so stick to system fonts or the default. |
+| `fontFamily` | `"Georgia, serif"` | The label's typeface. Use a font every system has, or leave the default. |
 
-Values must be plain CSS: no `url(...)`, no `<`, `>` or `\`, at most 200 characters each and 50 keys in all. A value outside those rules makes the element fail to load, and the button does not appear.
-
-### Gallery
-
-Every option and `styles` key on its own, live. Each button sells the same demo item; the caption is what you add to `create("payment", { hash, ... })` to get it. Press any of them to see checkout, but you do not need to finish a payment.
-
-#### Options
+Keys you leave out keep the theme's value. Values must be plain CSS: no `url(...)`, no `<`, `>` or `\`, at most 200 characters each. A value outside those rules stops the button from loading.
 
 <Gallery>
-  <GalleryItem code={`// no options`} note="The default: light theme, the Qatom mark, “Pay” and three decimals.">
-    <Element type="payment" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`theme: "dark"`} note="A white button for a dark page." dark>
-    <Element type="payment" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`decimalPoints: 1`} note="The fewest it shows.">
-    <Element type="payment" decimalPoints={1} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`decimalPoints: 2`}>
-    <Element type="payment" decimalPoints={2} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`decimalPoints: 6`} note="The most it shows.">
-    <Element type="payment" decimalPoints={6} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`leading: "Qatom"`} note="Text in place of the Qatom mark.">
-    <Element type="payment" leading="Qatom" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`middle: "Tip"`} note="The word before the price.">
-    <Element type="payment" middle="Tip" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`trailing: "Unlock article"`} note="Replaces the label and the price.">
-    <Element type="payment" trailing="Unlock article" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-</Gallery>
-
-#### `styles`
-
-<Gallery>
-  <GalleryItem code={`styles: { colorBackground: "#4F46E5" }`}>
-    <Element type="payment" styles={{ colorBackground: "#4F46E5" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`styles: { colorPrimary: "#9FE0D6" }`} note="The label and the mark.">
-    <Element type="payment" styles={{ colorPrimary: "#9FE0D6" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`styles: { borderRadius: "999px" }`}>
-    <Element type="payment" styles={{ borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`styles: { borderRadius: "0" }`}>
-    <Element type="payment" styles={{ borderRadius: "0" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`styles: { padding: "0 32px" }`} note="The height stays 44px.">
-    <Element type="payment" styles={{ padding: "0 32px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-  </GalleryItem>
-  <GalleryItem code={`styles: { border: 2 }`} note="A number is a width in pixels, drawn in the label's colour.">
-    <Element type="payment" styles={{ border: 2 }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  <GalleryItem code={`styles: {
+  colorBackground: "#4F46E5",
+  borderRadius: "999px",
+}`} note="Your brand colour, fully rounded.">
+    <Element type="payment" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
   </GalleryItem>
   <GalleryItem code={`styles: {
   colorBackground: "#FFFFFF",
   colorPrimary: "#4F46E5",
   border: "2px solid #4F46E5",
-}`} note="An outline button: a string is any CSS border.">
+}`} note="An outline button.">
     <Element type="payment" styles={{ colorBackground: "#FFFFFF", colorPrimary: "#4F46E5", border: "2px solid #4F46E5" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
   </GalleryItem>
-  <GalleryItem code={`styles: { fontFamily: "Georgia, serif" }`} note="Use a font every system has, or the default.">
+  <GalleryItem code={`styles: {
+  fontFamily: "Georgia, serif",
+}`}>
     <Element type="payment" styles={{ fontFamily: "Georgia, serif" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
   </GalleryItem>
 </Gallery>
 
-#### Putting it together
+### Putting it together
 
-Options combine freely. Two decimals, a rounded button in your brand colour, and your own words:
+Options combine freely:
 
 <Element type="payment" decimalPoints={2} trailing="Unlock article" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 

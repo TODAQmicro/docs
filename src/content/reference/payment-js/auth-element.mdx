@@ -2,9 +2,11 @@
 title: Auth Element
 description: Add a Sign in with Qatom button to your page, receive a session, and charge for what the shopper uses through the paywall.
 pubDate: October 13, 2025
-updatedDate: November 17, 2026
+updatedDate: November 18, 2026
 ---
 import Element from "../../../components/Element";
+import Gallery from "../../../components/Gallery/Gallery.astro";
+import GalleryItem from "../../../components/Gallery/GalleryItem.astro";
 
 ## Auth Element
 
@@ -69,20 +71,59 @@ A shopper with no Qatom wallet gets one as part of this; there is nothing for yo
 
 ## Options
 
-Pass these to `create("auth", options)`. Only `hash` is required.
+Pass options to `create("auth", { hash, ... })`. Only `hash` is required; the rest change how the button looks. Each live button on this page is real: press one to see the sign-in sheet, but you don't need to sign in.
 
-| Option | Type | Default | What it does |
+| Option | Type | Default | Section |
 |---|---|---|---|
-| `hash` | string | — | One of your items, which identifies your account. **Required.** |
-| `theme` | `"light"` \| `"dark"` | `"light"` | Match your page. `light` draws a dark button for a light page; `dark` draws a white button for a dark page. |
-| `leading` | string | the Qatom mark | Text shown in place of the Qatom mark. |
-| `middle` | string | `"Sign in"` | The words after the mark. |
-| `trailing` | string | `"Sign in"` | Replaces the whole label after the mark. When both are set, `trailing` wins. |
-| `styles` | object | — | Fine-tune the button. See below. |
+| `hash` | string | — (required) | [Account: `hash`](#account-hash) |
+| `theme` | `"light"` \| `"dark"` | `"light"` | [Theme](#theme-theme) |
+| `leading` | string | the Qatom mark | [Label](#label-leading-middle-trailing) |
+| `middle` | string | `"Sign in"` | [Label](#label-leading-middle-trailing) |
+| `trailing` | string | — | [Label](#label-leading-middle-trailing) |
+| `styles` | object | — | [Look](#look-styles) |
 
-### `styles`
+### Account: `hash`
 
-Each key overrides one part of the button's look; anything you leave out keeps the theme's value. They are the same keys as the [payment element's](/reference/payment-js/payment-element/#styles), so the two buttons can match.
+The hash of any one of your items. The auth element uses it to identify your account; signing in charges nothing.
+
+### Theme: `theme`
+
+Match the page the button sits on. `"light"`, the default, draws a dark button for a light page; `"dark"` draws a white button for a dark page.
+
+<Gallery>
+  <GalleryItem code={`theme: "light"`} note="The default.">
+    <Element type="auth" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`theme: "dark"`} dark>
+    <Element type="auth" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+</Gallery>
+
+### Label: `leading`, `middle`, `trailing`
+
+The label has two parts:
+
+| Part | Default | Replaced by |
+|---|---|---|
+| Before the words | the Qatom mark | `leading` |
+| The words | `Sign in` | `middle`, or `trailing` |
+
+`middle` and `trailing` both replace the words; when both are set, `trailing` wins. Keep label text to plain ASCII for now: other characters, such as `→` or `é`, currently display garbled.
+
+<Gallery>
+  <GalleryItem code={`leading: "Qatom"`}>
+    <Element type="auth" leading="Qatom" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`trailing: "Members sign in"`}>
+    <Element type="auth" trailing="Members sign in" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+</Gallery>
+
+### Look: `styles`
+
+<span id="styles"></span>
+
+Fine-tune the button with CSS values, using the same keys as the [payment element](/reference/payment-js/payment-element/#styles), so the two buttons can match.
 
 | Key | Example | What it changes |
 |---|---|---|
@@ -91,23 +132,32 @@ Each key overrides one part of the button's look; anything you leave out keeps t
 | `borderRadius` | `"999px"` | The corners. |
 | `padding` | `"0 20px"` | Space inside the button. The height stays 44px. |
 | `border` | `"1px solid #E4EBE8"` or `1` | A border. A number is a width in pixels, drawn in the label's colour. |
-| `fontFamily` | `"Inter, sans-serif"` | The label's typeface. It must already be available to the page inside the frame, so stick to system fonts or the default. |
+| `fontFamily` | `"Georgia, serif"` | The label's typeface. Use a font every system has, or leave the default. |
 
-Values must be plain CSS: no `url(...)`, no `<`, `>` or `\`, at most 200 characters each and 50 keys in all. A value outside those rules makes the element fail to load, and the button does not appear.
+Keys you leave out keep the theme's value. Values must be plain CSS: no `url(...)`, no `<`, `>` or `\`, at most 200 characters each. A value outside those rules stops the button from loading.
 
-### Examples
+<Gallery>
+  <GalleryItem code={`styles: {
+  colorBackground: "#4F46E5",
+  borderRadius: "999px",
+}`} note="Your brand colour, fully rounded.">
+    <Element type="auth" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`styles: {
+  colorBackground: "#FFFFFF",
+  colorPrimary: "#4F46E5",
+  border: "2px solid #4F46E5",
+}`} note="An outline button.">
+    <Element type="auth" styles={{ colorBackground: "#FFFFFF", colorPrimary: "#4F46E5", border: "2px solid #4F46E5" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+  <GalleryItem code={`styles: {
+  fontFamily: "Georgia, serif",
+}`}>
+    <Element type="auth" styles={{ fontFamily: "Georgia, serif" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  </GalleryItem>
+</Gallery>
 
-A dark page:
-
-<div style={{ background: "var(--demo-dark-page)", padding: "var(--space-4)", borderRadius: "var(--border-radius-lg)", display: "inline-block" }}>
-  <Element type="auth" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
-</div>
-
-```javascript
-await micro.elements().create("auth", { hash: "<HASH>", theme: "dark" });
-```
-
-A rounded button in your brand colour, with your own words:
+### Putting it together
 
 <Element type="auth" trailing="Members sign in" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 
