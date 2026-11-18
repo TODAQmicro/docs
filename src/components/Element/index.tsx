@@ -31,8 +31,7 @@ type ActiveConsent = {
   checked: boolean;
 }
 
-/** The elements' display options, as payment-js's `create()` takes them.
- * `issueMin` and `issueMax` are the verify element's accepted issue range. */
+/** The payment element's display options, as payment-js's `create()` takes them. */
 type DisplayOptions = {
   theme?: 'light' | 'dark';
   decimalPoints?: number;
@@ -40,8 +39,6 @@ type DisplayOptions = {
   middle?: string;
   trailing?: string;
   styles?: Record<string, string | number>;
-  issueMin?: number;
-  issueMax?: number;
 };
 
 /** JSON that is inert inside an inline script: nothing can close the element. */
@@ -73,10 +70,8 @@ export default function Element({
   middle,
   trailing,
   styles,
-  issueMin,
-  issueMax,
 }: Props) {
-  const display: DisplayOptions = { theme, decimalPoints, leading, middle, trailing, styles, issueMin, issueMax };
+  const display: DisplayOptions = { theme, decimalPoints, leading, middle, trailing, styles };
   const [ random, _ ] = useState(uuidv4());
  
   return (
