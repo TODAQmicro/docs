@@ -1,67 +1,86 @@
 /*
- * Qatom Brand OS v4.1.0 — fonts and colour.
+ * Qatom BrandOS V3.1 — fonts and colour for the docs site.
  *
- * Values are the Brand OS palette verbatim (QATOM-BRAND-KIT.md, generated from
- * qatom.css). They are mapped onto this site's existing variable names rather
- * than introducing a --qatom-* register, so the change is a re-skin: no
- * component had to move.
+ * Values are the BrandOS docs tokens (color.ui.docs) as given in the
+ * "docs.qatom.ai: fonts, sizes and colours" compliance audit, mapped onto this
+ * site's existing variable names. Only colour and type change; layout,
+ * spacing, radii and shadows are as they were.
  *
- * Two rules from the kit shape the mapping and are worth knowing before
- * editing:
+ * The shape of the palette:
  *
- *   QA-COL-001  Verdigris (#6FC4B8) and marigold (#E8A33D) are FILLS. Never
- *               text, never a line, never a border. Verdigris is 1.9:1 on the
- *               light ground. A documentation site is mostly links, so
- *               --color-primary is NOT verdigris on light: it is the
- *               contrast-solved teal at the same hue (5.5:1) that qatom-ui
- *               derives for exactly this purpose. Verdigris is available as
- *               --color-accent-fill for plates and buttons.
- *               On the dark ground verdigris reaches 8.2:1, so it is the
- *               accent there.
+ *   Light   White content ground, slate (#172E36) frame: the header bar and
+ *           the sidebar. Teal #1A7071 is the text accent.
+ *   Dark    Near-black frame and content (#0F1010 sidebar, #121313 page).
+ *           Colour lives only in the accents: links, labels, the active item.
  *
- *   QA-TYP-003  Weights 300, 400 and 500 only. There is no bold in this
- *               system; emphasis is weight 500, or colour.
+ *   Verdigris (#79D2C5) is a fill, a focus ring or the active-item marker,
+ *   never body or link text on the light ground. Every text colour here passes
+ *   WCAG AA (4.5:1) on its own background in both modes.
+ *
+ *   No serif on product surfaces: --font-serif resolves to the sans face.
+ *
+ * The Scalar reference at / carries the same values in `scalarTheme`
+ * (src/pages/index.astro). Change both together.
  */
 
 :root {
-    /* Accent — text-safe teal on the light ground; see QA-COL-001 above. */
-    --color-primary: #087066;
-    --color-primary-hover: #075c54;
-    --color-secondary: #1c3f42;
+    /* Accent — text-safe teal on the white ground. */
+    --color-primary: #1A7071;
+    --color-primary-hover: #165F60;
+    --color-secondary: #4E5D64;
 
-    /* Verdigris. A fill: plates, buttons, marks — never text or a line. */
-    --color-accent-fill: #6fc4b8;
-    --color-accent-fill-ink: #15110c;
+    /* Verdigris. A fill: plates, buttons, marks — never text on light. */
+    --color-accent-fill: #79D2C5;
+    --color-accent-fill-ink: #0F1517;
 
     /* A dark merchant page, behind the dark-theme element demos. The same in both themes. */
-    --demo-dark-page: #0c1a17;
+    --demo-dark-page: #121313;
 
     /* Background Colors — ground is the page, surface the raised plane. */
-    --bg-body: #f7f6f2;
-    --bg-surface: #f7f6f2;
-    --bg-sidebar: #efefe9;
-    --bg-code: #efefe9;
-    --bg-header: rgba(247, 246, 242, 0.8);
+    --bg-body: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-sidebar: #172E36;
+    --bg-code: #F1F6FA;
+    --bg-header: rgba(23, 46, 54, .94);
 
     /* Text Colors */
-    --text-main: #2a2b2a;
-    --text-muted: #2c777b;
-    --text-inverted: #f7f6f2;
+    --text-main: #101415;
+    --text-muted: #4E5D64;
+    --text-hint: #5A6970;
+    --text-inverted: #F3F6F7;
 
     /* Scrollbar */
-    --scrollbar-thumb: #cecdca;
+    --scrollbar-thumb: #DDE4E7;
     --scrollbar-track: transparent;
 
-    /* Borders */
-    --border-color: #cecdca;
+    /* Borders and hover */
+    --border-color: rgba(23, 46, 64, .13);
+    --bg-hover: hsla(195, 60%, 45%, .08);
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
     --border-radius-lg: 12px;
 
+    /* Focus ring */
+    --focus-ring: #1A7071;
+
+    /* The frame — header bar and sidebar. Slate in light mode, so its text is light. */
+    --frame-text: #F3F6F7;
+    --frame-text-soft: rgba(243, 246, 247, .74);
+    --frame-label: rgba(243, 246, 247, .72);
+    --frame-link: #9FE0D6;
+    --frame-header-border: rgba(255, 255, 255, .08);
+    --frame-sidebar-border: rgba(255, 255, 255, .12);
+    --frame-toggle-border: rgba(255, 255, 255, .22);
+    --frame-hover: hsla(171, 60%, 60%, .12);
+    --frame-active: hsla(171, 55%, 60%, .20);
+    --frame-active-marker: #79D2C5;
+    --frame-scrollbar-thumb: rgba(255, 255, 255, .18);
+    --frame-focus-ring: #79D2C5;
+
     /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(42, 43, 42, 0.05);
-    --shadow-md: 0 4px 6px rgba(42, 43, 42, 0.05), 0 1px 3px rgba(42, 43, 42, 0.1);
-    --shadow-lg: 0 10px 15px rgba(42, 43, 42, 0.05), 0 4px 6px rgba(42, 43, 42, 0.05);
+    --shadow-sm: 0 1px 2px rgba(16, 20, 21, 0.05);
+    --shadow-md: 0 4px 6px rgba(16, 20, 21, 0.05), 0 1px 3px rgba(16, 20, 21, 0.1);
+    --shadow-lg: 0 10px 15px rgba(16, 20, 21, 0.05), 0 4px 6px rgba(16, 20, 21, 0.05);
 
     /* Spacing */
     --space-1: 0.25rem;
@@ -72,59 +91,112 @@
     --space-6: 3rem;
     --space-8: 4rem;
 
-    /* Typography — the three Brand OS faces, each with its sanctioned
-       fallback. None of the three ships with Windows or macOS, so the
-       fallback is named deliberately rather than left to the browser. */
+    /* Typography — Hanken Grotesk for all text, IBM Plex Mono for code, each
+       with its sanctioned fallback. No serif on product surfaces. */
     --font-sans: 'Hanken Grotesk', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --font-serif: 'Source Serif 4', Georgia, serif;
+    --font-serif: var(--font-sans);
     --font-mono: 'IBM Plex Mono', Consolas, ui-monospace, Menlo, monospace;
 }
 
-/* Dark palette — the Brand OS dark column. */
+/* Dark palette: system preference. Keep identical to the toggle block below. */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --color-primary: #6fc4b8;
-        --color-primary-hover: #8fd1c8;
-        --color-secondary: #ccdbdb;
+        --color-primary: #7DD0D0;
+        --color-primary-hover: #F3F6F7;
+        --color-secondary: rgba(243, 246, 247, .68);
 
-        --bg-body: #2a2b2a;
-        --bg-surface: #2a2b2a;
-        --bg-sidebar: #343634;
-        --bg-code: #343634;
-        --bg-header: rgba(42, 43, 42, 0.8);
+        --bg-body: #121313;
+        --bg-surface: #121313;
+        --bg-sidebar: #0F1010;
+        --bg-code: #181B1C;
+        --bg-header: rgba(18, 19, 19, .92);
 
-        --text-main: #f7f6f2;
-        --text-muted: #9fc4c4;
-        --text-inverted: #2a2b2a;
+        --text-main: #F3F6F7;
+        --text-muted: rgba(243, 246, 247, .68);
+        --text-hint: rgba(243, 246, 247, .58);
+        --text-inverted: #121313;
 
-        --scrollbar-thumb: #4e514e;
-        --border-color: #4e514e;
+        --scrollbar-thumb: rgba(220, 240, 245, .16);
+        --border-color: rgba(220, 240, 245, .10);
+        --bg-hover: hsla(180, 45%, 70%, .07);
 
-        --shadow-sm: 0 1px 2px rgba(14, 18, 16, 0.3);
-        --shadow-md: 0 4px 6px rgba(14, 18, 16, 0.3), 0 1px 3px rgba(14, 18, 16, 0.2);
-        --shadow-lg: 0 10px 15px rgba(14, 18, 16, 0.3), 0 4px 6px rgba(14, 18, 16, 0.2);
+        --focus-ring: #79D2C5;
+
+        --frame-link: #7DD0D0;
+        --frame-header-border: rgba(255, 255, 255, .06);
+        --frame-sidebar-border: rgba(220, 240, 245, .08);
+        --frame-toggle-border: rgba(220, 240, 245, .14);
+        --frame-hover: hsla(171, 62%, 58%, .10);
+        --frame-active: hsla(171, 60%, 56%, .16);
+        --frame-scrollbar-thumb: rgba(220, 240, 245, .16);
+
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 }
 
+/* Dark palette: header toggle. */
 :root[data-theme="dark"] {
-    --color-primary: #6fc4b8;
-    --color-primary-hover: #8fd1c8;
-    --color-secondary: #ccdbdb;
+    --color-primary: #7DD0D0;
+    --color-primary-hover: #F3F6F7;
+    --color-secondary: rgba(243, 246, 247, .68);
 
-    --bg-body: #2a2b2a;
-    --bg-surface: #2a2b2a;
-    --bg-sidebar: #343634;
-    --bg-code: #343634;
-    --bg-header: rgba(42, 43, 42, 0.8);
+    --bg-body: #121313;
+    --bg-surface: #121313;
+    --bg-sidebar: #0F1010;
+    --bg-code: #181B1C;
+    --bg-header: rgba(18, 19, 19, .92);
 
-    --text-main: #f7f6f2;
-    --text-muted: #9fc4c4;
-    --text-inverted: #2a2b2a;
+    --text-main: #F3F6F7;
+    --text-muted: rgba(243, 246, 247, .68);
+    --text-hint: rgba(243, 246, 247, .58);
+    --text-inverted: #121313;
 
-    --scrollbar-thumb: #4e514e;
-    --border-color: #4e514e;
+    --scrollbar-thumb: rgba(220, 240, 245, .16);
+    --border-color: rgba(220, 240, 245, .10);
+    --bg-hover: hsla(180, 45%, 70%, .07);
 
-    --shadow-sm: 0 1px 2px rgba(14, 18, 16, 0.3);
-    --shadow-md: 0 4px 6px rgba(14, 18, 16, 0.3), 0 1px 3px rgba(14, 18, 16, 0.2);
-    --shadow-lg: 0 10px 15px rgba(14, 18, 16, 0.3), 0 4px 6px rgba(14, 18, 16, 0.2);
+    --focus-ring: #79D2C5;
+
+    --frame-link: #7DD0D0;
+    --frame-header-border: rgba(255, 255, 255, .06);
+    --frame-sidebar-border: rgba(220, 240, 245, .08);
+    --frame-toggle-border: rgba(220, 240, 245, .14);
+    --frame-hover: hsla(171, 62%, 58%, .10);
+    --frame-active: hsla(171, 60%, 56%, .16);
+    --frame-scrollbar-thumb: rgba(220, 240, 245, .16);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* The frame redefines the content tokens inside itself, so the existing
+   header and sidebar rules recolour without being rewritten. */
+header.site-header {
+    color: var(--frame-text);            /* wordmark uses currentColor */
+    --text-main: var(--frame-text);      /* theme toggle icon */
+    --text-muted: var(--frame-link);     /* nav links */
+    --color-primary: var(--frame-text);  /* nav link hover */
+    --border-color: var(--frame-header-border);
+    --focus-ring: var(--frame-focus-ring);
+}
+
+header.site-header .theme-toggle {
+    --border-color: var(--frame-toggle-border);
+}
+
+.sidebar {
+    --text-main: var(--frame-text-soft);  /* child links */
+    --text-muted: var(--frame-text);      /* group headings */
+    --color-primary: #FFFFFF;             /* hover and active text */
+    --border-color: var(--frame-sidebar-border);
+    --scrollbar-thumb: var(--frame-scrollbar-thumb);
+    --focus-ring: var(--frame-focus-ring);
+}
+
+:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
 }

@@ -18,8 +18,14 @@ import Logo from '../SVG/Logo.tsx';
     </nav>
 
     <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-      <span class="icon-light">🌙</span>
-      <span class="icon-dark" style="display: none;">☀️</span>
+      <!-- Shows the mode a click switches to: a moon in light mode, a sun in dark. -->
+      <svg class="icon-light" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z" />
+      </svg>
+      <svg class="icon-dark" viewBox="0 0 24 24" aria-hidden="true" style="display: none;">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </svg>
     </button>
   </aside>
 </header>
@@ -33,9 +39,9 @@ import Logo from '../SVG/Logo.tsx';
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (isDark) {
       iconLight.style.display = 'none';
-      iconDark.style.display = 'inline';
+      iconDark.style.display = 'block';
     } else {
-      iconLight.style.display = 'inline';
+      iconLight.style.display = 'block';
       iconDark.style.display = 'none';
     }
   }
@@ -84,7 +90,7 @@ import Logo from '../SVG/Logo.tsx';
   .header-nav a {
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 500;
   }
 
@@ -98,7 +104,7 @@ import Logo from '../SVG/Logo.tsx';
     }
 
     .header-nav a {
-      font-size: 0.8rem;
+      font-size: 13px;
     }
   }
 
@@ -114,13 +120,14 @@ import Logo from '../SVG/Logo.tsx';
     color: var(--text-main);
   }
 
-  .theme-toggle span {
-    font-size: 1.2rem; /* Adjusted for better visibility */
-    line-height: 1;
-  }
-  
-  .theme-toggle span.icon-light, .theme-toggle span.icon-dark {
-      font-size: 0.8rem; /* Make emojis smaller as requested */
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 </style>
 

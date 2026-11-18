@@ -62,21 +62,63 @@ const scalarTheme = `
        64px, so its sidebar and content start below rather than underneath. */
     --scalar-custom-header-height: 64px;
 
-    /* Qatom Brand OS v4.1.0. The accent is the contrast-solved teal, not
-       verdigris: verdigris is a fill and never text (QA-COL-001), and almost
-       everything Scalar colours with the accent is a link or a label. */
+    /* Qatom BrandOS V3.1, light mode. The same values as src/styles/variables.css.
+       Teal #1A7071 is the text accent; verdigris is never text. */
     --scalar-font: 'Hanken Grotesk', 'Segoe UI', system-ui, sans-serif;
     --scalar-font-code: 'IBM Plex Mono', Consolas, ui-monospace, monospace;
     --scalar-bold: 500;
     --scalar-semibold: 500;
-    --scalar-color-accent: #087066;
-    --scalar-color-1: #2a2b2a;
-    --scalar-color-2: #1c3f42;
-    --scalar-color-3: #2c777b;
-    --scalar-background-1: #f7f6f2;
-    --scalar-background-2: #efefe9;
-    --scalar-background-3: #e3e3dd;
-    --scalar-border-color: #cecdca;
+    --scalar-color-1: #101415;
+    --scalar-color-2: #4E5D64;
+    --scalar-color-3: #5A6970;
+    --scalar-color-accent: #1A7071;
+    --scalar-link-color: #1A7071;
+    --scalar-link-color-hover: #165F60;
+    --scalar-background-1: #FFFFFF;
+    --scalar-background-2: #F1F6FA;
+    --scalar-background-3: #E9F1F6;
+    --scalar-background-accent: hsla(195, 60%, 45%, .08);
+    --scalar-border-color: rgba(23, 46, 64, .13);
+
+    /* Method labels; Scalar also uses these for syntax colours
+       (blue = strings, orange = numbers, purple = keywords). */
+    --scalar-color-blue: #2B5E8C;   /* GET */
+    --scalar-color-green: #1A7071;  /* POST */
+    --scalar-color-orange: #172E36; /* PUT */
+    --scalar-color-purple: #5B4E8C; /* PATCH */
+    --scalar-color-red: #A33A2B;    /* DELETE */
+
+    --scalar-button-1: #172E36;
+    --scalar-button-1-hover: #1F3B44;
+    --scalar-button-1-color: #F3F6F7;
+
+    /* Sidebar: slate, matching the site frame. */
+    --scalar-sidebar-background-1: #172E36;
+    --scalar-sidebar-color-1: #F3F6F7;
+    --scalar-sidebar-color-2: rgba(243, 246, 247, .74);
+    --scalar-sidebar-color-active: #FFFFFF;
+    --scalar-sidebar-item-hover-color: #FFFFFF;
+    --scalar-sidebar-item-hover-background: hsla(171, 60%, 60%, .12);
+    --scalar-sidebar-item-active-background: hsla(171, 55%, 60%, .20);
+    --scalar-sidebar-border-color: rgba(255, 255, 255, .12);
+    --scalar-sidebar-indent-border: rgba(255, 255, 255, .12);
+    --scalar-sidebar-indent-border-hover: rgba(255, 255, 255, .24);
+    --scalar-sidebar-indent-border-active: #79D2C5;
+    --scalar-sidebar-search-background: rgba(255, 255, 255, .07);
+    --scalar-sidebar-search-border-color: rgba(255, 255, 255, .12);
+    --scalar-sidebar-search-color: rgba(243, 246, 247, .56);
+  }
+
+  /* Method labels inside the slate sidebar need the light set (light mode only). */
+  .light-mode .scalar-app .t-doc__sidebar {
+    --scalar-color-blue: #9CC3E6;
+    --scalar-color-green: #9FE0D6;
+    --scalar-color-orange: #C9D9E0;
+    --scalar-color-purple: #C4BAF0;
+    --scalar-color-red: #F0A397;
+    --scalar-color-1: #F3F6F7;
+    --scalar-color-2: rgba(243, 246, 247, .74);
+    --scalar-color-3: rgba(243, 246, 247, .56);
   }
 
   /* Scalar's own attribution: the sidebar footer link and the watermark on an
@@ -92,16 +134,70 @@ const scalarTheme = `
   }
 
   .dark-mode .scalar-app {
-    /* On the dark ground verdigris reaches 8.2:1, so it is the accent here. */
-    --scalar-color-accent: #6fc4b8;
-    --scalar-color-1: #f7f6f2;
-    --scalar-color-2: #ccdbdb;
-    --scalar-color-3: #9fc4c4;
-    --scalar-background-1: #2a2b2a;
-    --scalar-background-2: #343634;
-    --scalar-background-3: #3d403d;
-    --scalar-border-color: #4e514e;
+    /* Qatom BrandOS V3.1, dark mode: near-black frame and content;
+       colour only in links, labels and the active item. */
+    --scalar-color-1: #F3F6F7;
+    --scalar-color-2: rgba(243, 246, 247, .68);
+    --scalar-color-3: rgba(243, 246, 247, .58);
+    --scalar-color-accent: #7DD0D0;
+    --scalar-link-color: #7DD0D0;
+    --scalar-link-color-hover: #F3F6F7;
+    --scalar-background-1: #121313;
+    --scalar-background-2: #181B1C;
+    --scalar-background-3: #1D2122;
+    --scalar-background-accent: hsla(180, 45%, 70%, .07);
+    --scalar-border-color: rgba(220, 240, 245, .10);
+
+    --scalar-color-blue: #9CC3E6;
+    --scalar-color-green: #7DD0D0;
+    --scalar-color-orange: #B8CDD6;
+    --scalar-color-purple: #C4BAF0;
+    --scalar-color-red: #F0A397;
+
+    --scalar-button-1: #F3F6F7;
+    --scalar-button-1-hover: #FFFFFF;
+    --scalar-button-1-color: #121313;
+
+    --scalar-sidebar-background-1: #0F1010;
+    --scalar-sidebar-color-1: #F3F6F7;
+    --scalar-sidebar-color-2: rgba(243, 246, 247, .74);
+    --scalar-sidebar-color-active: #FFFFFF;
+    --scalar-sidebar-item-hover-color: #FFFFFF;
+    --scalar-sidebar-item-hover-background: hsla(171, 62%, 58%, .10);
+    --scalar-sidebar-item-active-background: hsla(171, 60%, 56%, .16);
+    --scalar-sidebar-border-color: rgba(220, 240, 245, .08);
+    --scalar-sidebar-indent-border: rgba(220, 240, 245, .10);
+    --scalar-sidebar-indent-border-hover: rgba(220, 240, 245, .20);
+    --scalar-sidebar-indent-border-active: #79D2C5;
+    --scalar-sidebar-search-background: #181C1D;
+    --scalar-sidebar-search-border-color: rgba(220, 240, 245, .10);
+    --scalar-sidebar-search-color: rgba(243, 246, 247, .56);
   }
+
+  /* Type: no serif, sizes on the BrandOS scale. */
+  .scalar-app .section-header-label {
+    font-family: var(--scalar-font);
+    font-weight: 500;
+    line-height: 48px;
+    letter-spacing: -.025em;
+  }
+  .scalar-app .markdown p,
+  .scalar-app .markdown li { font-size: 15px; line-height: 25px; }
+  .scalar-app .markdown h2 { font-size: 20px; line-height: 28px; letter-spacing: -.01em; }
+  .scalar-app .markdown :not(pre) > code { font-size: 13px; }
+  .scalar-app pre,
+  .scalar-app pre code { font-family: var(--scalar-font-code); font-size: 13px; line-height: 1.65; }
+
+  /* Syntax: keys in the accent (Scalar defaults them to body text). */
+  .scalar-app .hljs-attr,
+  .scalar-app .hljs-attribute { color: var(--scalar-color-accent); }
+
+  /* Focus */
+  .scalar-app :focus-visible { outline-color: #1A7071; }
+  .dark-mode .scalar-app :focus-visible,
+  .scalar-app .t-doc__sidebar :focus-visible { outline-color: #79D2C5; }
+
+  .scalar-app .download-button { font-size: 15px; }
 `;
 ---
 
