@@ -1,4 +1,4 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# This workflow does a clean install of node dependencies, builds the source code and runs tests on the Node version in .nvmrc
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Node.js CI
@@ -12,17 +12,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+    - name: Use Node.js from .nvmrc
+      uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
     - run: "echo '//npm.pkg.github.com/:_authToken=${{ secrets.ROBOT_PAT }}' >> .npmrc"
     - run: npm ci
     - run: npm run build --if-present

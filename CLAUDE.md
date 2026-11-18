@@ -12,15 +12,15 @@ The public developer documentation site for Qatom payments, served at https://do
 | Build | `npm run build` = `astro check && astro build`, output in `dist/` |
 | Preview the build | `npm run preview` |
 | Run the built server | `node ./dist/server/entry.mjs` (what the image runs; honours `HOST` and `PORT`) |
-| Container image | `docker build -t docs .` after `npm run build`: the Dockerfile copies `dist/`, it does not build |
+| Container image | `docker build -t docs .` after `npm run build`: the Dockerfile copies `dist/` and runs `npm ci --omit=dev` on `node:24-alpine`; it does not build the site |
 | Lint | No linter yet. `npm run build` is the closest check |
 | Tests | `npm test` after `npm run build`: `npm run test:unit` (vitest, `tests/unit/`) then `npm run test:e2e` (Playwright, `tests/e2e/`, against the built server). Once per machine: `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an installed Chromium |
 | Live embed check | `DOCS_E2E_LIVE=1 npx playwright test embeds` (loads production's CDN and API; never in CI) |
 
 ## Setup
 
-- **Node 20.** Nothing pins it in the repo (no `.nvmrc`, no `engines`). The image uses `node:20`, `shell.nix` provides `nodejs_20`, and PR CI builds on Node 18 and 20. Moving to the org's Node 24 is one PR that adds `.nvmrc` and updates the Dockerfile, `shell.nix` and both workflows together. Until it lands, this repo is a recorded exception to the shared Node 24 standard, because those four files must move at once; do not bump one of them alone.
-- **Optional nix:** `.envrc` runs `use nix` for direnv users; `shell.nix` supplies Node 20 and a few CLI tools.
+- **Node 24**, pinned in `.nvmrc` and required by `engines` in `package.json`. Both workflows take it from `.nvmrc` through `actions/setup-node`, the image builds from `node:24-alpine` and `shell.nix` provides `nodejs_24`. A Node version change updates those five places together.
+- **Optional nix:** `.envrc` runs `use nix` for direnv users; `shell.nix` supplies Node 24 and a few CLI tools.
 - **No GitHub Packages auth.** `@todaqmicro/payment-js` and `@todaqmicro/payment-node` install from public npm. If your `~/.npmrc` maps the `@todaqmicro` scope to GitHub Packages, npm looks for them there instead; add `--@todaqmicro:registry=https://registry.npmjs.org` to the install. The tracked `.npmrc` is empty; keep it free of registries and tokens, and do not delete it: the Dockerfile runs `rm .npmrc`, so `docker build` fails without it.
 - **No local services needed.** By default the reference reads production's OpenAPI document. To preview API reference changes, run payment locally (port 8500) or use staging and set `PUBLIC_OPENAPI_URL`.
 - **.env:** `cp .env.example .env` and uncomment one `PUBLIC_OPENAPI_URL` line. Astro loads `.env` into `import.meta.env` in dev and build, not into `process.env`; restart the dev server after editing it. To run `/api/delegate`, export `DELEGATE_CLIENT_ID` and `DELEGATE_CLIENT_SECRET` in the shell that runs `npm run dev`, or start the built server with `node --env-file=.env ./dist/server/entry.mjs`. Only `.env` and `.env.production` are gitignored, so do not create `.env.local` or other variants. The Dockerfile runs `COPY . .`, so `.dockerignore` keeps `.env`, `.env.*`, `.git` and `.claude` (agent worktrees, each with its own `.env`) out of the image; keep it.
@@ -69,10 +69,10 @@ The one way to do each thing here:
 
 ## Testing
 
-- The gate is `npm run build` then `npm test`, on Node 18 and 20 (the PR CI matrix, which installs Playwright's Chromium before `npm test`). `astro check` type-checks `.astro`/`.ts`/`.tsx`, and the build fails on frontmatter that does not match `src/content/config.ts`. There is no linter; PR CI's `npm run lint --if-present` does nothing until a `lint` script exists.
+- The gate is `npm run build` then `npm test`, on Node 24 (the version in `.nvmrc`, which PR CI uses; it installs Playwright's Chromium before `npm test`). `astro check` type-checks `.astro`/`.ts`/`.tsx`, and the build fails on frontmatter that does not match `src/content/config.ts`. There is no linter; PR CI's `npm run lint --if-present` does nothing until a `lint` script exists.
 - `tests/unit/` (vitest) reads the MDX from disk (`tests/lib/content.ts`) and enforces this file's content rules: required frontmatter, an integer and unique `order` per guide, no `[TOC]`, no `(#)` links, staging hosts only on a line labelled `Staging`, and no real-format credentials (`tqmt_…`, `mp_…`, a UUID under `"key"`, a client secret). A new rule gets a check there.
 - `tests/e2e/` (Playwright) starts `node ./dist/server/entry.mjs` twice on free ports, with `API_BASE_URL=http://127.0.0.1:9` and a dummy or empty `DELEGATE_*` pair, and aborts every request that leaves the local server. It checks each prerendered page (200, a heading), the sidebar's guide order, every internal link and `#anchor` (anchors on `/` are rendered by Scalar in the browser and are not checked), the theme toggle, the Scalar mount on `/` and `/api/delegate`'s 400, 502 and 500. `embeds.live.spec.ts` (every `div[id^="ref-"]` gets an iframe, the #22 regression) runs only with `DOCS_E2E_LIVE=1`.
-- Pins held for Astro 4 and Node 18, to lift with the Astro 7 / Node 24 upgrade: `@playwright/test` 1.61.1 and `vitest` 3.2.7 (later releases need Node 20+; vitest 3 still carries dev-only `@vitest/mocker` and `tinypool` advisories), the `overrides` entry `@astrojs/language-server` 2.16.16 (2.17 makes `astro check` fail on Node 18 with `ERR_REQUIRE_ESM`), and `@astrojs/sitemap` 3.6.0 (3.6.1 and later fail `astro build` on Astro 4 in `astro:build:done`). `npm audit fix` without `--force` respects them.
+- Pins held from the Astro 4 and Node 18 era, to lift with the Astro 7 upgrade: `@playwright/test` 1.61.1 and `vitest` 3.2.7 (later releases need Node 20+; vitest 3 still carries dev-only `@vitest/mocker` and `tinypool` advisories), the `overrides` entry `@astrojs/language-server` 2.16.16 (2.17 makes `astro check` fail on Node 18 with `ERR_REQUIRE_ESM`), and `@astrojs/sitemap` 3.6.0 (3.6.1 and later fail `astro build` on Astro 4 in `astro:build:done`). `npm audit fix` without `--force` respects them.
 - Every change also needs: open each changed page in `npm run dev` (or `npm run preview`) in light and dark themes. For reference changes, `/` renders and the picker offers only curl and Node fetch.
 - Code samples: run shell samples against local or staging payment (at minimum `bash -n` on the block), and check paths, methods and fields against the OpenAPI document.
 - Links: the target slug must exist (`/reference/payment-node/usage/`; there is no `/reference/payment-node` page). No `(#)` placeholder links. `[TOC]` is not expanded (no remark plugins are configured), so do not add it.
@@ -82,12 +82,12 @@ The one way to do each thing here:
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `test.yml` (Node.js CI) | every `pull_request` | Node 18.x and 20.x: `npm ci`, `npm run build`, `lint` if present, `npx playwright install --with-deps chromium`, then `npm test` |
-| `production.yml` | push to `main` | `npm install` and `npm run build` on the runner, `docker build`, push the image, roll the production service and wait until it is stable |
+| `test.yml` (Node.js CI) | every `pull_request` | Node from `.nvmrc`: `npm ci`, `npm run build`, `lint` if present, `npx playwright install --with-deps chromium`, then `npm test` |
+| `production.yml` | push to `main` | `npm ci` and `npm run build` on the runner with Node from `.nvmrc`, `docker build`, push the image, roll the production service and wait until it is stable |
 
 - Merging to `main` is a production release. There is no staging deployment of the site and no manual release step (no migrations).
 - `production.yml` builds the image from its own checkout, so its checkout step sets `persist-credentials: false`: otherwise `actions/checkout` writes the job's GitHub token into `.git/config`. Keep it, and keep `.git` in `.dockerignore`.
-- The deploy job uses `npm install` on the runner's default Node, while PR CI uses `npm ci`. Commit `package-lock.json` with every dependency change so both resolve the same tree.
+- Both workflows install with `npm ci` on the Node in `.nvmrc`, so `package-lock.json` decides the tree: commit it with every dependency change.
 - No `workflow_dispatch` exists. To redeploy `main` unchanged, a human re-runs the latest `production.yml` run in GitHub Actions; do not push empty commits. Roll back by reverting through a PR.
 - Verify a release: the `production.yml` run is green (it waits for stability), then https://docs.m.todaq.net/ renders the reference, `/guide/getting-started/` and `/reference/payment-js/payment-element/` load, and the changed pages show the change.
 
@@ -129,7 +129,7 @@ There is no OpenAPI or Postman file here: `/` renders payment's live `/v4/openap
 
 | File | What it covers | Update it when |
 |---|---|---|
-| `README.md` | What the site is, how `/` is rendered and previewed (`PUBLIC_OPENAPI_URL`), the `.env.example` variables, content layout, dev, build, preview and test commands. Incomplete: no prerequisites, `API_BASE_URL` or release process; this file takes precedence until it is fixed | Commands, setup, configuration or the content layout change |
+| `README.md` | What the site is, how `/` is rendered and previewed (`PUBLIC_OPENAPI_URL`), the `.env.example` variables, content layout, dev, build, preview and test commands. Prerequisites (Node 24). Incomplete: no `API_BASE_URL` or release process; this file takes precedence until it is fixed | Commands, setup, configuration or the content layout change |
 | `CLAUDE.md` (`AGENTS.md` is a symlink to it) | This guide, followed by the shared standards block. | See "Keeping documentation true" |
 | `.env.example` | `PUBLIC_OPENAPI_URL`, with commented local (port 8500) and staging values (unset means production), and the server-only `DELEGATE_CLIENT_ID` / `DELEGATE_CLIENT_SECRET` pair | A variable is added, renamed or removed |
 | `src/pages/index.astro` | The API reference at `/`: Scalar setup, theme and client picker. Endpoint text comes from payment | Scalar configuration or brand values change; endpoint wording changes in payment, not here |
