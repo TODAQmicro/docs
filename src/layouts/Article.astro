@@ -25,12 +25,7 @@ const allReferences = (await getCollection('reference')).sort((a, b) =>
 const paymentJsIndex = allReferences.filter(entry => entry.id === 'payment-js');
 const paymentJsChildren = allReferences.filter(entry => entry.id.startsWith('payment-js/'));
 
-const paymentNodeItems = allReferences.filter(entry => entry.id.startsWith('payment-node'));
-
-const generalReferences = allReferences.filter(entry =>
-  !entry.id.startsWith('payment-js') &&
-  !entry.id.startsWith('payment-node')
-);
+const generalReferences = allReferences.filter(entry => !entry.id.startsWith('payment-js'));
 ---
 
 <!doctype html>
@@ -53,23 +48,6 @@ const generalReferences = allReferences.filter(entry =>
             <Navigation entries={paymentJsChildren} root={false}/>
           </div>
         </div>
-
-        <div class="nav-tree-node">
-          <div class="nav-tree-header">Payment Node</div>
-          <div class="nav-tree-children">
-            <Navigation entries={paymentNodeItems} root={false}/>
-          </div>
-        </div>
-
-        <h4>HTTP API</h4>
-        <nav class="nav-root">
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="/" class="nav-link">API Reference</a>
-              <p class="nav-desc">Every v4 endpoint, generated from the running API.</p>
-            </li>
-          </ul>
-        </nav>
 
       </aside>
       <section class="main-content">

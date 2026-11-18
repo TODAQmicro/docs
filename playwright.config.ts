@@ -2,13 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { defineConfig, devices } from '@playwright/test';
 
 // Page checks run against the built site (`npm run build` first), served by the
-// standalone server the image runs. Two servers start on free ports:
-//
-// - `site`: API_BASE_URL points at a closed local port and the DELEGATE_* pair
-//   is a dummy, so /api/delegate never reaches the payment API.
-// - `bare`: no DELEGATE_* pair, to check the route's missing-config answer.
-//
-// Workers inherit process.env, so the ports are chosen once, here.
+// standalone server the image runs, on a free port. Workers inherit
+// process.env, so the port is chosen once, here.
 function freePort(): string {
   return execFileSync(process.execPath, [
     '-e',
@@ -17,19 +12,17 @@ function freePort(): string {
 }
 
 process.env.DOCS_E2E_PORT ??= freePort();
-process.env.DOCS_E2E_BARE_PORT ??= freePort();
 
 const port = process.env.DOCS_E2E_PORT;
-const barePort = process.env.DOCS_E2E_BARE_PORT;
 
-const server = (listen: string, env: Record<string, string>) => ({
+const server = (listen: string) => ({
   command: 'node ./dist/server/entry.mjs',
   url: `http://127.0.0.1:${listen}/guide/getting-started/`,
   reuseExistingServer: false,
   timeout: 30_000,
   stdout: 'ignore' as const,
   stderr: 'pipe' as const,
-  env: { HOST: '127.0.0.1', PORT: listen, API_BASE_URL: 'http://127.0.0.1:9', ...env },
+  env: { HOST: '127.0.0.1', PORT: listen },
 });
 
 // CI installs the browser that matches @playwright/test. Elsewhere, point
@@ -52,8 +45,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], launchOptions: { executablePath } },
     },
   ],
-  webServer: [
-    server(port, { DELEGATE_CLIENT_ID: 'dummy-client-id', DELEGATE_CLIENT_SECRET: 'dummy-client-secret' }),
-    server(barePort, { DELEGATE_CLIENT_ID: '', DELEGATE_CLIENT_SECRET: '' }),
-  ],
+  webServer: [server(port)],
 });
