@@ -41,7 +41,9 @@ const { code, note, dark = false } = Astro.props;
     justify-content: flex-start;
     min-height: 96px;
     padding: var(--space-3);
-    background: var(--bg-surface);
+    /* Element demos show the page they are made for: light-theme buttons on a
+       light page, dark-theme ones on a dark page, whatever the site theme. */
+    background: var(--demo-light-page);
   }
 
   .stage.dark {

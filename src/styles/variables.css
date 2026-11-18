@@ -35,6 +35,8 @@
 
     /* A dark merchant page, behind the dark-theme element demos. The same in both themes. */
     --demo-dark-page: #121313;
+    /* A light merchant page, behind the light-theme element demos. The same in both themes. */
+    --demo-light-page: #FFFFFF;
 
     /* Background Colors — ground is the page, surface the raised plane. */
     --bg-body: #FFFFFF;
