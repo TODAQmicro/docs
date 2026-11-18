@@ -10,7 +10,7 @@ import Element from "../../../components/Element";
 
 The auth element is a **Sign in with Qatom** button. A shopper presses it, and a sheet opens over your page: they enter their email and type the code they are sent, or approve in the Qatom app. They then confirm which wallet to sign in with. When they do, your page receives an `authorized` event carrying a **session**: a one-hour credential your page uses to charge their wallet through the [paywall](#charge-through-the-paywall), one approval at a time or against a budget they set.
 
-<Element type="auth" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+<Element type="auth" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 
 You need two things from your Qatom account:
 
@@ -100,7 +100,7 @@ Values must be plain CSS: no `url(...)`, no `<`, `>` or `\`, at most 200 charact
 A dark page:
 
 <div style={{ background: "var(--demo-dark-page)", padding: "var(--space-4)", borderRadius: "var(--border-radius-lg)", display: "inline-block" }}>
-  <Element type="auth" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+  <Element type="auth" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 </div>
 
 ```javascript
@@ -109,7 +109,7 @@ await micro.elements().create("auth", { hash: "<HASH>", theme: "dark" });
 
 A rounded button in your brand colour, with your own words:
 
-<Element type="auth" trailing="Members sign in" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+<Element type="auth" trailing="Members sign in" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 
 ```javascript
 await micro.elements().create("auth", {

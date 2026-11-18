@@ -50,7 +50,7 @@ The public developer documentation site for Qatom payments, served at https://do
 | `src/layouts/Article.astro` | Page shell and sidebar. Groups references by slug prefix (`payment-js`, `payment-node`); other slugs are listed ungrouped |
 | `src/components/Header/Header.astro`, `src/components/Head.astro`, `src/components/ThemeScript.astro` | Header nav and theme toggle, `<head>` (title, fonts), pre-paint theme |
 | `src/components/Navigation/` | Sidebar lists (React, rendered on the server) |
-| `src/components/Element/` | Live element embed for MDX (`<Element type="payment" hash="…" client:load />`); loads `micropay.js` from the CDN host in `environment` (production by default) and passes `theme`, `decimalPoints`, `leading`, `middle`, `trailing` and `styles` to `create()` |
+| `src/components/Element/` | Live element embed for MDX (`<Element type="payment" hash="…" />`, server-rendered: never give it a `client:` directive, because a hydrated island re-renders its mount point after `micropay.js` has mounted and leaves the embed blank); loads `micropay.js` from the CDN host in `environment` (production by default) and passes `theme`, `decimalPoints`, `leading`, `middle`, `trailing` and `styles` to `create()` |
 | `src/pages/guide/example/*-persona.astro` | Standalone persona demos, embedded by iframe in `guide/personas.mdx` |
 | `src/pages/api/delegate.ts` | The only server route: `POST /api/delegate` validates a payment and delegates a persona through payment-node, signed in with the `DELEGATE_*` pair from `process.env` |
 | `src/styles/` | `main.css` imports `variables.css` (Brand OS tokens), `reset.css`, `typography.css`, `layout.css` |
