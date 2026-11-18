@@ -77,7 +77,12 @@ export default function Element({
   return (
     <div style={{ display: 'flex' }}>
       <script type="module" crossOrigin="anonymous" src={`https://${environment}/micropay.js`}></script>
-      <div id={`ref-${random}`}><iframe frameBorder="0" width="auto" height="auto" /></div>
+      {/* Rendered on the server only: use <Element … /> without a client:
+          directive. micropay.js mounts the element's iframe into this div once
+          the page has loaded. A hydrated island re-renders the div when its
+          JavaScript arrives after that mount, wiping the iframe and leaving
+          the embed blank. */}
+      <div id={`ref-${random}`} />
       {destroy && (
         <button id={`destroy-${random}`} style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
           <Destroy size={32} />

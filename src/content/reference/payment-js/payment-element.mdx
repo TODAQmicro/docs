@@ -10,7 +10,7 @@ import Element from "../../../components/Element";
 
 The payment element is a **pay button** for one item you sell. A shopper presses it, and a checkout opens over your page: they sign in with their email (or approve in the Qatom app), pay from their Qatom wallet, and top up by card if the wallet is short. When the payment completes, your page receives a `payment` event, and your server confirms it before handing over what was bought.
 
-<Element type="payment" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+<Element type="payment" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 
 You need two things from your Qatom account:
 
@@ -102,7 +102,7 @@ Values must be plain CSS: no `url(...)`, no `<`, `>` or `\`, at most 200 charact
 A dark page:
 
 <div style={{ background: "var(--demo-dark-page)", padding: "var(--space-4)", borderRadius: "var(--border-radius-lg)", display: "inline-block" }}>
-  <Element type="payment" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+  <Element type="payment" theme="dark" hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 </div>
 
 ```javascript
@@ -111,7 +111,7 @@ await micro.elements().create("payment", { hash: "<HASH>", theme: "dark" });
 
 Two decimals, a rounded button in your brand colour, and your own words:
 
-<Element type="payment" decimalPoints={2} trailing="Unlock article" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" client:load />
+<Element type="payment" decimalPoints={2} trailing="Unlock article" styles={{ colorBackground: "#4F46E5", borderRadius: "999px" }} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
 
 ```javascript
 await micro.elements().create("payment", {
