@@ -43,7 +43,7 @@ The public developer documentation site for Qatom payments, served at https://do
 | Path | Role |
 |---|---|
 | `src/pages/index.astro` | API reference: `@scalar/astro` in client render mode, Brand OS re-skin (`scalarTheme`), snippet picker limited to curl and Node fetch (`HIDDEN_CLIENTS`), theme sync with the site toggle |
-| `src/content/config.ts` | Collections `guide` and `reference`. Frontmatter: `title`, `description`, `pubDate` required; `updatedDate`, `heroImage`, `heroAlt` optional |
+| `src/content/config.ts` | Collections `guide` and `reference`. Frontmatter: `title`, `description`, `pubDate` required; `updatedDate`, `heroImage`, `heroAlt` optional; guides also take `order`, their position in the sidebar (lowest first; guides without one follow by title). Give a new guide an `order` |
 | `src/content/guide/*.mdx` | Guides, served at `/guide/<slug>/` |
 | `src/content/reference/{payment-js,payment-node}/` | SDK references, served at `/reference/<dir>/<slug>/` |
 | `src/pages/{guide,reference}/[...slug].astro` | Prerendered routes for the two collections |
