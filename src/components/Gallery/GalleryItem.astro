@@ -1,0 +1,73 @@
+---
+/**
+ * One cell of a <Gallery>: a live element in the slot, the option that
+ * produces it in `code`, and an optional line of explanation in `note`.
+ * `dark` puts the demo on the dark merchant page the dark theme is made for.
+ */
+interface Props {
+  code: string;
+  note?: string;
+  dark?: boolean;
+}
+
+const { code, note, dark = false } = Astro.props;
+---
+
+<figure class="gallery-item">
+  <div class:list={['stage', { dark }]}>
+    <slot />
+  </div>
+  <figcaption>
+    <code>{code}</code>
+    {note && <span class="note">{note}</span>}
+  </figcaption>
+</figure>
+
+<style>
+  .gallery-item {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+  }
+
+  .stage {
+    display: flex;
+    align-items: center;
+    /* Left-aligned: the element's iframe is wider than the button it draws,
+       so centring the iframe would push the button off centre. */
+    justify-content: flex-start;
+    min-height: 96px;
+    padding: var(--space-3);
+    background: var(--bg-surface);
+  }
+
+  .stage.dark {
+    background: var(--demo-dark-page);
+  }
+
+  figcaption {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-code);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  figcaption code {
+    padding: 0;
+    background: transparent;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .note {
+    color: var(--text-muted);
+  }
+</style>

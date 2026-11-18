@@ -1,0 +1,18 @@
+---
+/**
+ * A grid of live element demos for MDX pages, one <GalleryItem> per cell.
+ */
+---
+
+<div class="gallery">
+  <slot />
+</div>
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+</style>
