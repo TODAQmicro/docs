@@ -14,7 +14,8 @@ The public developer documentation site for Qatom payments, served at https://do
 | Run the built server | `node ./dist/server/entry.mjs` (what the image runs; honours `HOST` and `PORT`) |
 | Container image | `docker build -t docs .` after `npm run build`: the Dockerfile copies `dist/`, it does not build |
 | Lint | No linter yet. `npm run build` is the closest check |
-| Tests | No unit or e2e test runner yet. Verify with `npm run build` plus the page checks under Testing |
+| Tests | `npm test` after `npm run build`: `npm run test:unit` (vitest, `tests/unit/`) then `npm run test:e2e` (Playwright, `tests/e2e/`, against the built server). Once per machine: `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an installed Chromium |
+| Live embed check | `DOCS_E2E_LIVE=1 npx playwright test embeds` (loads production's CDN and API; never in CI) |
 
 ## Setup
 
@@ -68,8 +69,10 @@ The one way to do each thing here:
 
 ## Testing
 
-- There is no test runner and no linter. PR CI calls `npm run lint --if-present` and `npm run test --if-present`, which do nothing until those scripts exist; adding them to `package.json` puts them in CI. The first test runner added here is vitest (Playwright for page checks), wired as `npm test`.
-- The gate is `npm run build`: `astro check` type-checks `.astro`/`.ts`/`.tsx`, and the build fails on frontmatter that does not match `src/content/config.ts`. It must pass on Node 18 and 20 (the PR CI matrix).
+- The gate is `npm run build` then `npm test`, on Node 18 and 20 (the PR CI matrix, which installs Playwright's Chromium before `npm test`). `astro check` type-checks `.astro`/`.ts`/`.tsx`, and the build fails on frontmatter that does not match `src/content/config.ts`. There is no linter; PR CI's `npm run lint --if-present` does nothing until a `lint` script exists.
+- `tests/unit/` (vitest) reads the MDX from disk (`tests/lib/content.ts`) and enforces this file's content rules: required frontmatter, an integer and unique `order` per guide, no `[TOC]`, no `(#)` links, staging hosts only on a line labelled `Staging`, and no real-format credentials (`tqmt_…`, `mp_…`, a UUID under `"key"`, a client secret). A new rule gets a check there.
+- `tests/e2e/` (Playwright) starts `node ./dist/server/entry.mjs` twice on free ports, with `API_BASE_URL=http://127.0.0.1:9` and a dummy or empty `DELEGATE_*` pair, and aborts every request that leaves the local server. It checks each prerendered page (200, a heading), the sidebar's guide order, every internal link and `#anchor` (anchors on `/` are rendered by Scalar in the browser and are not checked), the theme toggle, the Scalar mount on `/` and `/api/delegate`'s 400, 502 and 500. `embeds.live.spec.ts` (every `div[id^="ref-"]` gets an iframe, the #22 regression) runs only with `DOCS_E2E_LIVE=1`.
+- `@playwright/test` is pinned to 1.61.1, the last release that supports Node 18; move it with the Node 24 PR.
 - Every change also needs: open each changed page in `npm run dev` (or `npm run preview`) in light and dark themes. For reference changes, `/` renders and the picker offers only curl and Node fetch.
 - Code samples: run shell samples against local or staging payment (at minimum `bash -n` on the block), and check paths, methods and fields against the OpenAPI document.
 - Links: the target slug must exist (`/reference/payment-node/usage/`; there is no `/reference/payment-node` page). No `(#)` placeholder links. `[TOC]` is not expanded (no remark plugins are configured), so do not add it.
@@ -79,7 +82,7 @@ The one way to do each thing here:
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `test.yml` (Node.js CI) | every `pull_request` | Node 18.x and 20.x: `npm ci`, `npm run build`, then `lint` and `test` if present |
+| `test.yml` (Node.js CI) | every `pull_request` | Node 18.x and 20.x: `npm ci`, `npm run build`, `lint` if present, `npx playwright install --with-deps chromium`, then `npm test` |
 | `production.yml` | push to `main` | `npm install` and `npm run build` on the runner, `docker build`, push the image, roll the production service and wait until it is stable |
 
 - Merging to `main` is a production release. There is no staging deployment of the site and no manual release step (no migrations).
@@ -126,7 +129,7 @@ There is no OpenAPI or Postman file here: `/` renders payment's live `/v4/openap
 
 | File | What it covers | Update it when |
 |---|---|---|
-| `README.md` | What the site is, how `/` is rendered and previewed (`PUBLIC_OPENAPI_URL`), the `.env.example` variables, content layout, dev, build and preview commands. Incomplete: no prerequisites, `API_BASE_URL`, testing or release process; this file takes precedence until it is fixed | Commands, setup, configuration or the content layout change |
+| `README.md` | What the site is, how `/` is rendered and previewed (`PUBLIC_OPENAPI_URL`), the `.env.example` variables, content layout, dev, build, preview and test commands. Incomplete: no prerequisites, `API_BASE_URL` or release process; this file takes precedence until it is fixed | Commands, setup, configuration or the content layout change |
 | `CLAUDE.md` (`AGENTS.md` is a symlink to it) | This guide, followed by the shared standards block. | See "Keeping documentation true" |
 | `.env.example` | `PUBLIC_OPENAPI_URL`, with commented local (port 8500) and staging values (unset means production), and the server-only `DELEGATE_CLIENT_ID` / `DELEGATE_CLIENT_SECRET` pair | A variable is added, renamed or removed |
 | `src/pages/index.astro` | The API reference at `/`: Scalar setup, theme and client picker. Endpoint text comes from payment | Scalar configuration or brand values change; endpoint wording changes in payment, not here |
