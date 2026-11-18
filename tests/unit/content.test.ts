@@ -1,6 +1,6 @@
 // Rules from CLAUDE.md for the MDX content collections, checked on the source
 // files without the Astro runtime. `astro build` already rejects frontmatter
-// that does not match src/content/config.ts; these catch the rest.
+// that does not match src/content.config.ts; these catch the rest.
 
 import { describe, expect, it } from 'vitest';
 import { loadEntries, type Entry } from '../lib/content';
@@ -55,7 +55,7 @@ describe('content collections', () => {
       }
     });
 
-    it('uses only the fields src/content/config.ts declares', () => {
+    it('uses only the fields src/content.config.ts declares', () => {
       const allowed = ['title', 'description', 'pubDate', 'updatedDate', 'heroImage', 'heroAlt'];
       if (entry.collection === 'guide') allowed.push('order');
       expect(Object.keys(entry.data).filter((key) => !allowed.includes(key))).toEqual([]);
