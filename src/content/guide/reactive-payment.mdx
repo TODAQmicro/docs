@@ -1,108 +1,211 @@
 ---
 title: Reactive payments
-description: Require payments after something has occured
+description: Pause a video after a free preview and ask the viewer to pay to keep watching
 pubDate: February 28, 2024
+updatedDate: November 18, 2026
+order: 5
 ---
 
-## Reactive Payments
+## Reactive payments
 
-In this example we are using a `<video>` element and the Media Source API to track a video's progress. After the video has played for a short period of time, pause, disable controls and ask the viewer to pay to continue.
+This guide lets a viewer watch the first seconds of a video for free. When the preview ends, the page pauses the video, hides its controls and shows a Qatom pay button over it. Once the viewer has paid and your server has confirmed the payment, the video carries on from where it stopped.
 
-[TOC]
+The same pattern works for any `<audio>` or `<video>` element, and for any other moment in your page where you want to ask for a payment.
 
-#### Assumptions
+### Before you start
 
-We assume you have already gone through the [Getting Started guide](#). As a result, we also assume you already have obtained your account details including your **public secret**, **client secret** and **client secret ID**.
+You need:
 
-We assume you have a basic understanding of JavaScript, and the [Media Source API](https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API).
+- your account's **public secret**, and an **access token** for your server. [Getting started](/guide/getting-started/) shows how to get both.
+- the **hash** of the item (a commodity) the viewer pays for. [Getting started](/guide/getting-started/) shows how to create one, and [payment-node](/reference/payment-node/usage/) can create one from Node.
+- a page where you control the `<video>` or `<audio>` element itself. A player you only embed with a third-party snippet does not give you its media events, so it cannot pause at the right moment.
 
-### 1. Integrating Micropayments Library into Your Project
+### How it works
 
-Choose an import mechanism that suits your project requirements and integrate it into your website or application.
+1. The page creates the pay button when it loads and mounts it in an overlay that stays hidden.
+2. While the video plays, the browser fires `timeupdate` several times a second. When the playback position reaches the end of the preview, the page pauses the video, turns its controls off and shows the overlay.
+3. The viewer presses the pay button. Checkout opens over the page, and they sign in and pay.
+4. payment-js dispatches a `payment` event on `document`. The page sends its `detail` to your server, which confirms the payment with Qatom.
+5. Only when your server says the payment is good does the page hide the overlay, turn the controls back on and resume.
 
-You can use either from a CDN:
+Checkout only opens when the viewer presses the pay button: payment-js has no method that opens it from code. That is why the overlay shows the button rather than opening checkout by itself.
+
+### The page
+
+Replace `<PUBLIC_SECRET>` with your account's public secret and `<HASH>` with your item's hash, both in the script.
 
 ```html
-<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
-```
+<div class="player">
+  <video id="video" src="/media/episode-1.mp4" controls playsinline></video>
 
-<p>
-  <strong>Note</strong>: `type="module"` and `crossorigin="anonymous"` are required attributes.
-</p>
+  <div id="paywall" class="paywall" hidden>
+    <p>Enjoying it? Pay to keep watching.</p>
+    <div id="pay"></div>
+    <p id="paywall-error" role="alert" hidden></p>
+  </div>
+</div>
 
-Or through `npm` and have the bundler of your choice include it in the build files.
-
-```bash
-npm install --save @todaqmicro/payment-js
-```
-
-### 2. Setup your audio or video source
-
-Your audio or video source will come in the form of an `<audio>` or `<video>` tag. If you are using a library to display your media, you will need to figure out how it hooks into either of the two HTML tags. **Without access to the media elements, such as with an embed snippet, you will not be able to capture the correct events to initiate the payment flow.**
-
-
-```javascript
-const video = document.querySelector('video');
-
-video.addEventListener('play', () => {
-  // ...
-});
-
-video.addEventListener('pause', () => {
-  // ...
-});
-```
-
-
-### 3. Generate Payment Element
-
-Next we need to generate a payment element. In this example we assume you have already created a commodity with the [Payment Node.JS SDK](#).
-
-```javascript
-const micro = await loadMicroPayments(
-  // Replace <PUBLIC_SECRET> with your accounts' public secret.
-  "<PUBLIC_SECRET>",
-  { apiVersion: 'main' }
-);
-
-const elements = micro.elements();
-const element = await elements.create('payment', {
-  // Replace <HASH> with the commodities hash.
-  hash: '<HASH>',
-  theme: "light",
-  styles: {
-    colorPrimary: '#000000',
-    colorBackground: '#FDB902',
-    borderRadius: '0',
-  },
-});
-```
-
-Replace `<PUBLIC_SECRET>` with your account’s public secret, and `<HASH>` with the hash ID. Checkout the [Getting Started guide](#) for details on how to retrieve your account secrets.
-
-
-### 4. Based on an event, toggle payment flow
-
-```javascript
-const timeout = setInterval(() => {
-  if (video.currentTime >= 15) { // If the video is at 15 seconds or greater
-
-    video.controls = false;
-    video.pause();
-
-    element.toggle();
-
-    clearInterval(timeout);
-
+<style>
+  .player {
+    position: relative;
+    max-width: 640px;
   }
-}, 100); // 100 microseconds
+
+  .player video {
+    display: block;
+    width: 100%;
+  }
+
+  .paywall {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgb(0 0 0 / 0.75);
+    color: #fff;
+    text-align: center;
+  }
+
+  .paywall[hidden] {
+    display: none;
+  }
+</style>
+
+<script type="module">
+  import "https://cdn.m.todaq.net/micropay.js";
+
+  const HASH = "<HASH>";
+  const FREE_SECONDS = 15;
+
+  const video = document.querySelector("#video");
+  const paywall = document.querySelector("#paywall");
+  const paywallError = document.querySelector("#paywall-error");
+
+  let paid = false;
+
+  function showError(message) {
+    paywallError.textContent = message;
+    paywallError.hidden = false;
+  }
+
+  // 1. Create the pay button now, so it is ready when the preview ends.
+  const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+  const element = await micro.elements().create("payment", { hash: HASH });
+
+  if (element) {
+    element.mount("#pay");
+  } else {
+    // create() resolves to null when the item cannot be loaded,
+    // for example when the hash does not exist.
+    showError("Payments are unavailable right now. Please try again later.");
+  }
+
+  // 2. Stop at the end of the preview.
+  function lock() {
+    video.pause();
+    video.controls = false;
+    paywall.hidden = false;
+  }
+
+  function previewIsOver() {
+    return !paid && video.currentTime >= FREE_SECONDS;
+  }
+
+  video.addEventListener("timeupdate", () => {
+    if (previewIsOver()) {
+      lock();
+    }
+  });
+
+  // Also catch playback started another way, such as a keyboard shortcut.
+  video.addEventListener("play", () => {
+    if (previewIsOver()) {
+      lock();
+    }
+  });
+
+  // 3. Resume only once your server has confirmed the payment.
+  document.addEventListener("payment", async (event) => {
+    const { hash, nonce, timestamp } = event.detail;
+
+    if (hash !== HASH) {
+      return;
+    }
+
+    paywallError.hidden = true;
+
+    let response;
+    try {
+      response = await fetch("/purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hash, nonce, timestamp }),
+      });
+    } catch {
+      showError("We could not reach the server to confirm your payment. Please try again.");
+      return;
+    }
+
+    if (!response.ok) {
+      showError("We could not confirm your payment.");
+      return;
+    }
+
+    paid = true;
+    paywall.hidden = true;
+    video.controls = true;
+
+    // The browser may refuse to start playback on its own.
+    // The controls are back, so the viewer can press play.
+    video.play().catch(() => {});
+  });
+</script>
 ```
 
-### 5. Payment completed, resume
+A few details:
+
+- `timeupdate` fires about four times a second, so the video stops within a fraction of a second after `FREE_SECONDS`. A viewer who drags the playhead past the preview is stopped by the same check.
+- The button is mounted while the overlay is hidden, so there is no wait when the preview ends. You can also create and mount it inside `lock()` instead; it then appears once payment-js has loaded the item.
+- When checkout opens, the button's iframe switches to `position: fixed` and covers the whole window. Do not put `transform`, `filter` or `perspective` on the overlay or the elements around it: any of them makes the iframe cover only that element instead of the window.
+- The `payment` event says which item was paid for in `hash`, so a page with more than one button can tell them apart. Every field of `detail` is described in [the `payment` event](/reference/payment-js/payment-element/#the-payment-event).
+
+If you build with a bundler, install payment-js with `npm install @todaqmicro/payment-js` and replace the `import` line with `import { loadMicroPayments } from "@todaqmicro/payment-js";`.
+
+### Confirm the payment on your server
+
+Anyone can dispatch a `payment` event in their own browser, so the page above does not resume until `/purchases` on your server answers `200`. That route redeems the payment with Qatom (`POST /v4/payment/:hash/validate`), using your account's access token, which never goes in the page. For example, with Express:
 
 ```javascript
-document.addEventListener('purchase', () => {
-  video.play();
-  video.controls = true;
+app.post("/purchases", express.json(), async (req, res) => {
+  const { hash, nonce, timestamp } = req.body ?? {};
+
+  if (hash !== "<HASH>" || typeof nonce !== "string" || !Number.isInteger(timestamp)) {
+    return res.status(400).end();
+  }
+
+  const response = await fetch(`https://pay.m.todaq.net/v4/payment/${hash}/validate`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ nonce, timestamp }),
+  });
+
+  // 200: the payment was valid and is now used. 400: it does not exist or was already redeemed.
+  res.status(response.ok ? 200 : 402).end();
 });
 ```
+
+Redeeming uses the payment up, so the same `nonce` cannot unlock the video twice. [Confirm each payment on your server](/reference/payment-js/payment-element/#confirm-each-payment-on-your-server) explains both validate calls and their responses.
+
+A pause in the browser only asks for payment: someone who edits the page can skip it. If the rest of the video must stay private, keep it off the page until the viewer has paid, for example by having `/purchases` answer with the address of the full video once the payment is redeemed, and setting `video.src` to it before resuming.
+
+### Next steps
+
+- [Payment element](/reference/payment-js/payment-element/): every `create()` option and style, to make the button match your player.
+- [Transparent payments](/guide/transparent/): a pay button over existing content.
