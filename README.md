@@ -58,6 +58,29 @@ npm run build        # Runs TypeScript check + builds static/server files
 npm run preview      # Preview production build locally
 ```
 
+### Tests
+```bash
+npm run build                    # The page checks run against the built site
+npx playwright install chromium  # Once per machine
+npm test                         # test:unit (vitest) then test:e2e (Playwright)
+```
+
+- `npm run test:unit` (`tests/unit/`) checks the MDX content: required
+  frontmatter, unique guide `order`, no `[TOC]` or `(#)` links, staging hosts
+  only in a labelled environment list, and no real-format credentials.
+- `npm run test:e2e` (`tests/e2e/`) starts `node ./dist/server/entry.mjs` on a
+  free port, with `/api/delegate` pointed at a closed local port, blocks every
+  request that leaves the local server, and checks each page, the sidebar
+  order, internal links and anchors, the theme toggle, the API reference mount
+  and `/api/delegate`'s error answers.
+- `DOCS_E2E_LIVE=1 npx playwright test embeds` also checks that the live
+  element embeds mount. It loads production's CDN and API, so CI does not run it.
+- To use a Chromium that is already installed, set
+  `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its path.
+
+PR CI (`.github/workflows/test.yml`) runs the build and `npm test` on Node 18
+and 20.
+
 ### Architecture
 - **SSR Mode**: Configured for server-side rendering (`output: "server"`)
 - **Node Adapter**: Uses standalone Node.js adapter for deployment
