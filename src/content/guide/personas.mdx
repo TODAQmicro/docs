@@ -113,7 +113,7 @@ The signup demo below runs on this site's own route, `/api/delegate`, which does
 
 ## Check for a pass in the browser
 
-On the page that should be for holders only, mount a [verify element](/reference/payment-js/verify-element/) for your persona, with the range of issue numbers that may enter:
+On the page that should be for holders only, mount a verify element for your persona, with the range of issue numbers that may enter:
 
 ```html
 <div id="verify"></div>
@@ -139,7 +139,7 @@ On the page that should be for holders only, mount a [verify element](/reference
 </script>
 ```
 
-Set `issueMax`: without it, only issue number 1 passes. The `verified` event is for your page, not proof your server can rely on; the [verify element reference](/reference/payment-js/verify-element/#checking-the-result-on-your-server) covers checking on the server, every option and the events.
+Set `issueMax`: without it, only issue number 1 passes. The `verified` event is for your page only, not proof your server can rely on: there is no server-side check an account can make today, so don't unlock anything valuable on the event alone.
 
 ## Examples
 
