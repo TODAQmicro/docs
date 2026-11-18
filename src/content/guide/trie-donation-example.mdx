@@ -2,6 +2,7 @@
 title: T.R.I.E. Donation Page Example
 description: Complete working example of a donation page using TodaQ micropayments
 pubDate: October 20, 2025
+updatedDate: November 18, 2026
 ---
 
 ## T.R.I.E. Donation Page Example
@@ -42,17 +43,17 @@ The JavaScript code initializes the payment elements after the DOM is fully load
 
 ```javascript
 document.addEventListener("DOMContentLoaded", async () => {
-  // Initialize MicroPayments with merchant public key
+  // Initialize MicroPayments with your account's public secret
   const micro = await loadMicroPayments(
-    "mp_1d1ea49e1bfe48a9bc3ff8d06b5c3afc", // Merchant Public Key | Public Secret
-    { apiVersion: 'main' }                 // API Configuration
+    "<PUBLIC_SECRET>",      // Your account's public secret
+    { apiVersion: 'main' }  // API Configuration
   );
 
   const elements = micro.elements();
 
   // Create payment element
   const element = await elements.create('payment', {
-    hash: 'fe490b57-9aa0-4cbc-886f-db1fc1c895e9', // Unique payment identifier | commodity hash
+    hash: '<HASH_5_DOLLARS>', // Commodity hash of the $5 donation
     theme: "light",
     styles: {
       colorPrimary: '#000000',
@@ -60,20 +61,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       borderRadius: '0',          // Square corners
     },
   });
-  element.mount("#donate5");
+
+  // create() resolves to null when the hash cannot be loaded
+  if (element) {
+    element.mount("#donate5");
+  }
 });
 ```
+
+Replace `<PUBLIC_SECRET>` with your account's public secret and each `<HASH_…>` with the commodity hash of that donation amount (`<HASH_50_CENTS>` for `#donate05`, `<HASH_5_CENTS>` for `#donate005`). Both are public by design: they end up in the page that every visitor loads.
 
 ### 4. Payment Event Handling
 
-Handle successful payments by listening for the global purchase event:
+Handle successful payments by listening for the `payment` event that payment-js dispatches on `document`:
 
 ```javascript
-// Global event listener for successful payments
-document.addEventListener('purchase', async (nonce) => {
+// One listener on document fires for every payment button on the page
+document.addEventListener('payment', (event) => {
+  // event.detail: { hash, hostname, nonce, timestamp }
+  // event.detail.hash tells you which donation was paid
   location.assign('thanks.html'); // Redirect to thank you page
 });
 ```
+
+A redirect to a thank-you page is enough here because a donation delivers nothing. A site that hands over something in return for a payment must first confirm the payment on its server: see [Confirm each payment on your server](/reference/payment-js/payment-element/#confirm-each-payment-on-your-server).
 
 ### 5. Key Implementation Patterns
 
@@ -86,7 +97,7 @@ document.addEventListener('purchase', async (nonce) => {
    - Mount elements to specific DOM containers
 
 3. **Event Handling**:
-   - Listens for global purchase events
+   - Listens for the global `payment` event, which fires for any of the page's buttons
    - Redirects to thanks.html on successful payment
 
 4. **Styling Consistency**:
@@ -96,7 +107,7 @@ document.addEventListener('purchase', async (nonce) => {
 
 ### 6. Considerations
 
-- **Merchant ID**: The public secret is hardcoded in this example.
+- **Public secret**: The public secret is written into the page in this example, which is fine because it is public by design.
 - **Commodity Hashes**: Each donation amount uses a different commodity hash, representing separate products in your Twin (digital wallet)
 - **Multiple Elements**: This example shows how to create multiple payment elements on the same page
 
