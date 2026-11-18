@@ -2,6 +2,7 @@
 title: Vite + React Donation Page Example
 description: Implementation guide for a donation page using TodaQ micropayments with Vite + React + TypeScript
 pubDate: October 20, 2025
+updatedDate: November 18, 2026
 order: 3
 ---
 
@@ -29,6 +30,8 @@ npm install --save-dev events
 npm install react-router-dom
 ```
 
+payment-js imports `EventEmitter` from the `events` package but does not list it as a dependency, so install `events` yourself; without it, Vite substitutes an empty stub for Node's built-in `events` and the elements fail to load.
+
 ### 2. Vite Configuration
 
 Update your `vite.config.ts` with the following minimal configuration:
@@ -39,13 +42,15 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      'events': 'events' // Alias events module for browser compatibility
-    }
-  }
+  build: {
+    dynamicImportVarsOptions: {
+      exclude: [], // Let Vite bundle payment-js's dynamic import of its elements
+    },
+  },
 })
 ```
+
+`loadMicroPayments` loads its elements with a dynamic import built from the API version. By default Vite's production build leaves such imports in `node_modules` unbundled, so `npm run dev` works but the site from `npm run build` fails with "Failed to fetch dynamically imported module". The `exclude: []` setting makes the build include them.
 
 ### 3. Environment Variables
 
@@ -84,7 +89,6 @@ useEffect(() => {
         }
       );
       setMicro(micro);
-      console.log("Payment engine initialized:", micro);
     } catch (error) {
       console.error("Failed to initialize payment engine:", error);
     } finally {
@@ -133,7 +137,8 @@ const element = await elements.create('payment', {
   },
 });
 const container = document.getElementById(containerId);
-if (container) element.mount(container);
+// create() resolves to null when the hash cannot be loaded
+if (element && container) element.mount(container);
 ```
 
 To create multiple payment elements, dynamically generate unique container IDs using a hash like this::
@@ -146,14 +151,34 @@ The donation element then repeats for $0.50 and $0.05 - each uses different hash
 
 #### Payment Event Handling
 
-Global event listener for successful payments:
+payment-js dispatches a `payment` event on `document` when a payment completes. One listener fires for all three buttons, so read `event.detail.hash` to tell which donation was paid:
 
 ```tsx
-// Global event listener for successful payments
-document.addEventListener('payment', async (event) => {
-  navigate(`/thank-you?amount=${amount}`); // Redirect to thank you page based on amount
-});
+const HASH_5 = import.meta.env.VITE_TODAQ_HASH_5;
+const HASH_05 = import.meta.env.VITE_TODAQ_HASH_05;
+const HASH_005 = import.meta.env.VITE_TODAQ_HASH_005;
+
+const AMOUNTS: Record<string, number> = {
+  [HASH_5]: 5.0,
+  [HASH_05]: 0.5,
+  [HASH_005]: 0.05,
+};
+
+useEffect(() => {
+  const onPayment = (event: Event) => {
+    // event.detail: { hash, hostname, nonce, timestamp }
+    const { hash } = (event as CustomEvent<{ hash: string }>).detail;
+    const amount = AMOUNTS[hash];
+    if (amount !== undefined) {
+      navigate(`/thank-you?amount=${amount}`); // Redirect to thank you page for the amount paid
+    }
+  };
+  document.addEventListener("payment", onPayment);
+  return () => document.removeEventListener("payment", onPayment);
+}, [navigate]);
 ```
+
+A redirect to a thank-you page is enough here because a donation delivers nothing. A site that hands over something in return for a payment must first confirm the payment on its server: see [Confirm each payment on your server](/reference/payment-js/payment-element/#confirm-each-payment-on-your-server).
 
 #### PaymentButton Component Props Usage in Donation Page
 
@@ -183,8 +208,8 @@ The PaymentButton component receives props from Donation.tsx with environment va
    - Mount elements to specific containers
 
 3. **Event Handling**:
-   - Listens for global `payment` events
-   - Redirects to thank-you page with amount parameter on successful payment
+   - Listens for global `payment` events, which fire for any of the page's buttons
+   - Looks up the amount from `event.detail.hash` and redirects to the thank-you page with it
 
 4. **Styling Consistency**:
    - Black text on light background
@@ -202,11 +227,11 @@ The PaymentButton component receives props from Donation.tsx with environment va
 
 ### 7. Dependencies
 
-- `@todaqmicro/payment-js` npm package (v0.3.3+)
+- `@todaqmicro/payment-js` npm package (this guide was tested with 0.5.4)
 - Vite environment variable support
 - React hooks for state management
 - React Router DOM for navigation
 - DOM event listeners for payment success handling
-- `events` package (dev dependency) for browser compatibility
+- `events` package (dev dependency), which payment-js needs but does not install
 
 This implementation guide demonstrates the core concepts covered in the [Getting Started guide](/guide/getting-started), showing how to integrate multiple payment options with consistent styling and proper event handling in a modern Vite + React + TypeScript application.
