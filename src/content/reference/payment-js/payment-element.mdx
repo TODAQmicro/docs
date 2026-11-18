@@ -81,7 +81,7 @@ Pass options to `create("payment", { hash, ... })`. Only `hash` is required; the
 | `leading` | string | the Qatom mark | [Label](#label-leading-middle-trailing) |
 | `middle` | string | `"Pay"` | [Label](#label-leading-middle-trailing) |
 | `trailing` | string | — | [Label](#label-leading-middle-trailing) |
-| `decimalPoints` | number, 1–6 | `3` | [Price](#price-decimalpoints) |
+| `decimalPoints` | number, 0–6 | `3` | [Price](#price-decimalpoints) |
 | `styles` | object | — | [Look](#look-styles) |
 
 ### Item: `hash`
@@ -127,11 +127,11 @@ When `trailing` is set, `middle` and the price are not shown. Keep label text to
 
 ### Price: `decimalPoints`
 
-How many decimals the price shows, from 1 to 6. The default is 3. `0` has no effect yet: the price keeps three decimals.
+How many decimals the price shows, from 0 to 6. The default is 3. From npm, `0` needs payment-js 0.5.5 or later; older versions drop it and keep three decimals.
 
 <Gallery>
-  <GalleryItem code={`decimalPoints: 1`}>
-    <Element type="payment" decimalPoints={1} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
+  <GalleryItem code={`decimalPoints: 0`} note="Whole dollars: the $0.05 demo item rounds to $0.">
+    <Element type="payment" decimalPoints={0} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
   </GalleryItem>
   <GalleryItem code={`decimalPoints: 2`}>
     <Element type="payment" decimalPoints={2} hash="adedc7a6-3a65-453a-a1a2-0f83a3e8da1a" />
