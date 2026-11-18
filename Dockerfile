@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:24-alpine
 
 RUN mkdir /service
 WORKDIR /service
@@ -6,7 +6,7 @@ WORKDIR /service
 ARG NPM_TOKEN
 COPY . .
 
-RUN NODE_ENV=production npm install --production
+RUN NODE_ENV=production npm ci --omit=dev
 RUN rm .npmrc
 
 ENV HOST=0.0.0.0

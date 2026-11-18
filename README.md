@@ -2,6 +2,13 @@
 
 This is the documentation site for TODAQ Micro's payment system, built with Astro and deployed to `https://docs.m.todaq.net`.
 
+## Prerequisites
+
+- **Node 24**, the version in `.nvmrc` (`nvm use` picks it up; `shell.nix`
+  provides it for nix and direnv users). `package.json` requires `>=24`, and
+  CI, the deploy and the container image (`node:24-alpine`) all use it.
+- npm, as shipped with Node 24. Install with `npm ci`.
+
 ## The API reference
 
 The HTTP API reference at `/` is not written here. It is rendered by
@@ -78,8 +85,8 @@ npm test                         # test:unit (vitest) then test:e2e (Playwright)
 - To use a Chromium that is already installed, set
   `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its path.
 
-PR CI (`.github/workflows/test.yml`) runs the build and `npm test` on Node 18
-and 20.
+PR CI (`.github/workflows/test.yml`) runs the build and `npm test` on the Node
+version in `.nvmrc` (24).
 
 ### Architecture
 - **SSR Mode**: Configured for server-side rendering (`output: "server"`)

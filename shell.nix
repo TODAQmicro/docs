@@ -6,7 +6,7 @@ pkgs.mkShell {
     pkgs.awscli2
     pkgs.httpie
     pkgs.jq
-    pkgs.nodejs_20
+    pkgs.nodejs_24
     pkgs.typescript
     pkgs.wget
   ];
