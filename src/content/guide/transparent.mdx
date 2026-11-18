@@ -1,74 +1,178 @@
 ---
 title: Transparent payment button
-description: Quick intro to putting a payment button overtop of something else
+description: Lay an invisible Qatom pay button over part of your own design, such as a card's caption bar, and know the limits of doing so.
 pubDate: February 28, 2024
+updatedDate: November 18, 2026
+order: 4
 ---
 
 ## Transparent payment button
 
-In this guide we will take advantage of the Payment Element's theme and styling options to create a transparent button overtop of some other existing element on a page. This enables the implementer to make almost anything micropayable.
+Sometimes the pay button should not look like a button at all: you already have a product card, a banner or a price tag, and you want pressing it to open Qatom checkout. This guide shows how to lay a transparent payment element over a strip of your own design, what that strip can and cannot cover, and what you must add so keyboard and screen reader users can still find it.
 
-[TOC]
+### What you can cover
 
-### 1. Integrating Micropayments Library into Your Project
+The payment element is a button inside an iframe, so your page cannot click it for the shopper or make it larger than the element allows. Within those rules:
 
-Choose an import mechanism that suits your project requirements and integrate it into your website or application.
+- **Width: any.** You can stretch the iframe across the full width of what it covers, and make the button inside it at least as wide.
+- **Height: 44px, always.** The button is a fixed 44px tall, and no option changes that. Anything taller than 44px can only be partly covered: a click on the rest of an enlarged iframe lands on nothing and does not open checkout, and it also stops the click reaching your page. So cover a 44px strip, such as a card's caption, a price bar or a "Buy" row, not a whole image.
 
-You can use either from a CDN:
+If you want the whole of a large area to open checkout, use a visible pay button next to it instead; see the [Payment Element](/reference/payment-js/payment-element/) page for how to style one.
+
+### 1. Mark up the area to cover
+
+Give the card `position: relative`, and put an empty mount target over the strip you want to make payable. Here it covers the 44px caption at the bottom of a card.
 
 ```html
-<script type="module" crossorigin="anonymous" src="https://cdn.stage.m.todaq.net/micropay.js"></script>
+<div class="card">
+  <img src="/prints/sunset.jpg" alt="Sunset over the bay" />
+  <div class="caption">Sunset print, $0.50</div>
+  <div id="pay" class="pay-overlay"></div>
+</div>
 ```
 
-<p>
-  <strong>Note</strong>: `type="module"` and `crossorigin="anonymous"` are required attributes.
-</p>
+```css
+.card {
+  position: relative;
+  width: 320px;
+}
 
-Or through `npm` and have the bundler of your choice include it in the build files.
+.caption {
+  height: 44px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
 
-```bash
-npm install --save @todaqmicro/payment-js
-```
+/* The strip the button covers: the caption, full width, 44px tall. */
+.pay-overlay {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 44px;
+}
 
-### 2. Setup Payment client
+/* Stretch the element's iframe over the whole strip. payment-js sizes it
+   to the button plus 100px; these rules override that. While checkout is
+   open, the same rules make it fill the window. */
+.pay-overlay iframe {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
 
-Next we need to generate a payment element. In this example we assume you have already created a commodity with the [Payment Node.JS SDK](#).
-
-```javascript
-const micro = await loadMicroPayments(
-  // Replace <PUBLIC_SECRET> with your accounts' public secret.
-  "<PUBLIC_SECRET>",
-  { apiVersion: 'main' }
-);
-
-const elements = micro.elements();
-```
-
-### 3. Generate transparent Payment Element
-
-```javascript
-const element = await elements.create('payment', {
-  // Replace <HASH> with the commodities hash.
-  hash: '<HASH>',
-  theme: "light",
-  styles: {
-    colorPrimary: 'transparent',
-    colorBackground: 'transparent',
-  },
-});
-```
-
-#### Theme and Style options
-
-**TBA**
-
-### 4. Mounting Payment Element on Your Webpage
-
-Designate a suitable location on your webpage to mount the payment element. Consider user experience and accessibility when placing the payment interface to maximize conversion rates.
-
-```javascript
-if (element) {
-  element.mount("#signup-submit");
+/* A visible focus ring, which the invisible button cannot draw itself
+   (see step 4). */
+.pay-overlay.is-focused {
+  outline: 3px solid #1a7f64;
+  outline-offset: -3px;
 }
 ```
 
+Do not give the card, or anything around it, a `transform`, `filter` or `perspective`. While checkout is open the iframe covers the window with `position: fixed`, and any of those properties on an ancestor would trap it inside the card instead. `overflow: hidden` on the card is fine.
+
+### 2. Load payment-js
+
+The sample in step 3 imports it from the CDN (`https://cdn.m.todaq.net/micropay.js`), which defines `loadMicroPayments`. If you build with a bundler, install the package instead and import `loadMicroPayments` from `@todaqmicro/payment-js`:
+
+```bash
+npm install @todaqmicro/payment-js
+```
+
+### 3. Create a transparent button and mount it
+
+```html
+<script type="module">
+  import "https://cdn.m.todaq.net/micropay.js";
+
+  const micro = await loadMicroPayments("<PUBLIC_SECRET>", { apiVersion: "main" });
+
+  const element = await micro.elements().create("payment", {
+    hash: "<HASH>",
+    // The button's accessible name: what a screen reader announces.
+    trailing: "Buy the sunset print",
+    // A space in place of the Qatom mark, whose accent colour
+    // the styles below cannot make transparent.
+    leading: " ",
+    styles: {
+      colorBackground: "transparent",
+      colorPrimary: "transparent",
+      // Wider than the iframe, so the button fills the whole strip.
+      padding: "0 100vw 0 0",
+    },
+  });
+
+  if (element) {
+    element.mount("#pay");
+  }
+</script>
+```
+
+Replace `<PUBLIC_SECRET>` with your account's public secret and `<HASH>` with the item's hash. `create()` resolves to `null` when the item cannot be loaded, so check for it before mounting.
+
+What each option does here:
+
+- `colorBackground` and `colorPrimary` set to `transparent` hide the button's fill and its label. The label is still there for assistive technology.
+- `trailing` replaces the visible label, price included. Because the label is invisible, this is now only the button's accessible name, so make it say what the shopper is buying. Your own design must show the price.
+- `leading: " "` replaces the Qatom mark. Without it, the mark's accent-coloured arc stays visible, since `colorPrimary` does not change it.
+- `padding: "0 100vw 0 0"` makes the button wider than its iframe (`vw` inside the iframe is the iframe's width), so the whole strip is clickable. The height stays 44px whatever the padding.
+
+Every `create()` option and `styles` key is described under [Options](/reference/payment-js/payment-element/#options) on the Payment Element page.
+
+### 4. Show keyboard focus
+
+The button can be reached with Tab like any other, and Enter opens checkout. It draws its own focus ring, but the ring sits just outside the button, where the iframe clips it, so a keyboard user sees nothing. Your page cannot style the inside of the iframe, and CSS such as `:focus-within` on the card does not match while focus is inside a cross-origin frame. Toggle a class from script instead:
+
+```javascript
+const overlay = document.querySelector("#pay");
+
+// When focus moves into the element's iframe, this window loses focus
+// and the iframe becomes the active element.
+window.addEventListener("blur", () => {
+  setTimeout(() => {
+    overlay.classList.toggle("is-focused", document.activeElement === overlay.querySelector("iframe"));
+  });
+});
+
+window.addEventListener("focus", () => {
+  overlay.classList.remove("is-focused");
+});
+```
+
+The ring also stays after a mouse click until focus leaves the button. That is expected: focus is on the button.
+
+### 5. Deliver what was bought
+
+When the payment completes, payment-js dispatches a `payment` event on `document`. Its `detail` carries `hash`, `nonce`, `timestamp` and `hostname`.
+
+```javascript
+document.addEventListener("payment", async (event) => {
+  const { hash, nonce, timestamp } = event.detail;
+
+  if (hash !== "<HASH>") {
+    return;
+  }
+
+  const response = await fetch("/purchases", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ hash, nonce, timestamp }),
+  });
+
+  if (response.ok) {
+    // Deliver the print.
+  }
+});
+```
+
+The event is not proof of payment: anyone can dispatch one. Your server must confirm each payment with Qatom before it delivers; see [Confirm each payment on your server](/reference/payment-js/payment-element/#confirm-each-payment-on-your-server).
+
+### Limits
+
+- The clickable area is at most 44px tall. Taller areas cannot be covered.
+- payment-js sizes the iframe 100px wider than the button. The `.pay-overlay iframe` rule above replaces that with the strip's width; without it, an invisible iframe can stick out past your design and catch clicks meant for your page.
+- While checkout is open, the element's iframe covers the whole window. It shrinks back to the strip when checkout closes.
+- Escape does not close checkout; the shopper closes it with its close button or by clicking outside it.
+- Your design, not the button, must show the price and make clear that pressing it starts a payment.

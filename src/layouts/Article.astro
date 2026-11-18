@@ -8,7 +8,10 @@ import Scripts from '../components/Scripts.astro';
 
 import '../styles/main.css';
 
-const guides = [ ...await getCollection('guide') ];
+const guides = (await getCollection('guide')).sort((a, b) =>
+  (a.data.order ?? Infinity) - (b.data.order ?? Infinity) ||
+  a.data.title.localeCompare(b.data.title)
+);
 const allReferences = [ ...await getCollection('reference') ];
 
 // The HTTP API reference is no longer written by hand: it is rendered by Scalar
