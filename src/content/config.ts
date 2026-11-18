@@ -8,6 +8,9 @@ const guide = defineCollection({
 		updatedDate: z.coerce.date().optional(),
 		heroImage: z.string().optional(),
     heroAlt: z.string().optional(),
+		// Position in the sidebar's User Guides list, lowest first. Guides
+		// without one follow, by title.
+		order: z.number().int().optional(),
 	}),
 });
 
