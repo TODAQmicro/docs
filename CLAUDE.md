@@ -1,6 +1,6 @@
 # docs
 
-The public developer documentation site for Qatom payments, served at https://docs.m.todaq.net and read by merchants and developers integrating the platform. The home page `/` is the HTTP API reference: Scalar renders the payment API's own OpenAPI document (`/v4/openapi.json`) in the browser, so it always describes what the API is running. Around it sit hand-written MDX guides, SDK references for payment-js (the browser loader for the payment, auth, verify and payback elements, in the spirit of stripe-js) and payment-node, live element demos, and one server route that backs the persona demo. Stack: Astro 7 with React islands and the `@astrojs/node` standalone adapter (`output: "server"`); guide and reference pages are prerendered at build; TypeScript uses Astro's strict config.
+The public developer documentation site for Qatom payments, served at https://docs.m.todaq.net and read by merchants and developers integrating the platform. The home page `/` is the HTTP API reference: Scalar renders the payment API's own OpenAPI document (`/v4/openapi.json`) in the browser, so it always describes what the API is running. Around it sit hand-written MDX guides, SDK references for payment-js (the browser loader for the payment, auth, verify and payback elements, in the spirit of stripe-js), and live element demos. There are no server routes. Stack: Astro 7 with React islands and the `@astrojs/node` standalone adapter (`output: "server"`); guide and reference pages are prerendered at build; TypeScript uses Astro's strict config.
 
 ## Commands
 
@@ -21,21 +21,19 @@ The public developer documentation site for Qatom payments, served at https://do
 
 - **Node 24**, pinned in `.nvmrc` and required by `engines` in `package.json`. Both workflows take it from `.nvmrc` through `actions/setup-node`, the image builds from `node:24-alpine` and `shell.nix` provides `nodejs_24`. A Node version change updates those five places together.
 - **Optional nix:** `.envrc` runs `use nix` for direnv users; `shell.nix` supplies Node 24 and a few CLI tools.
-- **No GitHub Packages auth.** `@todaqmicro/payment-js` and `@todaqmicro/payment-node` install from public npm. If your `~/.npmrc` maps the `@todaqmicro` scope to GitHub Packages, npm looks for them there instead; add `--@todaqmicro:registry=https://registry.npmjs.org` to the install. The tracked `.npmrc` is empty; keep it free of registries and tokens, and do not delete it: the Dockerfile runs `rm .npmrc`, so `docker build` fails without it.
+- **No GitHub Packages auth.** `@todaqmicro/payment-js` installs from public npm. If your `~/.npmrc` maps the `@todaqmicro` scope to GitHub Packages, npm looks for it there instead; add `--@todaqmicro:registry=https://registry.npmjs.org` to the install. The tracked `.npmrc` is empty; keep it free of registries and tokens, and do not delete it: the Dockerfile runs `rm .npmrc`, so `docker build` fails without it.
 - **No local services needed.** By default the reference reads production's OpenAPI document. To preview API reference changes, run payment locally (port 8500) or use staging and set `PUBLIC_OPENAPI_URL`.
-- **.env:** `cp .env.example .env` and uncomment one `PUBLIC_OPENAPI_URL` line. Astro loads `.env` into `import.meta.env` in dev and build, not into `process.env`; restart the dev server after editing it. To run `/api/delegate`, export `DELEGATE_CLIENT_ID` and `DELEGATE_CLIENT_SECRET` in the shell that runs `npm run dev`, or start the built server with `node --env-file=.env ./dist/server/entry.mjs`. Only `.env` and `.env.production` are gitignored, so do not create `.env.local` or other variants. The Dockerfile runs `COPY . .`, so `.dockerignore` keeps `.env`, `.env.*`, `.git` and `.claude` (agent worktrees, each with its own `.env`) out of the image; keep it.
+- **.env:** `cp .env.example .env` and uncomment one `PUBLIC_OPENAPI_URL` line. Astro loads `.env` into `import.meta.env` in dev and build, not into `process.env`; restart the dev server after editing it. Only `.env` and `.env.production` are gitignored, so do not create `.env.local` or other variants. The Dockerfile runs `COPY . .`, so `.dockerignore` keeps `.env`, `.env.*`, `.git` and `.claude` (agent worktrees, each with its own `.env`) out of the image; keep it.
 
 ## Configuration
 
 | Variable | Required | Read | Purpose |
 |---|---|---|---|
 | `PUBLIC_OPENAPI_URL` | no | build time (Astro inlines `PUBLIC_*`) | OpenAPI document Scalar renders at `/`. Defaults to the production payment API's `/v4/openapi.json` |
-| `API_BASE_URL` | no | server runtime, when payment-node loads | Payment API base URL for `/api/delegate`. Defaults to production |
-| `DELEGATE_CLIENT_ID`, `DELEGATE_CLIENT_SECRET` | for `/api/delegate` | server runtime, `process.env` on the first request | The demo account's client pair. Without them the route logs the missing names and answers 500; the rest of the site is unaffected |
 | `HOST`, `PORT` | set by Dockerfile | server runtime | Listen address of the standalone server (`0.0.0.0`, `80` in the image) |
 
-- Build-time (`PUBLIC_*`) values for production go in the build step `env` of `.github/workflows/production.yml`. It does not set `PUBLIC_OPENAPI_URL`, so production renders the production document. That step also exports `API_BASE_URL` and `CDN_*` variables; they do not reach the running server, and nothing in `src/` reads the `CDN_*` names. Do not add runtime variables there.
-- The `PUBLIC_OPENAPI_URL` and `API_BASE_URL` defaults are the public production API on purpose, as is the CDN host `Element` and the persona demos load `micropay.js` from: the site documents production and must run with no configuration. This is a deliberate exception to the shared fail-closed and no-hard-coded-host rules, for public endpoint URLs only; a secret never gets a default.
+- Build-time (`PUBLIC_*`) values for production go in the build step `env` of `.github/workflows/production.yml`. It does not set `PUBLIC_OPENAPI_URL`, so production renders the production document. That step also exports `API_BASE_URL` and `CDN_*` variables; they do not reach the running server, and nothing in `src/` reads them. Do not add runtime variables there.
+- The `PUBLIC_OPENAPI_URL` default is the public production API on purpose, as is the CDN host `Element` loads `micropay.js` from: the site documents production and must run with no configuration. This is a deliberate exception to the shared fail-closed and no-hard-coded-host rules, for public endpoint URLs only; a secret never gets a default.
 - Runtime values come from the deployed service's environment, which is managed outside this repo. A new runtime variable needs a maintainer to add it before the change that reads it is merged.
 - Env names inside MDX code samples (for example `VITE_TODAQ_PUBLIC_SECRET`) belong to the integrator's app, not this site.
 
@@ -46,15 +44,13 @@ The public developer documentation site for Qatom payments, served at https://do
 | `src/pages/index.astro` | API reference: `@scalar/astro` in client render mode, Brand OS re-skin (`scalarTheme`), snippet picker limited to curl and Node fetch (`HIDDEN_CLIENTS`), theme sync with the site toggle |
 | `src/content.config.ts` | Collections `guide` and `reference`, loaded by `glob` from `src/content/<collection>/` (Content Layer: an entry's `id` is its path without `.mdx`, and is the URL slug; read it with `getCollection` and `render(entry)` from `astro:content`, and do not rely on the order `getCollection` returns). Frontmatter: `title`, `description`, `pubDate` required; `updatedDate`, `heroImage`, `heroAlt` optional; guides also take `order`, their position in the sidebar (lowest first; guides without one follow by title). Give a new guide an `order` |
 | `src/content/guide/*.mdx` | Guides, served at `/guide/<slug>/` |
-| `src/content/reference/{payment-js,payment-node}/` | SDK references, served at `/reference/<dir>/<slug>/` |
+| `src/content/reference/payment-js/` | SDK references, served at `/reference/payment-js/<slug>/` |
 | `src/pages/{guide,reference}/[...slug].astro` | Prerendered routes for the two collections |
-| `src/layouts/Article.astro` | Page shell and sidebar. Sorts guides by `order` then title and references by `id`, and groups references by `id` prefix (`payment-js`, `payment-node`); other ids are listed ungrouped |
+| `src/layouts/Article.astro` | Page shell and sidebar. Sorts guides by `order` then title and references by `id`, and groups references with the `payment-js` `id` prefix under Payment JS; other ids are listed ungrouped. The HTTP API reference at `/` is linked from the header only |
 | `src/components/Header/Header.astro`, `src/components/Head.astro`, `src/components/ThemeScript.astro` | Header nav and theme toggle, `<head>` (title, fonts), pre-paint theme |
 | `src/components/Navigation/` | Sidebar lists (React, rendered on the server) |
 | `src/components/Element/` | Live element embed for MDX (`<Element type="payment" hash="…" />`, server-rendered: never give it a `client:` directive, because a hydrated island re-renders its mount point after `micropay.js` has mounted and leaves the embed blank); loads `micropay.js` from the CDN host in `environment` (production by default) and passes `theme`, `decimalPoints`, `leading`, `middle`, `trailing` and `styles` to `create()` |
 | `src/components/Gallery/` | `Gallery` and `GalleryItem` (`.astro`): a grid of live `Element` demos for MDX, each with the option that produces it (`code`), an optional `note`, and `dark` for the dark demo page |
-| `src/pages/guide/example/*-persona.astro` | Standalone persona demos, embedded by iframe in `guide/personas.mdx` |
-| `src/pages/api/delegate.ts` | The only server route: `POST /api/delegate` validates a payment and delegates a persona through payment-node, signed in with the `DELEGATE_*` pair from `process.env` |
 | `src/styles/` | `main.css` imports `variables.css` (Brand OS tokens), `reset.css`, `typography.css`, `layout.css` |
 
 The one way to do each thing here:
@@ -65,17 +61,17 @@ The one way to do each thing here:
 - **Components:** `.astro` for page chrome; React `.tsx` only for MDX embeds or interactive parts, with `client:load` only where it must run in the browser.
 - **Theme:** one mechanism, `data-theme` on `<html>` persisted in `localStorage` key `theme`. `ThemeScript.astro` sets it before paint, `Header.astro`'s inline script toggles it, `index.astro` mirrors it into Scalar. Do not add another toggle.
 - **Brand values live in two places:** `variables.css` and `scalarTheme` in `index.astro`. Take values from the Qatom Brand OS kit and change both together.
-- **Unused files, do not import or extend:** `Header/index.tsx`, `Header/ThemeToggle.tsx`, `Examples/SoundAcademy/`, `PersonaExample.tsx`, `constants.ts`, `utils.ts`, `pages/guide/example/index.astro`, `compose.yaml` (serves a missing `./example`). `Scripts.astro` is empty but still rendered by `Article.astro`. Remove them in a dedicated cleanup PR.
+- **Unused files, do not import or extend:** `Header/index.tsx`, `Header/ThemeToggle.tsx`, `Examples/SoundAcademy/`, `constants.ts`, `utils.ts`, `pages/guide/example/index.astro`, `compose.yaml` (serves a missing `./example`). `Scripts.astro` is empty but still rendered by `Article.astro`. Remove them in a dedicated cleanup PR.
 
 ## Testing
 
 - The gate is `npm run build` then `npm test`, on Node 24 (the version in `.nvmrc`, which PR CI uses; it installs Playwright's Chromium before `npm test`). `astro check` type-checks `.astro`/`.ts`/`.tsx`, and the build fails on frontmatter that does not match `src/content.config.ts`. There is no linter; PR CI's `npm run lint --if-present` does nothing until a `lint` script exists.
 - `tests/unit/` (vitest) reads the MDX from disk (`tests/lib/content.ts`) and enforces this file's content rules: required frontmatter, an integer and unique `order` per guide, no `[TOC]`, no `(#)` links, staging hosts only on a line labelled `Staging`, and no real-format credentials (`tqmt_…`, `mp_…`, a UUID under `"key"`, a client secret). A new rule gets a check there.
-- `tests/e2e/` (Playwright) starts `node ./dist/server/entry.mjs` twice on free ports, with `API_BASE_URL=http://127.0.0.1:9` and a dummy or empty `DELEGATE_*` pair, and aborts every request that leaves the local server. It checks each prerendered page (200, a heading), the sidebar's guide order, every internal link and `#anchor` (anchors on `/` are rendered by Scalar in the browser and are not checked), the theme toggle, the Scalar mount on `/` and `/api/delegate`'s 400, 502 and 500. `embeds.live.spec.ts` (every `div[id^="ref-"]` gets an iframe, the #22 regression) runs only with `DOCS_E2E_LIVE=1`.
+- `tests/e2e/` (Playwright) starts `node ./dist/server/entry.mjs` on a free port and aborts every request that leaves the local server. It checks each prerendered page (200, a heading), the sidebar's guide order, every internal link and `#anchor` (anchors on `/` are rendered by Scalar in the browser and are not checked), the theme toggle and the Scalar mount on `/`. `embeds.live.spec.ts` (every `div[id^="ref-"]` gets an iframe, the #22 regression) runs only with `DOCS_E2E_LIVE=1`.
 - Every change also needs: open each changed page in `npm run dev` (or `npm run preview`) in light and dark themes. For reference changes, `/` renders and the picker offers only curl and Node fetch.
 - Code samples: run shell samples against local or staging payment (at minimum `bash -n` on the block), and check paths, methods and fields against the OpenAPI document.
-- Links: the target slug must exist (`/reference/payment-node/usage/`; there is no `/reference/payment-node` page). No `(#)` placeholder links. `[TOC]` is not expanded (no remark plugins are configured), so do not add it.
-- Element embeds, `/guide/example/*` and `/api/delegate` call the production payment API and CDN by default, even in dev. View them, but do not complete payments or submit the persona form while testing. To exercise `/api/delegate` without reaching production, run the built server with `API_BASE_URL=http://127.0.0.1:9` and dummy `DELEGATE_*` values: a valid body answers 502, a malformed one 400, and a missing pair 500.
+- Links: the target slug must exist (`/reference/payment-js/payment-element/`; there is no `/reference/payment-js` page). No `(#)` placeholder links. `[TOC]` is not expanded (no remark plugins are configured), so do not add it.
+- Element embeds call the production payment API and CDN by default, even in dev. View them, but do not complete payments or sign in while testing.
 
 ## Deploy & release
 
@@ -93,10 +89,9 @@ The one way to do each thing here:
 ## Related repos & cross-checks
 
 This site depends on:
-- **payment**: the OpenAPI document rendered at `/`, the v4 endpoints the guides show, and the API behind `/api/delegate` and the demos.
+- **payment**: the OpenAPI document rendered at `/`, the v4 endpoints the guides show, and the API behind the element demos.
 - **payment-js**: `micropay.js`, its browser bundle (`loadMicroPayments(publicSecret)` → `elements().create(type, options)` → `mount(el)`), loaded from the CDN by `Element` and the demos; guides also teach `npm install @todaqmicro/payment-js`. It is the supported, friendly way for integrators to load the elements.
 - **payment-element, auth-element, verify-element, payback-element**: the element UIs payment-js mounts; their options are what the payment-js reference pages document (the payback page, `_payback-element.mdx`, is unpublished).
-- **payment-node**: `@todaqmicro/payment-node`, used by `/api/delegate` (with `apiVersion: 'v2'`) and documented at `/reference/payment-node/usage/`.
 
 Nothing imports this repo, but other services link to it: payment's OpenAPI document (`info.contact`) points at `https://docs.m.todaq.net`, and the OAuth protected-resource metadata served by payment and mcp sets `resource_documentation` to `https://docs.todaq.net/mcp`, a path this site has no page for.
 
@@ -104,18 +99,12 @@ Nothing imports this repo, but other services link to it: payment's OpenAPI docu
 |---|---|
 | An element option, event or theme on a payment-js page | payment-js's element types and options, and the element's repo; the CDN `micropay.js` must already ship it, because these pages describe production |
 | An HTTP sample in a guide | Path, method, auth and body against payment's OpenAPI document (the reference at `/`); new content documents v4 only |
-| `/api/delegate` or the payment-node page | The installed payment-node version in `package-lock.json` and that package's API |
 | Moving or renaming pages, or adding an MCP page | Grep payment and mcp for `docs.m.todaq.net` and `docs.todaq.net`; update `Header.astro` nav links (`/`, `/guide/getting-started/`, `/reference/payment-js/payment-element/`) |
 | Integrator-facing behaviour changes in payment-js or an element repo | A docs PR here describing it, merged once that release is live |
 
 ## Rules specific to this repo
 
 - No credentials in `src/`, MDX or samples. The one exception is the demo account's public secret that live embeds pass to `loadMicroPayments`, which is public by design. Code samples use placeholders: `<PUBLIC_SECRET>` in browser samples, `<CLIENT_ID>` and `<CLIENT_SECRET>` in server samples. Example tokens, secrets and keys are visibly fake, never real-format values or anything copied from a real response. Twin API keys never appear in docs.
-- A credential a server route needs is read from `process.env` by name at runtime. Never give a secret a `PUBLIC_` prefix: `PUBLIC_*` values are inlined into the build.
-- Server routes never log request bodies, emails, payment hashes or nonces, tokens, or SDK objects and responses. Log an event name and a status.
-- Server routes validate their JSON body with zod (`import { z } from 'astro/zod'`) and return 400 on failure.
-- payment-node 0.3.6 itself `console.log`s the client secret, tokens, request headers and the persona's name and email. `/api/delegate` runs every SDK call inside `quietly()`, which mutes `console.log`, and logs with `console.info`/`console.error` only. Keep new SDK calls inside it until a payment-node release stops logging.
-- Recorded exception to the shared v4-only rule: payment-node still calls the payment API's v2 and v3 endpoints, so `/api/delegate` (`apiVersion: 'v2'`) and the payment-node page use it as published until payment-node moves to v4. HTTP samples in guides stay v4.
 - Shell samples run when pasted: a continuation is `\` immediately followed by a newline, with no blank lines inside a command, and paths match the spec exactly (no trailing slash).
 - Integrator-facing samples use the production hosts (`pay.m.todaq.net`, `cdn.m.todaq.net`); staging hosts appear only in an explicitly labelled environment list.
 - Scripts from third-party CDNs load at an exact version; Scalar takes a `cdn` key in its `configuration` for this.
@@ -130,17 +119,15 @@ There is no OpenAPI or Postman file here: `/` renders payment's live `/v4/openap
 |---|---|---|
 | `README.md` | What the site is, how `/` is rendered and previewed (`PUBLIC_OPENAPI_URL`), the `.env.example` variables, content layout, dev, build, preview and test commands. Prerequisites (Node 24). Incomplete: no `API_BASE_URL` or release process; this file takes precedence until it is fixed | Commands, setup, configuration or the content layout change |
 | `CLAUDE.md` (`AGENTS.md` is a symlink to it) | This guide, followed by the shared standards block. | See "Keeping documentation true" |
-| `.env.example` | `PUBLIC_OPENAPI_URL`, with commented local (port 8500) and staging values (unset means production), and the server-only `DELEGATE_CLIENT_ID` / `DELEGATE_CLIENT_SECRET` pair | A variable is added, renamed or removed |
+| `.env.example` | `PUBLIC_OPENAPI_URL`, with commented local (port 8500) and staging values (unset means production) | A variable is added, renamed or removed |
 | `src/pages/index.astro` | The API reference at `/`: Scalar setup, theme and client picker. Endpoint text comes from payment | Scalar configuration or brand values change; endpoint wording changes in payment, not here |
 | `src/content/guide/getting-started.mdx` | Account, token, digital quantity, twin and commodity via v4 curl, the catalog item each commodity is sold through, then loading payment-js (production CDN or npm), mounting a payment element, listening for the `payment` event, and a link to confirming payments on the payment element page | The v4 setup endpoints or the payment-js load flow change |
 | `src/content/guide/reactive-payment.mdx` | Pay to keep watching a video: a complete page that pauses a `<video>` on `timeupdate` after a free preview, hides its controls and shows an overlay with a pay button mounted up front (the viewer presses it: payment-js cannot open checkout from code), then resumes only after the integrator's server redeems the `payment` event through `POST /v4/payment/:hash/validate` (Express sketch); covers the `null` guard from `create()` and the fixed-position iframe | Payment element options, methods or events, or the validate routes change |
 | `src/content/guide/transparent.mdx` | An invisible pay button laid over a 44px strip of the integrator's design: the overlay CSS (iframe stretched to the strip, no `transform` on ancestors), transparent `styles` with `leading`/`trailing` for the accessible name, a script-driven focus ring, the `payment` event, and the limits (44px button height, iframe 100px wider than the button, full-window iframe during checkout) | payment-element's button size, focus or `styles` handling, payment-js's iframe sizing or positioning, or the `payment` event change |
 | `src/content/guide/trie-donation-example.mdx`, `vite-react-donation-example.mdx` | Complete donation pages: static HTML loading `micropay.js` from the production CDN, and Vite + React + TypeScript using payment-js from npm | payment-js's load flow, element options or events change |
-| `src/content/guide/personas.mdx`, `src/pages/guide/example/*-persona.astro` | What personas and passes (delegates) are; issuing a pass after a payment with v4 curl and Node fetch (`POST /v4/account/oauth/token`, `POST /v4/payment/:hash/validate`, `POST /v4/persona/:hash/delegate`); checking for it with the verify element; three iframed demos (signup and delegate, verify by issue number, verify before buying); the signup demo posts to `/api/delegate` (payment-node, v2/v3) | Persona delegation, the verify element or `/api/delegate` change |
 | `src/content/reference/payment-js/payment-element.mdx` | The payment element guide: quick start (CDN and npm), what the shopper sees, the options grouped by topic (item, theme, label, price, look: `styles`), each with live examples beside the code, mounting and `destroy()`, the `payment` event, confirming a payment with `GET`/`POST /v4/payment/:hash/validate`, and troubleshooting | payment-element's button options, payment-js's `create()` options or events, or the validate routes change |
 | `src/content/reference/payment-js/auth-element.mdx` | The auth element guide: quick start (CDN and npm), what the shopper sees, the options grouped by topic (account, theme, label, look: `styles`), each with live examples beside the code, mounting and `destroy()`, the `authorized` event (it also fires on load for a returning shopper), and charging with the session through `POST /v4/paywall` (`public_secret` in the body, `X-Session-ID`, `catalog_item_id`) and `POST /v4/paywall/preauthorization` | auth-element's button options, payment-js's `create()` options or events, or the paywall's session authentication change |
 | `src/content/reference/payment-js/_payback-element.mdx` | Unpublished (leading `_`): payback element, consent, `destroy()` and dark mode | Publishing it or changing payback element options |
-| `src/content/reference/payment-node/usage.mdx` | Constructor, `Commodity.createCommodity`, `Payment.validPayment`. Out of date: Installation has no command, the Twins sections are empty, and the `validPayment` sample has no `await` and no `timestamp`; the installed package takes precedence until it is fixed | payment-node's API changes |
 
 <!-- BEGIN QATOM ORG STANDARDS v1 (public edition) — identical in every public TODAQmicro repo; change all copies together -->
 ## Qatom engineering standards

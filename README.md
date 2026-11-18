@@ -36,13 +36,10 @@ The variables in `.env.example`:
 | Variable | Read | Purpose |
 |---|---|---|
 | `PUBLIC_OPENAPI_URL` | build time | OpenAPI document the reference at `/` renders. Defaults to production |
-| `DELEGATE_CLIENT_ID`, `DELEGATE_CLIENT_SECRET` | server runtime, from `process.env` | The demo account's client pair, which `/api/delegate` (the persona demo's server route) uses to call the payment API. Required by that route, which answers 500 without them |
 
-Astro loads `.env` into `import.meta.env`, not into `process.env`. To run
-`/api/delegate` locally, export the pair in the shell that runs `npm run dev`,
-or start the built server with `node --env-file=.env ./dist/server/entry.mjs`.
-Never commit a client secret or give it a `PUBLIC_` prefix: `PUBLIC_*` values
-are inlined into the build, and this repository is public.
+Astro loads `.env` into `import.meta.env` at build time. `PUBLIC_*` values are
+inlined into the build, and this repository is public, so never put a secret in
+one.
 
 ## How HTML is Generated
 
@@ -76,10 +73,9 @@ npm test                         # test:unit (vitest) then test:e2e (Playwright)
   frontmatter, unique guide `order`, no `[TOC]` or `(#)` links, staging hosts
   only in a labelled environment list, and no real-format credentials.
 - `npm run test:e2e` (`tests/e2e/`) starts `node ./dist/server/entry.mjs` on a
-  free port, with `/api/delegate` pointed at a closed local port, blocks every
-  request that leaves the local server, and checks each page, the sidebar
-  order, internal links and anchors, the theme toggle, the API reference mount
-  and `/api/delegate`'s error answers.
+  free port, blocks every request that leaves the local server, and checks each
+  page, the sidebar order, internal links and anchors, the theme toggle and the
+  API reference mount.
 - `DOCS_E2E_LIVE=1 npx playwright test embeds` also checks that the live
   element embeds mount. It loads production's CDN and API, so CI does not run it.
 - To use a Chromium that is already installed, set
@@ -99,11 +95,9 @@ version in `.nvmrc` (24).
 src/content/
 ├── guide/           # User guides (.mdx files)
 │   ├── getting-started.mdx
-│   ├── personas.mdx
 │   └── ...
 └── reference/       # SDK documentation (.mdx files)
-    ├── payment-js/
-    └── payment-node/
+    └── payment-js/
 
 ```
 
