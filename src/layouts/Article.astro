@@ -12,20 +12,24 @@ const guides = (await getCollection('guide')).sort((a, b) =>
   (a.data.order ?? Infinity) - (b.data.order ?? Infinity) ||
   a.data.title.localeCompare(b.data.title)
 );
-const allReferences = [ ...await getCollection('reference') ];
+// Content Layer collections come back in no fixed order: list references by
+// path, as the file system did.
+const allReferences = (await getCollection('reference')).sort((a, b) =>
+  a.id.localeCompare(b.id)
+);
 
 // The HTTP API reference is no longer written by hand: it is rendered by Scalar
 // at / from the OpenAPI document the payment API generates about itself. What
 // remains in this collection is the SDK documentation, which Scalar does not
 // cover.
-const paymentJsIndex = allReferences.filter(entry => (entry.slug as string) === 'payment-js');
-const paymentJsChildren = allReferences.filter(entry => entry.slug.startsWith('payment-js/'));
+const paymentJsIndex = allReferences.filter(entry => entry.id === 'payment-js');
+const paymentJsChildren = allReferences.filter(entry => entry.id.startsWith('payment-js/'));
 
-const paymentNodeItems = allReferences.filter(entry => entry.slug.startsWith('payment-node'));
+const paymentNodeItems = allReferences.filter(entry => entry.id.startsWith('payment-node'));
 
 const generalReferences = allReferences.filter(entry =>
-  !entry.slug.startsWith('payment-js') &&
-  !entry.slug.startsWith('payment-node')
+  !entry.id.startsWith('payment-js') &&
+  !entry.id.startsWith('payment-node')
 );
 ---
 

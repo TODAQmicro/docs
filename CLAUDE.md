@@ -1,13 +1,13 @@
 # docs
 
-The public developer documentation site for Qatom payments, served at https://docs.m.todaq.net and read by merchants and developers integrating the platform. The home page `/` is the HTTP API reference: Scalar renders the payment API's own OpenAPI document (`/v4/openapi.json`) in the browser, so it always describes what the API is running. Around it sit hand-written MDX guides, SDK references for payment-js (the browser loader for the payment, auth, verify and payback elements, in the spirit of stripe-js) and payment-node, live element demos, and one server route that backs the persona demo. Stack: Astro 4 with React islands and the `@astrojs/node` standalone adapter (`output: "server"`); guide and reference pages are prerendered at build; TypeScript uses Astro's strict config.
+The public developer documentation site for Qatom payments, served at https://docs.m.todaq.net and read by merchants and developers integrating the platform. The home page `/` is the HTTP API reference: Scalar renders the payment API's own OpenAPI document (`/v4/openapi.json`) in the browser, so it always describes what the API is running. Around it sit hand-written MDX guides, SDK references for payment-js (the browser loader for the payment, auth, verify and payback elements, in the spirit of stripe-js) and payment-node, live element demos, and one server route that backs the persona demo. Stack: Astro 7 with React islands and the `@astrojs/node` standalone adapter (`output: "server"`); guide and reference pages are prerendered at build; TypeScript uses Astro's strict config.
 
 ## Commands
 
 | Task | Command |
 |---|---|
 | Install | `npm ci` (CI uses it; `npm install` when changing dependencies) |
-| Dev server | `npm run dev` (alias `npm start`), http://localhost:4321. `.claude/launch.json` defines this as the `docs` preview |
+| Dev server | `npm run dev` (alias `npm start`), http://localhost:4321. Run by an agent, Astro starts it in the background and returns: stop it with `npx astro dev stop` (`status`, `logs`), or pass `-- --ignore-lock` to keep it in the foreground, as `.claude/launch.json` (the `docs` preview) does. `npm run preview` does the same |
 | Type-check only | `npx astro check` |
 | Build | `npm run build` = `astro check && astro build`, output in `dist/` |
 | Preview the build | `npm run preview` |
@@ -44,11 +44,11 @@ The public developer documentation site for Qatom payments, served at https://do
 | Path | Role |
 |---|---|
 | `src/pages/index.astro` | API reference: `@scalar/astro` in client render mode, Brand OS re-skin (`scalarTheme`), snippet picker limited to curl and Node fetch (`HIDDEN_CLIENTS`), theme sync with the site toggle |
-| `src/content/config.ts` | Collections `guide` and `reference`. Frontmatter: `title`, `description`, `pubDate` required; `updatedDate`, `heroImage`, `heroAlt` optional; guides also take `order`, their position in the sidebar (lowest first; guides without one follow by title). Give a new guide an `order` |
+| `src/content.config.ts` | Collections `guide` and `reference`, loaded by `glob` from `src/content/<collection>/` (Content Layer: an entry's `id` is its path without `.mdx`, and is the URL slug; read it with `getCollection` and `render(entry)` from `astro:content`, and do not rely on the order `getCollection` returns). Frontmatter: `title`, `description`, `pubDate` required; `updatedDate`, `heroImage`, `heroAlt` optional; guides also take `order`, their position in the sidebar (lowest first; guides without one follow by title). Give a new guide an `order` |
 | `src/content/guide/*.mdx` | Guides, served at `/guide/<slug>/` |
 | `src/content/reference/{payment-js,payment-node}/` | SDK references, served at `/reference/<dir>/<slug>/` |
 | `src/pages/{guide,reference}/[...slug].astro` | Prerendered routes for the two collections |
-| `src/layouts/Article.astro` | Page shell and sidebar. Groups references by slug prefix (`payment-js`, `payment-node`); other slugs are listed ungrouped |
+| `src/layouts/Article.astro` | Page shell and sidebar. Sorts guides by `order` then title and references by `id`, and groups references by `id` prefix (`payment-js`, `payment-node`); other ids are listed ungrouped |
 | `src/components/Header/Header.astro`, `src/components/Head.astro`, `src/components/ThemeScript.astro` | Header nav and theme toggle, `<head>` (title, fonts), pre-paint theme |
 | `src/components/Navigation/` | Sidebar lists (React, rendered on the server) |
 | `src/components/Element/` | Live element embed for MDX (`<Element type="payment" hash="…" />`, server-rendered: never give it a `client:` directive, because a hydrated island re-renders its mount point after `micropay.js` has mounted and leaves the embed blank); loads `micropay.js` from the CDN host in `environment` (production by default) and passes `theme`, `decimalPoints`, `leading`, `middle`, `trailing` and `styles` to `create()` |
@@ -69,10 +69,9 @@ The one way to do each thing here:
 
 ## Testing
 
-- The gate is `npm run build` then `npm test`, on Node 24 (the version in `.nvmrc`, which PR CI uses; it installs Playwright's Chromium before `npm test`). `astro check` type-checks `.astro`/`.ts`/`.tsx`, and the build fails on frontmatter that does not match `src/content/config.ts`. There is no linter; PR CI's `npm run lint --if-present` does nothing until a `lint` script exists.
+- The gate is `npm run build` then `npm test`, on Node 24 (the version in `.nvmrc`, which PR CI uses; it installs Playwright's Chromium before `npm test`). `astro check` type-checks `.astro`/`.ts`/`.tsx`, and the build fails on frontmatter that does not match `src/content.config.ts`. There is no linter; PR CI's `npm run lint --if-present` does nothing until a `lint` script exists.
 - `tests/unit/` (vitest) reads the MDX from disk (`tests/lib/content.ts`) and enforces this file's content rules: required frontmatter, an integer and unique `order` per guide, no `[TOC]`, no `(#)` links, staging hosts only on a line labelled `Staging`, and no real-format credentials (`tqmt_…`, `mp_…`, a UUID under `"key"`, a client secret). A new rule gets a check there.
 - `tests/e2e/` (Playwright) starts `node ./dist/server/entry.mjs` twice on free ports, with `API_BASE_URL=http://127.0.0.1:9` and a dummy or empty `DELEGATE_*` pair, and aborts every request that leaves the local server. It checks each prerendered page (200, a heading), the sidebar's guide order, every internal link and `#anchor` (anchors on `/` are rendered by Scalar in the browser and are not checked), the theme toggle, the Scalar mount on `/` and `/api/delegate`'s 400, 502 and 500. `embeds.live.spec.ts` (every `div[id^="ref-"]` gets an iframe, the #22 regression) runs only with `DOCS_E2E_LIVE=1`.
-- Pins held from the Astro 4 and Node 18 era, to lift with the Astro 7 upgrade: `@playwright/test` 1.61.1 and `vitest` 3.2.7 (later releases need Node 20+; vitest 3 still carries dev-only `@vitest/mocker` and `tinypool` advisories), the `overrides` entry `@astrojs/language-server` 2.16.16 (2.17 makes `astro check` fail on Node 18 with `ERR_REQUIRE_ESM`), and `@astrojs/sitemap` 3.6.0 (3.6.1 and later fail `astro build` on Astro 4 in `astro:build:done`). `npm audit fix` without `--force` respects them.
 - Every change also needs: open each changed page in `npm run dev` (or `npm run preview`) in light and dark themes. For reference changes, `/` renders and the picker offers only curl and Node fetch.
 - Code samples: run shell samples against local or staging payment (at minimum `bash -n` on the block), and check paths, methods and fields against the OpenAPI document.
 - Links: the target slug must exist (`/reference/payment-node/usage/`; there is no `/reference/payment-node` page). No `(#)` placeholder links. `[TOC]` is not expanded (no remark plugins are configured), so do not add it.

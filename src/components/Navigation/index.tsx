@@ -19,7 +19,7 @@ export default function Navigation({ entries = [], root = false }: Props) {
           ? null
           : (
             <li className="nav-item">
-              <a href={`/${entry.collection}/${entry.slug}/`} className="nav-link">
+              <a href={`/${entry.collection}/${entry.id}/`} className="nav-link">
                 {entry.data.title}
               </a>
               {entry.data.description ? <p className="nav-desc">{entry.data.description}</p> : null}

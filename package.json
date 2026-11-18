@@ -16,29 +16,25 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.3",
-    "@astrojs/mdx": "^3.1.4",
-    "@astrojs/node": "^8.3.4",
-    "@astrojs/react": "^3.6.2",
-    "@astrojs/sitemap": "3.6.0",
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/mdx": "^8.1.6",
+    "@astrojs/node": "^11.1.13",
+    "@astrojs/react": "^7.1.9",
+    "@astrojs/sitemap": "^3.7.5",
     "@emotion/react": "^11.13.3",
-    "@scalar/astro": "^0.4.18",
+    "@scalar/astro": "^0.4.39",
     "@todaqmicro/payment-js": "^0.5.1",
     "@todaqmicro/payment-node": "^0.3.4",
-    "astro": "^4.13.4",
+    "astro": "^7.4.12",
     "react-wavify": "^1.11.1",
     "theme-ui": "^0.16.2",
-    "typescript": "^5.3.3",
-    "uuid": "^10.0.0"
+    "typescript": "^5.9.3",
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.1",
-    "@types/react": "^18.2.60",
-    "@types/uuid": "^10.0.0",
-    "vitest": "3.2.7",
+    "@playwright/test": "^1.65.1",
+    "@types/react": "^19.3.0",
+    "vitest": "^5.1.1",
     "yaml": "2.9.1"
-  },
-  "overrides": {
-    "@astrojs/language-server": "2.16.16"
   }
 }

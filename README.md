@@ -50,7 +50,7 @@ This documentation site uses **Astro** with the following architecture:
 
 ### Content Management
 - **MDX Files**: Documentation is written in `.mdx` files in `src/content/`
-- **Collections**: Organized into two collections defined in `src/content/config.ts`:
+- **Collections**: Organized into two collections defined in `src/content.config.ts` (Content Layer `glob` loaders; files and folders starting with `_` are left out):
   - `guide/` - User guides and tutorials
   - `reference/` - API documentation and technical references
 - **Frontmatter**: Each file has metadata (title, description, pubDate, etc.)
