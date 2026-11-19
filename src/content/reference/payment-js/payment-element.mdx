@@ -2,7 +2,7 @@
 title: Payment Element
 description: Add a Qatom pay button to your page, configure how it looks, and confirm each payment on your server.
 pubDate: July 25, 2024
-updatedDate: November 18, 2026
+updatedDate: November 19, 2026
 ---
 import Element from "../../../components/Element";
 import Gallery from "../../../components/Gallery/Gallery.astro";
@@ -64,9 +64,12 @@ Always pass `{ apiVersion: "main" }`: it is the only version, and `loadMicroPaym
 
 1. **The pay button**, on your page, showing the item's price.
 2. **Checkout**, a sheet that opens from the bottom of the screen over your page. The shopper enters their email and types the code they are sent. If they use the Qatom app, they approve the sign-in there instead.
-3. **Confirm**: the item's total, their wallet balance, and what will remain. One tap pays from the wallet.
-4. **Top up**, only when the wallet cannot cover the price: they choose an amount and pay by card. Card payments are processed by Stripe; card details never reach your page or Qatom.
-5. **Payment complete**: the sheet closes and your page receives the `payment` event.
+3. **Pay**: the item's total, and a **Pay from** choice of how to pay.
+   - **Credit card**, the default: the card form is on the sheet, and paying charges the price to their card.
+   - **One of their Qatom wallets**: the sheet shows the wallet's balance and what will remain, and one tap pays from it. If the wallet cannot cover the price, they can top it up by card first.
+
+   Card payments are processed by Stripe; card details never reach your page or Qatom. Either way, you receive the same payment.
+4. **Payment complete**: the sheet closes and your page receives the `payment` event.
 
 A shopper with no Qatom wallet gets one as part of this; there is nothing for you to set up.
 
