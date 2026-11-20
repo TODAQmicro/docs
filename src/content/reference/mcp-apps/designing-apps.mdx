@@ -1,0 +1,155 @@
+---
+title: MCP Apps for your items
+description: Design how buyers see an item inside Claude, ChatGPT and other AI chats, from the offer to what was delivered, with Qatom's app designer.
+pubDate: 2026-11-20
+---
+
+An **MCP App** is the view a buyer sees inside an AI chat when their assistant buys one of your items: a card drawn right in the conversation, instead of a block of text. Qatom lets you design one for any item you sell through your MCP server, without writing code.
+
+Chat clients that draw MCP Apps (Claude, ChatGPT and others) show your app. Clients that do not still get the same purchase as plain text, so an app never stops a sale.
+
+## Before you start
+
+- **The item must be featured on your MCP server.** A featured item is a tool on your server, and only a tool can carry an app. Buyers never see an app on an item that is not featured.
+- **The app must be published.** You can save drafts as often as you like; buyers only see the version you publish.
+- **Buyers reach it through your server.** The app is drawn when an assistant calls the item's tool on your MCP server.
+
+## The three moments
+
+An app has three moments, each with its own blocks:
+
+| Moment | When the buyer sees it |
+|---|---|
+| **Before payment** | The assistant has asked to buy the item and is waiting for the buyer to approve it. |
+| **Delivered** | The purchase went through. This moment can show what your endpoint answered. |
+| **Failed** | The purchase did not go through, or your endpoint could not deliver. |
+
+A free item, or one within the buyer's auto-approve limit, goes straight to Delivered or Failed.
+
+## What Qatom always draws
+
+Around your blocks, Qatom draws its own parts. You cannot change or remove them, so a buyer can always trust them:
+
+- **Before payment:** "Waiting for your approval", the price, and an **Approve in Qatom** button.
+- **Delivered:** the amount paid and the transaction.
+- **Failed:** what went wrong, and whether anything was charged.
+- Under the app: "Sold through Qatom".
+
+Your app does not need to say any of this again. A Failed moment with no blocks still tells the buyer what happened.
+
+## Designing an app
+
+Open the item in the Qatom dashboard (**Catalog**, then the item), then **App**. With no app yet, describe what buyers should see and let the assistant draft one, start from a template, or start blank.
+
+The designer shows your app inside a chat, as a buyer meets it:
+
+- **Components** (left): every kind of block. Drag one into the chat and drop it on a dotted slot, or click it to add it after the picked block.
+- **The chat** (middle): click a block to pick it. Double-click text you wrote to type over it. Press and drag a block to move it; drag it off the chat and let go to remove it.
+- **The side panel** (right): the picked block's settings, then the sample values the preview is drawn from.
+- **Endpoint** (left): your item's endpoint and method. **Run Test** calls it once with the sample's inputs, charging nothing, so Delivered shows the fields your endpoint really sends.
+- **Container** (left): settings for the whole app (see [Container](#container)).
+- **Before payment / Delivered / Failed** (toolbar): which moment you are editing.
+- **Design / Preview / Code** (toolbar): edit, see it exactly as a buyer will, or edit it as YAML or JSON.
+
+**Publish** opens a checklist: the item is featured, it was tried with a test call (recommended), every value the app reads is in your endpoint's answer, and nothing needs fixing.
+
+## Values
+
+Text in a block can show values, written `{{ … }}`. In the designer they appear as chips; add one with **+ Value**.
+
+| Value | What it is | Where |
+|---|---|---|
+| `{{ item.name }}` | The item's name. Also `item.description`, `item.price` and `item.seller` | Every moment |
+| `{{ input.city }}` | What the buyer asked for: one of your item's inputs, by name | Every moment |
+| `{{ result.title }}` | A field of your endpoint's answer, by path: `result.order.id`, `result.days[0].high` | Delivered only |
+| `{{ each.name }}` | A field of one entry, inside a List's rows | Inside a List |
+
+A value the sample does not have is left out when the app is drawn, so write text that still reads well without it.
+
+## Blocks
+
+| Component | Block type | Fields |
+|---|---|---|
+| Header | `hero` | `title`, `subtitle`, `icon`, `tag`, `tone` |
+| Text | `text` | `text`, `style` (`body`, `lead`, `muted`, `small`) |
+| Image | `image` | `src` (an uploaded image), `alt`, `shape` (`wide`, `square`, `banner`) |
+| Details | `details` | `title`, `rows`: each `label`, `value`, `mono`, `copy` |
+| Figures | `stats` | `items`: up to four, each `label`, `value`, `unit` |
+| List | `list` | `title`, `from` (a list, such as `result.items`), `primary`, `secondary`, `meta`, `max`, `empty` |
+| Steps | `steps` | `title`, `items` |
+| Tags | `tags` | `items`: each `label`, `tone` |
+| Callout | `callout` | `tone` (`info`, `positive`, `caution`, `critical`), `title`, `text` |
+| Buttons | `buttons` | `items`: up to three, each `label`, `url`, `style` (`primary`, `secondary`) |
+| Code | `code` | `label`, `value`, `copy` |
+| What they asked for | `inputs` | `title` |
+| Price | `price` | `label` |
+| Divider | `divider` | none |
+| HTML | `html` | `html`, `hosts`, `height`, `label`. See [The HTML component and window.qatom](/reference/mcp-apps/html-component/) |
+
+Header icons: `sparkles`, `clock`, `timer`, `mail`, `globe`, `lock`, `wallet`, `check-circle`, `alert-circle`, `info`, `users`, `user`, `bar-chart`, `trending-up`, `link`, `home`, `grid`, `list`, `bell`, `search`, `settings`.
+
+The price is always Qatom's: show it with the Price block, which reads the real price, never by typing it.
+
+### Showing a block only sometimes
+
+Every block can carry `when`, a value it is shown only when set, such as `when: result.alert`. In the designer this is **Show this block** in the block's settings. Use it for something your endpoint sends only sometimes, such as an alert or a tracking link.
+
+## Container
+
+Settings for the whole app, in every moment:
+
+| Setting | Field | Options |
+|---|---|---|
+| Icon | `theme.icon`, `theme.tone` | The colour (`accent`, `positive`, `caution`, `critical`, `neutral`), hidden (`icon: none`), or your own uploaded image in place of every header's icon |
+| Layout | `theme.layout` | `card` draws the app on a card; `plain` draws it straight on the chat |
+| Spacing | `theme.density` | `comfortable` (Space), `compact`, or `none`: no padding around the app's content |
+
+## Writing an app as YAML
+
+**Code** shows the same app as YAML or JSON; edits there and in Design are the same change. A small app:
+
+```yaml
+app: 1
+theme:
+  tone: accent
+  layout: card
+  density: comfortable
+offer:
+  - type: hero
+    title: "{{ item.name }}"
+    subtitle: "For {{ input.city }}"
+    icon: sparkles
+  - type: inputs
+    title: You asked for
+  - type: price
+delivered:
+  - type: hero
+    title: "{{ result.title }}"
+    icon: check-circle
+    tone: positive
+  - type: stats
+    items:
+      - label: High
+        value: "{{ result.high }}"
+        unit: "°C"
+  - type: buttons
+    items:
+      - label: Full report
+        url: "{{ result.url }}"
+failed:
+  - type: text
+    text: Something went wrong on our side. Write to help@example.com and we will sort it out.
+    style: muted
+```
+
+## Limits
+
+- Up to 40 blocks in each moment, and up to 4 images (about 36 KB each).
+- An uploaded icon is drawn small: up to about 12 KB.
+- The whole app is at most 128 KB as JSON.
+- Images are uploaded, never linked from another site.
+- Links in Buttons open only `http` and `https` addresses.
+
+## Where an app cannot go
+
+An app is drawn in its own sandboxed frame inside the chat. It cannot draw outside its space, reach the chat around it, or read anything from the buyer's page. That is what makes it safe for buyers to open an app from any merchant.

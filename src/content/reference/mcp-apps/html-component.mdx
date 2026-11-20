@@ -1,0 +1,173 @@
+---
+title: The HTML component and window.qatom
+description: Put your own HTML and script in an item's MCP App, in a sandbox, and read the purchase's values with window.qatom.
+pubDate: 2026-11-20
+---
+
+The **HTML** component is the one part of an [MCP App](/reference/mcp-apps/designing-apps/) you write yourself: your own HTML, CSS and JavaScript, for a fully branded part of the app. It runs in a sandbox, and talks to the app through one object, `window.qatom`.
+
+Add it from the designer's Components, under **Custom**. Its settings are:
+
+| Setting | Field | What it is |
+|---|---|---|
+| Code | `html` | Your HTML, with any `<style>` and `<script>`. Up to 96 KB |
+| Hosts | `hosts` | Up to 10 `https` hosts your code may load from or call, such as `cdn.example.com` |
+| Starting height | `height` | Its height in pixels until your code sizes it: 40 to 2000. Defaults to 160 |
+| Name | `label` | A name for screen readers, such as "Seat map" |
+
+## The sandbox
+
+Your code runs in its own frame, sandboxed to scripts only. It has a unique origin, so:
+
+- It cannot read or change the app around it, the chat, or the buyer's page, their cookies or their storage.
+- It cannot navigate the page, open pop-ups, submit forms, or show `alert`, `confirm` or `prompt` dialogs.
+- It cannot draw outside its frame. `position: fixed`, `z-index`, negative margins and transforms all work, but only inside the frame. It is as wide as the app's card, and as tall as it asks to be.
+- It reaches the network only through the hosts you list. Everything else is blocked by its Content Security Policy:
+
+| What | Allowed |
+|---|---|
+| Inline `<script>` and `<style>` | Yes |
+| Scripts, styles, fonts, images, media and `fetch`/WebSocket | From your listed `https` hosts only |
+| Images, fonts and media as `data:` (and images and media as `blob:`) | Yes |
+| Other frames, workers, plugins, `<base>`, form posts | No |
+
+A host must be a domain name over `https`, with an optional `*.` in front. IP addresses, ports, paths and `http` are refused.
+
+## window.qatom
+
+Before your HTML runs, the frame defines `window.qatom`. It has one property and three methods.
+
+### values
+
+The moment's values, or `null` until they arrive. They arrive just after your frame loads, so read them with [`onValues`](#onvaluesfn) rather than at the top of your script.
+
+```js
+{
+  state: "offer", // "offer", "delivered" or "failed"
+  item: {
+    name: "Weather Now",
+    description: "Current conditions",
+    price: "$0.250",
+    seller: "Example Co"
+  },
+  input: { city: "Lisbon" }, // the buyer's inputs
+  result: undefined, // the answer, once "delivered"
+  preview: false // true in the dashboard's designer
+}
+```
+
+| Field | Type | What it is |
+|---|---|---|
+| `state` | `"offer"`, `"delivered"` or `"failed"` | Which moment is being drawn |
+| `item` | object | The item's `name`, `description`, `price` (formatted) and `seller` |
+| `input` | object | The buyer's inputs, by name |
+| `result` | any | Your endpoint's answer, as it sent it. Present only when `state` is `"delivered"` |
+| `preview` | boolean | `true` while you design or preview the app in the dashboard, with sample values |
+
+`values` is read-only and is a copy: changing it changes nothing in the app.
+
+### onValues(fn)
+
+Calls `fn(values)` when the values arrive, and at once if they already have. Register it at the top of your script.
+
+```html
+<div id="greeting"></div>
+<script>
+  window.qatom.onValues(function (v) {
+    var delivered = v.state === "delivered" && v.result;
+    var name = delivered ? v.result.title : v.item.name;
+    document.getElementById("greeting").textContent = name;
+  });
+</script>
+```
+
+Write values into the page with `textContent`, not `innerHTML`: they include what the buyer typed and what your endpoint answered.
+
+### openLink(url)
+
+Asks the chat to open `url` in the buyer's browser, outside the chat. Only `http` and `https` addresses are opened. Call it from a click; it does nothing in the designer.
+
+```html
+<button id="track">Track my order</button>
+<script>
+  var track = document.getElementById("track");
+  track.addEventListener("click", function () {
+    var v = window.qatom.values;
+    var url = v && v.result && v.result.tracking_url;
+    if (url) window.qatom.openLink(url);
+  });
+</script>
+```
+
+A plain `<a href>` does nothing inside the sandbox; use `openLink`.
+
+### resize()
+
+Measures your page's `<body>` and asks for that height (kept between 40 and 2000 pixels). It takes no argument.
+
+You rarely need to call it: the frame resizes itself when it loads, whenever the body changes size, and after the values arrive. Call it after a change the body's size does not show, such as an image you load later.
+
+```js
+img.addEventListener("load", function () {
+  window.qatom.resize();
+});
+```
+
+## A complete example
+
+```html
+<style>
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; }
+  .banner {
+    padding: 16px;
+    border-radius: 12px;
+    background: #0f2a2e;
+    color: #e8f6f3;
+  }
+  .banner h2 { margin: 0 0 4px; font-size: 18px; }
+  .banner button {
+    margin-top: 12px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+</style>
+<div class="banner">
+  <h2 id="title"></h2>
+  <p id="line"></p>
+  <button id="open" hidden>See your forecast</button>
+</div>
+<script>
+  window.qatom.onValues(function (v) {
+    var line = document.getElementById("line");
+    var open = document.getElementById("open");
+    document.getElementById("title").textContent = v.item.name;
+    if (v.state === "delivered" && v.result) {
+      line.textContent =
+        "High of " + v.result.high + "°C in " + v.input.city + ".";
+      open.hidden = !v.result.url;
+      open.onclick = function () {
+        window.qatom.openLink(v.result.url);
+      };
+    } else {
+      line.textContent =
+        "Your forecast for " + v.input.city + " shows here once you approve.";
+    }
+  });
+</script>
+```
+
+## In the designer
+
+- The block is drawn with the sample's values, and `preview` is `true`.
+- A click on it picks the block, so your code receives no clicks there; try them in **Preview**.
+- `openLink` does nothing while designing.
+- After you change the hosts, the preview reloads so your code can reach them.
+
+## Limits
+
+- 96 KB of HTML per block, and the whole app is at most 128 KB as JSON.
+- Up to 10 hosts per block.
+- Height from 40 to 2000 pixels; the width is the card's.
+- The assistant that drafts apps never writes an HTML block: it is yours alone.

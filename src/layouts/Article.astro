@@ -25,7 +25,11 @@ const allReferences = (await getCollection('reference')).sort((a, b) =>
 const paymentJsIndex = allReferences.filter(entry => entry.id === 'payment-js');
 const paymentJsChildren = allReferences.filter(entry => entry.id.startsWith('payment-js/'));
 
-const generalReferences = allReferences.filter(entry => !entry.id.startsWith('payment-js'));
+const mcpApps = allReferences.filter(entry => entry.id.startsWith('mcp-apps/'));
+
+const generalReferences = allReferences.filter(
+  entry => !entry.id.startsWith('payment-js') && !entry.id.startsWith('mcp-apps')
+);
 ---
 
 <!doctype html>
@@ -46,6 +50,13 @@ const generalReferences = allReferences.filter(entry => !entry.id.startsWith('pa
           <div class="nav-tree-children">
             <Navigation entries={paymentJsIndex} root={false}/>
             <Navigation entries={paymentJsChildren} root={false}/>
+          </div>
+        </div>
+
+        <div class="nav-tree-node">
+          <div class="nav-tree-header">MCP Apps</div>
+          <div class="nav-tree-children">
+            <Navigation entries={mcpApps} root={false}/>
           </div>
         </div>
 
